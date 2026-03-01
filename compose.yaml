@@ -1,0 +1,65 @@
+services:
+  api:
+    user: "${UID:-1000}:${GID:-1000}"
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: build
+    container_name: backend-api
+    # image: mcr.microsoft.com/dotnet/sdk:10.0
+    volumes:
+      - .:/workspaces/fullstack-app:z
+      - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets
+    working_dir: /workspaces/fullstack-app/backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_OBJDIR=/tmp/dotnet/obj
+      - DOTNET_BINDIR=/tmp/dotnet/bin
+      - DOTNET_COMMON_OUTPUT_PATH=/tmp/dotnet/out/
+      - DOTNET_CLI_HOME=/tmp/dotnet_home
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - DOTNET_CLI_TELEMETRY_OPTOUT=1
+      - DOTNET_SKIP_WORKLOAD_INTEGRITY_CHECK=true
+    command: "dotnet watch run --non-interactive"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    container_name: backend-db
+    environment:
+      - POSTGRES_DB=backend_db
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d backend_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    image: node:22-bookworm
+    container_name: angular-frontend
+    working_dir: /workspaces/fullstack-app/frontend-angular
+    volumes:
+      - ./frontend-angular:/workspaces/fullstack-app/frontend-angular:z
+      - angular_node_modules:/workspaces/fullstack-app/frontend-angular/node_modules
+    ports:
+      - "4200:4200"
+      - "4000:4000"
+    command: "sh -c 'npm install && npm start'"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  angular_node_modules:
