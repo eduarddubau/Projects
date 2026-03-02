@@ -28,6 +28,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   db:
     image: postgres:17-alpine
@@ -47,18 +52,24 @@ services:
       retries: 5
 
   frontend:
-    image: node:22-bookworm
-    container_name: angular-frontend
-    working_dir: /workspaces/fullstack-app/frontend-angular
+    image: node:24-alpine
+    container_name: frontend-angular
+    working_dir: /app
     volumes:
-      - ./frontend-angular:/workspaces/fullstack-app/frontend-angular:z
-      - angular_node_modules:/workspaces/fullstack-app/frontend-angular/node_modules
+      - ./frontend-angular:/app:z
+      - angular_node_modules:/app/node_modules
     ports:
       - "4200:4200"
       - "4000:4000"
-    command: "sh -c 'npm install && npm start'"
+    command: >
+      sh -c "if [ ! -d 'node_modules' ] || [ ! -f 'node_modules/.bin/ng' ]; then npm install; fi &&
+             npx ng serve --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:

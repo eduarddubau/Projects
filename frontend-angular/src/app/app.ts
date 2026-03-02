@@ -1,12 +1,42 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, signal, inject, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { DatePipe } from '@angular/common';
+import { API_URL } from './app.tokens';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [DatePipe],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  protected readonly title = signal('frontend-angular');
+
+export class App implements OnInit {
+  private http = inject(HttpClient);
+  private apiUrl = inject<string>(API_URL);
+  
+  connectionStatus = signal<string>('Checking...');
+  connectionColor = signal<string>('#666');
+  apiData = signal<any>(null);
+
+  ngOnInit() {
+    this.checkConnection();
+  }
+
+  checkConnection() {
+    this.connectionStatus.set('Connecting...');
+    
+    this.http.get(`${this.apiUrl}/api/health`).subscribe({
+      next: (data: any) => {
+        this.apiData.set(data);
+        this.connectionStatus.set('Backend Reachable');
+        this.connectionColor.set('#28a745'); // Success Green
+      },
+      error: (err) => {
+        console.error('Bridge failed:', err);
+        this.apiData.set(null);
+        this.connectionStatus.set('Connection Failed');
+        this.connectionColor.set('#dc3545'); // Danger Red
+      }
+    });
+  }
 }

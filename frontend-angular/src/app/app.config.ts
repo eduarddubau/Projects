@@ -6,12 +6,14 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 
+import { API_URL } from './app.tokens';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withFetch()),
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
-    { provide: 'API_URL', useValue: '' }
+    { provide: API_URL, useValue: '' }
   ],
 };

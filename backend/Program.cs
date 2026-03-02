@@ -3,6 +3,8 @@ using Scalar.AspNetCore;
 using Backend.Data;
 using System.Text.Json.Serialization;
 using Backend.Middleware;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,6 +59,19 @@ if (app.Environment.IsDevelopment())
 }
 
 // Map the health check endpoint
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new
+        {
+            status = report.Status.ToString(),
+            timestamp = DateTime.UtcNow,
+            checks = report.Entries.Select(e => new { name = e.Key, status = e.Value.Status.ToString() })
+        };
+        await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+    }
+});
 
 app.Run();
