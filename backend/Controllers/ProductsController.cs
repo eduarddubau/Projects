@@ -25,8 +25,8 @@ public class ProductsController : ControllerBase
         return await _context.Products.Include(p => p.Owner).ToListAsync();
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetProduct(int id)
+    [HttpGet("{id:Guid}")]
+    public async Task<ActionResult<Product>> GetProduct(Guid id)
     {
         _logger.LogInformation("Retrieving product with ID {ProductId}.", id);
         var product = await _context.Products.Include(p => p.Owner).FirstOrDefaultAsync(p => p.Id == id);
@@ -60,8 +60,8 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProduct(int id)
+    [HttpDelete("{id:Guid}")]
+    public async Task<IActionResult> DeleteProduct(Guid id)
     {
         _logger.LogInformation("Attempting to delete product with ID {ProductId}.", id);
         var product = await _context.Products.FindAsync(id);

@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Models;
 
-public class User
-{
-    public int Id { get; set; }
-    
+public class User : BaseEntity
+{  
     [Required(ErrorMessage = "Username is mandatory")]
     [StringLength(50, MinimumLength = 3)]
     public required string Username { get; set; }
@@ -16,5 +14,4 @@ public class User
     
     public List<Product> Products { get; set; } = new();
 
-    public bool IsDeleted { get; set; } = false;
 }

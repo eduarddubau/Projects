@@ -6,25 +6,25 @@ services:
       dockerfile: Dockerfile
       target: build
     container_name: backend-api
-    # image: mcr.microsoft.com/dotnet/sdk:10.0
     volumes:
       - .:/workspaces/fullstack-app:z
-      - ~/.microsoft/usersecrets:/root/.microsoft/usersecrets
+      - ~/dotnet_docker_cache/home:/tmp/dotnet_home
+      - ~/dotnet_docker_cache/nuget:/tmp/nuget_cache
+      - ~/.microsoft/usersecrets:/tmp/dotnet_home/.microsoft/usersecrets
+    tmpfs:
+      - /tmp/build:uid=1000,gid=1000,mode=777,exec
     working_dir: /workspaces/fullstack-app/backend
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - ASPNETCORE_URLS=http://+:8080
-      - DOTNET_OBJDIR=/tmp/dotnet/obj
-      - DOTNET_BINDIR=/tmp/dotnet/bin
-      - DOTNET_COMMON_OUTPUT_PATH=/tmp/dotnet/out/
+      - ASPNETCORE_ENVIRONMENT=Development
       - DOTNET_CLI_HOME=/tmp/dotnet_home
+      - NUGET_PACKAGES=/tmp/nuget_cache
       - DOTNET_USE_POLLING_FILE_WATCHER=1
-      - DOTNET_CLI_TELEMETRY_OPTOUT=1
-      - DOTNET_SKIP_WORKLOAD_INTEGRITY_CHECK=true
-    command: "dotnet watch run --non-interactive"
+      - COMPlus_EnableDiagnostics=0
+    command: >
+      sh -c "dotnet watch run --no-hot-reload --non-interactive"
     depends_on:
       db:
         condition: service_healthy

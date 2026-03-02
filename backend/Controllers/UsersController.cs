@@ -25,8 +25,8 @@ public class UsersController : ControllerBase
         return await _context.Users.Include(u => u.Products).ToListAsync();
     }
 
-    [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetUser(int id)
+    [HttpGet("{id:Guid}")]
+    public async Task<ActionResult<User>> GetUser(Guid id)
     {
         _logger.LogInformation("Retrieving user with ID {UserId}.", id);
         var user = await _context.Users.Include(u => u.Products).FirstOrDefaultAsync(u => u.Id == id);
@@ -60,8 +60,8 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(int id)
+    [HttpDelete("{id:Guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id)
     {
         _logger.LogInformation("Attempting to delete user with ID {UserId}.", id);
         var user = await _context.Users.FindAsync(id);

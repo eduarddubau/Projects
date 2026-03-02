@@ -3,10 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models;
 
-public class Product
+public class Product : BaseEntity
 {
-    public int Id { get; set; }
-
     [Required(ErrorMessage = "Product name is required")]
     [StringLength(100, MinimumLength = 2)]
     public string Name { get; set; } = string.Empty;
@@ -16,10 +14,8 @@ public class Product
     public decimal Price { get; set; }
 
     [Required]
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 
     // Navigation property
     public User? Owner { get; set; }
-
-    public bool IsDeleted { get; set; } = false;
 }
