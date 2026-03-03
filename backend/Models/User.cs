@@ -1,14 +1,16 @@
-using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Identity;
 
 namespace Backend.Models;
 
-public class User : BaseEntity
+public class User : IdentityUser<Guid>, IAuditEntity
 {  
-    [Required(ErrorMessage = "Username is mandatory")]
-    [StringLength(50, MinimumLength = 3)]
-    public required string Username { get; set; }
-
-    [Required(ErrorMessage = "Email is mandatory")]
-    [EmailAddress(ErrorMessage = "Invalid email format")]
-    public required string Email { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string? CreatedBy { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? UpdatedBy { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
 }
