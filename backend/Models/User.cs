@@ -11,7 +11,4 @@ public class User : BaseEntity
     [Required(ErrorMessage = "Email is mandatory")]
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public required string Email { get; set; }
-    
-    public List<Product> Products { get; set; } = new();
-
 }

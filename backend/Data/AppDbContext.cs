@@ -16,7 +16,6 @@ public class AppDbContext : DbContext
     
     
     public DbSet<User> Users => Set<User>();
-    public DbSet<Product> Products => Set<Product>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,24 +31,12 @@ public class AppDbContext : DbContext
             new User { Id = user2Id, Username = "dev_user2", Email = "dev2@example.com", CreatedAt = seedDate, CreatedBy = "System" }
         );
 
-        modelBuilder.Entity<Product>().HasData(
-            new Product { Id = product1Id, Name = "Mechanical Keyboard", Price = 150.00m, UserId = user1Id, CreatedAt = seedDate, CreatedBy = "System" },
-            new Product { Id = product2Id, Name = "Gaming Mouse", Price = 80.00m, UserId = user1Id, CreatedAt = seedDate, CreatedBy = "System" },
-            new Product { Id = product3Id, Name = "USB-C Hub", Price = 45.00m, UserId = user2Id, CreatedAt = seedDate, CreatedBy = "System" }
-        );
-
         modelBuilder.Entity<User>()
             .Property(u => u.Id)
             .ValueGeneratedOnAdd()
             .HasDefaultValueSql("gen_random_uuid()");
 
-        modelBuilder.Entity<Product>()
-            .Property(p => p.Id)
-            .ValueGeneratedOnAdd()
-            .HasDefaultValueSql("gen_random_uuid()");
-
         modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
-        modelBuilder.Entity<Product>().HasQueryFilter(p => !p.IsDeleted);
 
         base.OnModelCreating(modelBuilder);
     }

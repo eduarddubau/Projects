@@ -22,14 +22,14 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
         _logger.LogInformation("Retrieving all users.");
-        return await _context.Users.Include(u => u.Products).ToListAsync();
+        return await _context.Users.ToListAsync();
     }
 
     [HttpGet("{id:Guid}")]
     public async Task<ActionResult<User>> GetUser(Guid id)
     {
         _logger.LogInformation("Retrieving user with ID {UserId}.", id);
-        var user = await _context.Users.Include(u => u.Products).FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
 
         if (user == null)
         {
