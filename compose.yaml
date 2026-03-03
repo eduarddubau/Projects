@@ -8,6 +8,7 @@ services:
     container_name: dotnet-api
     volumes:
       - .:/workspaces/fullstack-app:z
+      - ./backend:/workspaces/fullstack-app/backend:z
       - ~/dotnet_docker_cache/home:/tmp/dotnet_home
       - ~/dotnet_docker_cache/nuget:/tmp/nuget_cache
       - ~/.microsoft/usersecrets:/tmp/dotnet_home/.microsoft/usersecrets
@@ -24,7 +25,8 @@ services:
       - DOTNET_USE_POLLING_FILE_WATCHER=1
       - COMPlus_EnableDiagnostics=0
     command: >
-      sh -c "dotnet watch run --no-hot-reload --non-interactive"
+      sh -c "dotnet watch run --non-interactive"
+    #sh -c "dotnet watch run --no-hot-reload --non-interactive"
     depends_on:
       db:
         condition: service_healthy
