@@ -1,6 +1,6 @@
 services:
   api:
-    user: "${UID:-1000}:${GID:-1000}"
+    #user: "${UID:-1000}:${GID:-1000}"
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -27,17 +27,16 @@ services:
       - DOTNET_CLI_HOME=/tmp/dotnet_home
       - NUGET_PACKAGES=/tmp/nuget_cache
       - DOTNET_USE_POLLING_FILE_WATCHER=1
-      - COMPlus_EnableDiagnostics=0
-    command: >
-      dotnet watch run --non-interactive --no-hot-reload --project backend.csproj
-    depends_on:
-      db:
-        condition: service_healthy
+      - COMPlus_EnableDiagnostics=1
+    command: dotnet watch run --no-hot-reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
-      timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
     cap_add:
       - SYS_PTRACE
     security_opt:
