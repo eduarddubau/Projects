@@ -25,6 +25,10 @@ var app = builder.Build();
 
 // Middleware
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())
@@ -33,7 +37,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// Custom Health Check mapping (could also be an extension!)
+// Custom Health Check 
 app.MapHealthChecks("/health");
 
 // Run Migrations and Seeding

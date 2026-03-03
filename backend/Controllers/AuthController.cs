@@ -1,3 +1,4 @@
+using backend.Services;
 using Backend.DTOs.Auth;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
@@ -11,11 +12,13 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
     private readonly ILogger<AuthController> _logger;
+    private readonly ITokenService _tokenService;
 
-    public AuthController(UserManager<User> userManager, ILogger<AuthController> logger)
+    public AuthController(UserManager<User> userManager, ILogger<AuthController> logger, ITokenService tokenService)
     {
         _userManager = userManager;
         _logger = logger;
+        _tokenService = tokenService;
     }
 
     [HttpPost("login")]
@@ -39,10 +42,12 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid credentials.");
         }
 
-        _logger.LogInformation("User {Email} logged in successfully.", request.Email);
+        var token = _tokenService.CreateToken(user);
+
+        _logger.LogInformation("Token generated for {Email}", request.Email);
 
         return Ok(new { 
-            Message = "Logged in successfully!",
+            Token = token,
             User = new { user.Email, user.FirstName, user.LastName }
         });
     }

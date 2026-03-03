@@ -4,6 +4,10 @@ using Backend.Middleware;
 using Backend.Models;
 using Backend.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Backend.Config;
 
 public static class ServiceExtensions
 {
@@ -28,12 +32,14 @@ public static class ServiceExtensions
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
 
+        // Token Service
+        services.AddScoped<ITokenService, TokenService>();
+
         return services;
     }
 
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
-        // For token generation, password hashing
         services.AddDataProtection();
 
         // Identity Configuration
@@ -44,12 +50,40 @@ public static class ServiceExtensions
             options.Password.RequireUppercase = true;
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequiredLength = 8;
-            
             options.User.RequireUniqueEmail = true;
         })
         .AddRoles<IdentityRole<Guid>>()
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
+
+        // JWT Authentication
+        services.AddOptions<JwtOptions>()
+            .Bind(config.GetSection(JwtOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        var jwtOptions = config.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
+
+        if (jwtOptions == null || string.IsNullOrEmpty(jwtOptions.Key))
+        {
+            throw new InvalidOperationException("JWT settings are missing!");
+        }
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtOptions.Audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
 
         return services;
     }

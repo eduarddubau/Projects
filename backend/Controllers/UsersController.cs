@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Backend.Controllers;
 
 [ApiController]
-[Route("api/[controller]")] // This makes the route: api/users
+[Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly AppDbContext _context;
