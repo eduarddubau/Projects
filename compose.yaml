@@ -5,7 +5,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: build
-    container_name: backend-api
+    container_name: dotnet-api
     volumes:
       - .:/workspaces/fullstack-app:z
       - ~/dotnet_docker_cache/home:/tmp/dotnet_home
@@ -36,9 +36,9 @@ services:
 
   db:
     image: postgres:17-alpine
-    container_name: backend-db
+    container_name: postgres-db
     environment:
-      - POSTGRES_DB=backend_db
+      - POSTGRES_DB=app_db
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
@@ -46,14 +46,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d backend_db"]
+      test: ["CMD-SHELL", "pg_isready -U admin -d app_db"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   frontend:
     image: node:24-alpine
-    container_name: frontend-angular
+    container_name: angular-frontend
     working_dir: /app
     volumes:
       - ./frontend-angular:/app:z

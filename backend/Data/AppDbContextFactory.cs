@@ -12,7 +12,8 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     // Get the connection string from the environment variable set in the Dockerfile
     var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
-    optionsBuilder.UseNpgsql(connectionString);
+    optionsBuilder.UseNpgsql(connectionString)
+        .UseSnakeCaseNamingConvention();
 
     // Provide the dummy service so the constructor is satisfied
     return new AppDbContext(optionsBuilder.Options, new DesignTimeUserService());
