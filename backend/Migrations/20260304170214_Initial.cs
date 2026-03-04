@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialIdentitySetup : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,6 +57,25 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_asp_net_users", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "projects",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<string>(type: "text", nullable: true),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    updated_by = table.Column<string>(type: "text", nullable: true),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_projects", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -220,6 +239,9 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "projects");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

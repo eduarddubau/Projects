@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using backend.Services;
+using Backend.Services;
 using Backend.Middleware;
 using Backend.Models;
 using Backend.Data;
@@ -23,6 +23,7 @@ public static class ServiceExtensions
         // Custom Services
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IProjectService, ProjectService>();
 
         // Health Checks
         services.AddHealthChecks()

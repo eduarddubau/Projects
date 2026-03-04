@@ -1,10 +1,14 @@
+using Backend.Config;
 using Backend.Data;
 using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Backend.Controllers;
 
+[Authorize(Roles = AppRoles.Admin)]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
@@ -16,6 +20,22 @@ public class UsersController : ControllerBase
     {
         _context = context;
         _logger = logger;
+    }
+
+    [HttpGet("me")]
+    public IActionResult GetCurrentUser()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        var firstName = User.FindFirstValue(ClaimTypes.GivenName);
+
+        return Ok(new
+        {
+            Message = "You are authorized!",
+            UserId = userId,
+            Email = email,
+            FullName = $"{firstName}"
+        });
     }
 
     [HttpGet]

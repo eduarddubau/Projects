@@ -1,6 +1,7 @@
 using System.Security.Claims;
+using Backend.Config;
 
-namespace backend.Services;
+namespace Backend.Services;
 
 public class CurrentUserService : ICurrentUserService
 {
@@ -10,5 +11,8 @@ public class CurrentUserService : ICurrentUserService
     {
         _httpContextAccessor = httpContextAccessor;
     }
+
     public string? UserId => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    public bool IsAdmin => _httpContextAccessor.HttpContext?.User?.IsInRole(AppRoles.Admin) ?? false;
 }

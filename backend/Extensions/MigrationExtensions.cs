@@ -2,35 +2,36 @@ using Backend.Data;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Backend.Extensions;
 
 public static class MigrationExtensions
 {
-    public static async Task ApplyMigrationsAndSeedAsync(this IApplicationBuilder app)
+    public static async Task ApplyMigrationsAndSeedAsync(this WebApplication app)
     {
-        using IServiceScope scope = app.ApplicationServices.CreateScope();
-        using AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
 
         try
         {
-            // Handle Migrations
+            var context = services.GetRequiredService<AppDbContext>();
+            var userManager = services.GetRequiredService<UserManager<User>>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+            // Run Migrations
             if ((await context.Database.GetPendingMigrationsAsync()).Any())
             {
                 await context.Database.MigrateAsync();
-                logger.LogInformation("Database migrated successfully!");
             }
 
-            // Handle Seeding
-            await DbSeeder.SeedAsync(userManager);
-            logger.LogInformation("Database seeding completed.");
+            // Run Seeding
+            await DbSeeder.SeedAsync(userManager, roleManager);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred during startup migration/seeding.");
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "An error occurred during migration or seeding.");
+            throw;
         }
     }
 }

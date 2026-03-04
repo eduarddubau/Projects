@@ -22,7 +22,8 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 }
 
 // Dummy service just for the CLI to not crash
-public class DesignTimeUserService : backend.Services.ICurrentUserService
+public class DesignTimeUserService : Backend.Services.ICurrentUserService
 {
     public string? UserId => "Migration-Runner";
+    public bool IsAdmin => false;
 }

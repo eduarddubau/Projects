@@ -16,6 +16,6 @@ public class JwtOptions
     [Required]
     public string Audience { get; set; } = string.Empty;
 
-    [Range(1, 10080)] // From 1 minute to 1 week
+    [Range(1, 10080)]
     public int DurationInMinutes { get; set; } = 60;
 }

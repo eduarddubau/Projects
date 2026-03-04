@@ -1,8 +1,8 @@
 using Backend.Models;
 
-namespace backend.Services;
+namespace Backend.Services;
 
 public interface ITokenService
 {
-    string CreateToken(User user);
+    Task<string> CreateToken(User user);
 }

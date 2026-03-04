@@ -1,4 +1,4 @@
-using backend.Services;
+using Backend.Services;
 using Backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -10,11 +10,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     private readonly ICurrentUserService _currentUserService;
 
+
     public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService)
         : base(options)
     {
         _currentUserService = currentUserService;
     }
+
+    public DbSet<Project> Projects { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

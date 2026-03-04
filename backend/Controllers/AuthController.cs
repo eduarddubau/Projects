@@ -1,4 +1,4 @@
-using backend.Services;
+using Backend.Services;
 using Backend.DTOs.Auth;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
@@ -42,13 +42,20 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid credentials.");
         }
 
-        var token = _tokenService.CreateToken(user);
+        var token = await _tokenService.CreateToken(user);
 
         _logger.LogInformation("Token generated for {Email}", request.Email);
 
-        return Ok(new { 
+        return Ok(new 
+        { 
             Token = token,
-            User = new { user.Email, user.FirstName, user.LastName }
+            User = new 
+            { 
+                Id = user.Id,
+                Email = user.Email, 
+                FirstName = user.FirstName, 
+                LastName = user.LastName 
+            }
         });
     }
 }
