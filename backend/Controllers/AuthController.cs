@@ -3,6 +3,8 @@ using Backend.DTOs.Auth;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Backend.Controllers;
 
@@ -13,12 +15,14 @@ public class AuthController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly ILogger<AuthController> _logger;
     private readonly ITokenService _tokenService;
+    private readonly ICurrentUserService _currentUser;
 
-    public AuthController(UserManager<User> userManager, ILogger<AuthController> logger, ITokenService tokenService)
+    public AuthController(UserManager<User> userManager, ILogger<AuthController> logger, ITokenService tokenService, ICurrentUserService currentUser)
     {
         _userManager = userManager;
         _logger = logger;
         _tokenService = tokenService;
+        _currentUser = currentUser;
     }
 
     [HttpPost("login")]
@@ -54,8 +58,22 @@ public class AuthController : ControllerBase
                 Id = user.Id,
                 Email = user.Email, 
                 FirstName = user.FirstName, 
-                LastName = user.LastName 
+                LastName = user.LastName
             }
+        });
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult GetCurrentUser()
+    {
+        return Ok(new
+        {
+            Message = "You are authorized!",
+            UserId = _currentUser.UserId,
+            Email = _currentUser.Email,
+            FullName = $"{_currentUser.FirstName} {_currentUser.LastName}",
+            Roles = _currentUser.Roles
         });
     }
 }

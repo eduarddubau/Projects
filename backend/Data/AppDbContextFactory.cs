@@ -26,4 +26,8 @@ public class DesignTimeUserService : Backend.Services.ICurrentUserService
 {
     public string? UserId => "Migration-Runner";
     public bool IsAdmin => false;
+    public string? Email => null;
+    public string? FirstName => null;
+    public string? LastName => null;
+    public IEnumerable<string> Roles => Enumerable.Empty<string>();
 }
