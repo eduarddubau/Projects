@@ -1,0 +1,21 @@
+<div style="padding: 2rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+  <h1 style="color: #dd0031;">Angular 21 + .NET 10 Bridge</h1>
+  <hr />
+  
+  <div [style.background-color]="connectionColor()" 
+        style="padding: 1rem; border-radius: 8px; color: white; margin-top: 1rem;">
+    <h2>Status: {{ connectionStatus() }}</h2>
+
+    @if (apiData()) {
+      <p>Message: {{ apiData().message }}</p>
+      <small>Timestamp: {{ apiData().timestamp | date:'medium' }}</small>
+    } @else {
+      <p>Waiting for backend response...</p>
+    }
+  </div>
+
+  <button (click)="checkConnection()" 
+          style="margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer;">
+    Retry Connection
+  </button>
+</div>
