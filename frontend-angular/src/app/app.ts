@@ -25,7 +25,7 @@ export class App implements OnInit {
   checkConnection() {
     this.connectionStatus.set('Connecting...');
     
-    this.http.get(`${this.apiUrl}/api/health`).subscribe({
+    this.http.get(`${this.apiUrl}/api/health`, { responseType: 'text' }).subscribe({
       next: (data: any) => {
         this.apiData.set(data);
         this.connectionStatus.set('Backend Reachable');
