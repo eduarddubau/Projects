@@ -1,11 +1,11 @@
-using Backend.Models;
+using Backend.DTOs;
 
 namespace Backend.Services;
 
 public interface IUserService
 {
-    Task<IEnumerable<User>> GetUsersAsync();
-    Task<User?> GetUserByIdAsync(Guid id);
-    Task<User> CreateUserAsync(User user);
+    Task<IEnumerable<UserResponseDto>> GetUsersAsync();
+    Task<UserResponseDto?> GetUserByIdAsync(Guid id);
+    Task<UserResponseDto> CreateUserAsync(CreateUserDto dto);
     Task<bool> DeleteUserAsync(Guid id);
 }

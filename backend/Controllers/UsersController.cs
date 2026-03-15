@@ -1,4 +1,5 @@
 using Backend.Config;
+using Backend.DTOs;
 using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
     {
         _logger.LogInformation("Retrieving all users.");
         var users = await _userService.GetUsersAsync();
@@ -29,7 +30,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{id:Guid}")]
-    public async Task<ActionResult<User>> GetUser(Guid id)
+    public async Task<ActionResult<UserResponseDto>> GetUser(Guid id)
     {
         _logger.LogInformation("Retrieving user with ID {UserId}.", id);
         var user = await _userService.GetUserByIdAsync(id);
@@ -45,19 +46,19 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<User>> CreateUser(User user)
+    public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserDto createUserDto)
     {
-        _logger.LogInformation("Creating a new user with email {Email}.", user.Email);
+        _logger.LogInformation("Creating a new user with email {Email}.", createUserDto.Email);
 
         try
         {
-            var createdUser = await _userService.CreateUserAsync(user);
+            var createdUser = await _userService.CreateUserAsync(createUserDto);
             _logger.LogInformation("User created successfully with ID {UserId}.", createdUser.Id);
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning("Email {Email} is already registered. Cannot create user.", user.Email);
+            _logger.LogWarning("Email {Email} is already registered. Cannot create user.", createUserDto.Email);
             return Conflict(new { message = ex.Message });
         }
     }
