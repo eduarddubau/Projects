@@ -27,7 +27,7 @@ export class App implements OnInit {
     
     this.http.get(`${this.apiUrl}/api/health`, { responseType: 'text' }).subscribe({
       next: (data: any) => {
-        this.apiData.set(data);
+        this.apiData.set({ message: data, timestamp: new Date() });
         this.connectionStatus.set('Backend Reachable');
         this.connectionColor.set('#28a745'); // Success Green
       },
