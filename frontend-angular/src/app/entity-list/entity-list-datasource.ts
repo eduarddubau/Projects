@@ -1,8 +1,8 @@
 import { DataSource } from '@angular/cdk/collections';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
+import { Subject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Observable, of as observableOf, merge, Subject } from 'rxjs';
 
 export interface BaseEntity {
   id: number;
@@ -39,92 +39,73 @@ const EXAMPLE_DATA: BaseEntity[] = [
   { id: 20, name: 'Calcium', createdAt: '2023-01-20', isActive: false },
 ];
 
-/**
- * Data source for the EntityList view. This class should
- * encapsulate all logic for fetching and manipulating the displayed data
- * (including sorting, pagination, and filtering).
- */
 export class EntityListDataSource extends DataSource<BaseEntity> {
-
   data: BaseEntity[] = EXAMPLE_DATA;
   paginator: MatPaginator | undefined;
   sort: MatSort | undefined;
-  state: TableState = { searchQuery: '', showOnlyActive: false };
-  private filterChange = new Subject<void>();
+
+  private _state: TableState = { searchQuery: '', showOnlyActive: false };
+  
+  private updateStream = new Subject<void>(); 
+
+  set state(newState: TableState) {
+    this._state = newState;
+    this.triggerUpdate();
+  }
+
+  get state(): TableState {
+    return this._state;
+  }
 
   constructor() {
     super();
   }
 
-  /**
-   * Connect this data source to the table. The table will only update when
-   * the returned stream emits new items.
-   * @returns A stream of the items to be rendered.
-   */
   connect(): Observable<BaseEntity[]> {
-    if (!this.paginator || !this.sort) {
-      throw Error('Please set the paginator and sort on the data source before connecting.');
-    }
-
-    return merge(
-      observableOf(this.data), 
-      this.paginator.page, 
-      this.sort.sortChange,
-      this.filterChange
-    ).pipe(
-      map(() => this._getProcessedData([...this.data]))
+    return this.updateStream.pipe(
+      map(() => {
+        if (!this.paginator || !this.sort) return [];
+        return this._getProcessedData([...this.data]);
+      })
     );
   }
 
-  private _getProcessedData(data: BaseEntity[]): BaseEntity[] {
-    let result = data;
+  disconnect(): void {}
 
-    result = result.filter(item => {
+  triggerUpdate(): void {
+    this.updateStream.next();
+  }
+
+  private _getProcessedData(data: BaseEntity[]): BaseEntity[] {
+    let result = this.getFilteredData(data);
+    result = this.getSortedData(result);
+
+    if (this.paginator) {
+      this.paginator.length = result.length;
+      const maxPage = Math.ceil(result.length / this.paginator.pageSize) - 1;
+      if (this.paginator.pageIndex > maxPage && maxPage >= 0) {
+        this.paginator.pageIndex = 0;
+      }
+    }
+    return this.getPagedData(result);
+  }
+
+  private getFilteredData(data: BaseEntity[]): BaseEntity[] {
+    return data.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(this.state.searchQuery.toLowerCase());
       const matchesActive = this.state.showOnlyActive ? item.isActive : true;
       return matchesSearch && matchesActive;
     });
-
-    result = this.getSortedData(result);
-
-    result = this.getPagedData(result);
-
-    return result;
   }
 
-  /**
-   * Triggers a filter update and refreshes the data.
-   */
-  updateFilter() {
-    if (!this.paginator || !this.sort) {
-      return;
-    }
-    this.filterChange.next();
-  }
-
-  /**
-   *  Called when the table is being destroyed. Use this function, to clean up
-   * any open connections or free any held resources that were set up during connect.
-   */
-  disconnect(): void {}
-
-  /**
-   * Paginate the data (client-side). If you're using server-side pagination,
-   * this would be replaced by requesting the appropriate data from the server.
-   */
   private getPagedData(data: BaseEntity[]): BaseEntity[] {
     if (this.paginator) {
       const startIndex = this.paginator.pageIndex * this.paginator.pageSize;
-      return data.splice(startIndex, this.paginator.pageSize);
-    } else {
-      return data;
+      return data.slice(startIndex, startIndex + this.paginator.pageSize);
     }
+    return data;
   }
 
-  /**
-   * Sort the data (client-side). If you're using server-side sorting,
-   * this would be replaced by requesting the appropriate data from the server.
-   */
   private getSortedData(data: BaseEntity[]): BaseEntity[] {
     if (!this.sort || !this.sort.active || this.sort.direction === '') {
       return data;
@@ -144,7 +125,6 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
   }
 }
 
-/** Simple sort comparator for example ID/Name columns (for client-side sorting). */
 function compare(a: string | number, b: string | number, isAsc: boolean): number {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
