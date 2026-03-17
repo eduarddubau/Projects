@@ -1,15 +1,15 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
-import { API_URL } from '../app.tokens';
+import { API_URL } from '@core/tokens/app.tokens';
 
 @Component({
   selector: 'app-home',
   imports: [DatePipe],
-  templateUrl: './home.html',
-  styleUrl: './home.scss',
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.scss',
 })
-export class Home implements OnInit {
+export class HomeComponent implements OnInit {
   private http = inject(HttpClient);
   private apiUrl = inject<string>(API_URL);
   
