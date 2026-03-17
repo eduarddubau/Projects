@@ -44,8 +44,6 @@ export class EntityListComponent implements OnInit, AfterViewInit {
         this.dataSource.paginator.pageIndex = 0;
       }
 
-      this.dataSource.triggerUpdate();
-
       this.cdr.markForCheck();
     });
   }
