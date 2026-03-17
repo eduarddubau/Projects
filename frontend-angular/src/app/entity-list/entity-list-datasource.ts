@@ -44,8 +44,10 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
   paginator: MatPaginator | undefined;
   sort: MatSort | undefined;
 
+  // State management for search and active filter
   private _state: TableState = { searchQuery: '', showOnlyActive: false };
   
+  // Subject to trigger data updates when state changes
   private updateStream = new Subject<void>(); 
 
   set state(newState: TableState) {
@@ -61,6 +63,7 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
     super();
   }
 
+  // Connect function called by the table to retrieve one stream containing the data to render.
   connect(): Observable<BaseEntity[]> {
     return this.updateStream.pipe(
       map(() => {
@@ -70,12 +73,15 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
     );
   }
 
+  // Clean up any resources when the table is destroyed.
   disconnect(): void {}
 
+  // Method to trigger data update when state changes
   triggerUpdate(): void {
     this.updateStream.next();
   }
 
+  // Process the data based on current state, sorting, and pagination
   private _getProcessedData(data: BaseEntity[]): BaseEntity[] {
     let result = this.getFilteredData(data);
     result = this.getSortedData(result);
@@ -90,6 +96,7 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
     return this.getPagedData(result);
   }
 
+  // Apply filtering based on search query and active status
   private getFilteredData(data: BaseEntity[]): BaseEntity[] {
     return data.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(this.state.searchQuery.toLowerCase());
@@ -98,6 +105,7 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
     });
   }
 
+  // Apply pagination based on the current page index and page size
   private getPagedData(data: BaseEntity[]): BaseEntity[] {
     if (this.paginator) {
       const startIndex = this.paginator.pageIndex * this.paginator.pageSize;
@@ -106,6 +114,7 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
     return data;
   }
 
+  // Apply sorting based on the active sort and direction
   private getSortedData(data: BaseEntity[]): BaseEntity[] {
     if (!this.sort || !this.sort.active || this.sort.direction === '') {
       return data;
@@ -125,6 +134,7 @@ export class EntityListDataSource extends DataSource<BaseEntity> {
   }
 }
 
+// Simple sort comparator for example ID and Name columns (for client-side sorting).
 function compare(a: string | number, b: string | number, isAsc: boolean): number {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
