@@ -1,7 +1,7 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
-import { API_URL } from '@core/tokens/app.tokens';
+import { HEALTH_URL } from '@core/tokens/app.tokens';
 
 @Component({
   selector: 'app-home',
@@ -11,8 +11,8 @@ import { API_URL } from '@core/tokens/app.tokens';
 })
 export class HomeComponent implements OnInit {
   private http = inject(HttpClient);
-  private apiUrl = inject<string>(API_URL);
-  
+  private healthUrl = inject<string>(HEALTH_URL);
+
   connectionStatus = signal<string>('Checking...');
   connectionColor = signal<string>('#666');
   apiData = signal<any>(null);
@@ -24,7 +24,7 @@ export class HomeComponent implements OnInit {
   checkConnection() {
     this.connectionStatus.set('Connecting...');
     
-    this.http.get(`${this.apiUrl}/api/health`, { responseType: 'text' }).subscribe({
+    this.http.get(`${this.healthUrl}`, { responseType: 'text' }).subscribe({
       next: (data: any) => {
         this.apiData.set({ message: data, timestamp: new Date() });
         this.connectionStatus.set('Backend Reachable');

@@ -8,7 +8,7 @@ const serverConfig: ApplicationConfig = {
     provideServerRendering(withRoutes(serverRoutes)),
     {
       provide: 'API_URL',
-      useValue: 'http://api:8080'
+      useValue: 'http://api:8080/api'
     }
   ],
 };

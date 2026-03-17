@@ -1,0 +1,28 @@
+<mat-toolbar color="primary" class="app-header">
+  <span routerLink="/" class="logo">Home</span>
+
+  <nav class="nav-links">
+    
+    @if (authService.isAuthenticated$ | async) {
+      <a mat-button routerLink="/entities" routerLinkActive="active-link">
+        Entities
+      </a>
+    }
+  </nav>
+
+  <span class="spacer"></span>
+
+  <div class="auth-actions">
+    @if (authService.isAuthenticated$ | async) {
+      <button mat-flat-button (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        Logout
+      </button>
+    } @else {
+      <a mat-raised-button color="accent" routerLink="/login">
+        <mat-icon>login</mat-icon>
+        Login
+      </a>
+    }
+  </div>
+</mat-toolbar>

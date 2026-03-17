@@ -1,0 +1,32 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.logo {
+  cursor: pointer;
+  font-weight: bold;
+  margin-right: 20px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 8px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* Highlights the active route */
+.active-link {
+  background: rgba(255, 255, 255, 0.15);
+  border-bottom: 2px solid white;
+  border-radius: 0;
+}
+
+.auth-actions {
+  display: flex;
+  align-items: center;
+}

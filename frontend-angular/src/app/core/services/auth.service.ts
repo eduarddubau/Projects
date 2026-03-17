@@ -1,27 +1,35 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, tap } from 'rxjs';
+import { API_URL } from '@core/tokens/app.tokens'; 
+import { LoginCredentials } from '@models/login-credentials';
 
-@Injectable({ 
-    providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
+
+  private http = inject(HttpClient);
   private router = inject(Router);
-  
-  // Use a BehaviorSubject to track if the user is logged in
+  private apiUrl = inject(API_URL);
+
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  login() {
-    // 1. Logic to verify credentials goes here
-    this.isAuthenticatedSubject.next(true);
-
-    // 2. Redirect to the entity list
-    this.router.navigate(['/entities']);
+  // This method will be called when the user submits the login form
+  login(credentials: LoginCredentials) {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/auth/login`, credentials).pipe(
+      tap((response) => {
+        this.isAuthenticatedSubject.next(true);
+        localStorage.setItem('authToken', response.token);
+        this.router.navigate(['/entities']);
+      })
+    );
   }
 
+  // This method will be called when the user clicks the logout button
   logout() {
     this.isAuthenticatedSubject.next(false);
+    localStorage.removeItem('authToken');
     this.router.navigate(['/login']);
   }
 }
