@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
         _currentUser = currentUser;
     }
 
-    [Authorize]
+    [Authorize(Policy = AppPolicies.StandardUser)]
     [HttpGet("me")]
     public IActionResult GetCurrentUser()
     {

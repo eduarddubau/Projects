@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-[Authorize(Roles = AppRoles.Admin)]
+[Authorize(Policy = AppPolicies.AdminOnly)]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase

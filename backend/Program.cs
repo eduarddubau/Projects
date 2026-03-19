@@ -5,16 +5,14 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
            .UseSnakeCaseNamingConvention());
 
-// Identity
-builder.Services.AddIdentityServices(builder.Configuration);
 
-// Application Services
 builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddAuthorizationPolicies();
 
 builder.Services.AddOpenApi();
 builder.Services.AddCors(options => {
@@ -23,12 +21,9 @@ builder.Services.AddCors(options => {
 
 var app = builder.Build();
 
-// Middleware
 app.UseCors("AllowFrontend");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())
@@ -37,10 +32,8 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
-// Custom Health Check 
 app.MapHealthChecks("/health");
 
-// Run Migrations and Seeding
 await app.ApplyMigrationsAndSeedAsync();
 
 app.Run();

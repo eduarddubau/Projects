@@ -5,7 +5,7 @@ using Backend.Services;
 
 namespace Backend.Controllers;
 
-[Authorize]
+[Authorize(Policy = AppPolicies.StandardUser)]
 [ApiController]
 [Route("api/[controller]")]
 public class ProjectsController : ControllerBase

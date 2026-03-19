@@ -11,6 +11,7 @@ using Backend.Config;
 
 public static class ServiceExtensions
 {
+    // Extension method to add application services
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
         // JSON and Controllers
@@ -40,6 +41,7 @@ public static class ServiceExtensions
         return services;
     }
 
+    // Extension method to configure Identity and JWT Authentication
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddDataProtection();
@@ -86,6 +88,23 @@ public static class ServiceExtensions
                     ClockSkew = TimeSpan.Zero
                 };
             });
+
+        return services;
+    }
+
+    // Extension method to configure Authorization Policies
+    public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
+    {
+        services.AddAuthorization(options =>
+        {
+            // Policy for Admin-only actions
+            options.AddPolicy(AppPolicies.AdminOnly, policy => 
+                policy.RequireRole(AppRoles.Admin));
+
+            // Policy for actions allowed for both Admin and standard Users
+            options.AddPolicy(AppPolicies.StandardUser, policy => 
+                policy.RequireRole(AppRoles.Admin, AppRoles.User));
+        });
 
         return services;
     }
