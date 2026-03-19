@@ -3,8 +3,10 @@
 
   <span 
     class="status-dot" 
-    [class.online]="status() === 'online'"
-    [class.offline]="status() === 'offline'">
+    [matTooltip]="health().state === 'offline' ? health().error : 'API is Online'"
+    matTooltipPosition="below"
+    [class.online]="health().state === 'online'"
+    [class.offline]="health().state === 'offline'">
   </span>
 
   <nav class="nav-links">

@@ -5,8 +5,9 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '@core/services/auth.service';
-import { HealthService } from '@core/services/health.service';
+import { HealthService, HealthStatus } from '@core/services/health.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-header',
@@ -17,7 +18,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
     RouterLinkActive, 
     MatToolbarModule, 
     MatButtonModule, 
-    MatIconModule
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
@@ -25,7 +27,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
 export class HeaderComponent {
   public authService = inject(AuthService);
   public healthService = inject(HealthService);
-  status = toSignal(this.healthService.status$, { initialValue: 'offline' });
+  health = toSignal(this.healthService.status$, { 
+    initialValue: { state: 'offline', error: 'Initializing...' } as HealthStatus 
+  });
 
   logout(): void {
     this.authService.logout();

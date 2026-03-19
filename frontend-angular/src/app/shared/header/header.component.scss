@@ -48,12 +48,12 @@
   box-shadow: inset 0 0 2px rgba(0,0,0,0.2);
 
   &.online {
-    background-color: #4caf50 !important; // Green
+    background-color: #4caf50 !important;
     box-shadow: 0 0 8px #4caf50;
   }
 
   &.offline {
-    background-color: #f44336 !important; // Red
+    background-color: #f44336 !important;
     box-shadow: 0 0 8px #f44336;
   }
 }
