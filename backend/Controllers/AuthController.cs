@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Backend.Config;
 
 namespace Backend.Controllers;
 
@@ -16,13 +17,34 @@ public class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly ITokenService _tokenService;
     private readonly ICurrentUserService _currentUser;
+    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
-    public AuthController(UserManager<User> userManager, ILogger<AuthController> logger, ITokenService tokenService, ICurrentUserService currentUser)
+    public AuthController(
+        UserManager<User> userManager, 
+        RoleManager<IdentityRole<Guid>> roleManager,
+        ILogger<AuthController> logger, 
+        ITokenService tokenService, 
+        ICurrentUserService currentUser)
     {
         _userManager = userManager;
+        _roleManager = roleManager;
         _logger = logger;
         _tokenService = tokenService;
         _currentUser = currentUser;
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult GetCurrentUser()
+    {
+        return Ok(new
+        {
+            Message = "You are authorized!",
+            UserId = _currentUser.UserId,
+            Email = _currentUser.Email,
+            FullName = $"{_currentUser.FirstName} {_currentUser.LastName}",
+            Roles = _currentUser.Roles
+        });
     }
 
     [HttpPost("login")]
@@ -63,17 +85,53 @@ public class AuthController : ControllerBase
         });
     }
 
-    [Authorize]
-    [HttpGet("me")]
-    public IActionResult GetCurrentUser()
+   [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        return Ok(new
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        var user = new User 
+        { 
+            UserName = dto.Email, 
+            Email = dto.Email,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            CreatedBy = "Self-Registration"
+        };
+
+        var result = await _userManager.CreateAsync(user, dto.Password);
+
+        if (!result.Succeeded)
         {
-            Message = "You are authorized!",
-            UserId = _currentUser.UserId,
-            Email = _currentUser.Email,
-            FullName = $"{_currentUser.FirstName} {_currentUser.LastName}",
-            Roles = _currentUser.Roles
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(error.Code, error.Description);
+            }
+            return BadRequest(ModelState);
+        }
+        
+        const string defaultRole = AppRoles.User;
+        if (!await _roleManager.RoleExistsAsync(defaultRole))
+        {
+            await _roleManager.CreateAsync(new IdentityRole<Guid>(defaultRole));
+        }
+        await _userManager.AddToRoleAsync(user, defaultRole);
+
+        var token = await _tokenService.CreateToken(user);
+
+        _logger.LogInformation("New user registered and token generated: {Email}", dto.Email);
+
+        return Ok(new 
+        { 
+            Token = token,
+            User = new 
+            { 
+                Id = user.Id,
+                Email = user.Email, 
+                FirstName = user.FirstName, 
+                LastName = user.LastName
+            }
         });
     }
+
 }

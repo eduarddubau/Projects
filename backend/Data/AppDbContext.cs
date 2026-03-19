@@ -46,7 +46,12 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             if (entityEntry.State == EntityState.Added)
             {
                 entityEntry.Entity.CreatedAt = now;
-                entityEntry.Entity.CreatedBy = userId?? "System";
+
+                // Only set CreatedBy if it's not already set by system or user registration
+                if (string.IsNullOrEmpty(entityEntry.Entity.CreatedBy))
+                {
+                    entityEntry.Entity.CreatedBy = userId;
+                }
                 entityEntry.Entity.IsDeleted = false;
             }
             else if (entityEntry.State == EntityState.Modified)
