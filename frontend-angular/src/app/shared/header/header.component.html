@@ -1,6 +1,12 @@
 <mat-toolbar color="primary" class="app-header">
   <span routerLink="/" class="logo">Home</span>
 
+  <span 
+    class="status-dot" 
+    [class.online]="status() === 'online'"
+    [class.offline]="status() === 'offline'">
+  </span>
+
   <nav class="nav-links">
     
     @if (authService.isAuthenticated$ | async) {

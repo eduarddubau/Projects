@@ -5,6 +5,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '@core/services/auth.service';
+import { HealthService } from '@core/services/health.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-header',
@@ -22,6 +24,8 @@ import { AuthService } from '@core/services/auth.service';
 })
 export class HeaderComponent {
   public authService = inject(AuthService);
+  public healthService = inject(HealthService);
+  status = toSignal(this.healthService.status$, { initialValue: 'offline' });
 
   logout(): void {
     this.authService.logout();
