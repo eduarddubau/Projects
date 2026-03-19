@@ -16,19 +16,19 @@ export class HealthService {
 
   // Emit health status every n seconds, starting immediately
   public status$: Observable<HealthStatus> = timer(0, 5000).pipe(
-    switchMap(() => this.http.get(this.healthUrl, { responseType: 'text' })),
-    map(() => ({ state: 'online' } as HealthStatus)),
-    catchError((err: HttpErrorResponse) => {
-      let errorMessage = '';
+    switchMap(() => 
+      this.http.get(this.healthUrl, { responseType: 'text' }).pipe(
+        map(() => ({ state: 'online' } as HealthStatus)),
+        catchError((err: HttpErrorResponse) => {
+          let errorMessage = err.status === 0 
+            ? 'Network Error: Check CORS or Backend Status'
+            : `API Error: ${err.status} (${this.getFriendlyStatus(err.status)})`;
 
-      if (err.status === 0) {
-        errorMessage = 'Network Error: Check CORS or Backend Status';
-      } else {
-        errorMessage = `API Error: ${err.status} (${this.getFriendlyStatus(err.status)})`;
-      }
-      
-      return of({ state: 'offline', error: errorMessage } as HealthStatus);
-    }),
+          return of({ state: 'offline', error: errorMessage } as HealthStatus);
+        })
+      )
+    ),
+
     shareReplay(1)
   );
 
