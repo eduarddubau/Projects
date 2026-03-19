@@ -5,10 +5,14 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { API_URL, HEALTH_URL } from '@core/tokens/app.tokens';
 import { env } from '@env/env';
+import { authInterceptor } from '@core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(withFetch()),
+    provideHttpClient(
+      withFetch(), 
+      withInterceptors([authInterceptor])
+    ),
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),

@@ -9,28 +9,48 @@
     [class.offline]="health().state === 'offline'">
   </span>
 
-  <nav class="nav-links">
-    
-    @if (authService.isAuthenticated$ | async) {
-      <a mat-button routerLink="/entities" routerLinkActive="active-link">
-        Entities
-      </a>
-    }
-  </nav>
+  @if (authService.isAuthenticated()) {
+    <a mat-button routerLink="/entities" routerLinkActive="active-link">
+      Entities
+    </a>
+  }
 
   <span class="spacer"></span>
 
   <div class="auth-actions">
-    @if (authService.isAuthenticated$ | async) {
-      <button mat-flat-button (click)="logout()">
-        <mat-icon>logout</mat-icon>
-        Logout
+    @if (!authService.isAuthenticated()) {
+      <a mat-button routerLink="/login">Login</a>
+      <a mat-raised-button color="accent" routerLink="/register">Register</a>
+    } 
+    @else {
+      <button mat-button [matMenuTriggerFor]="profileMenu" class="profile-button">
+        <div class="profile-content-wrapper">
+          <mat-icon class="profile-icon">account_circle</mat-icon>
+          
+          <div class="user-text-stack">
+            <span class="user-name">{{ authService.currentUser()?.firstName }}</span>
+            <span class="user-email">{{ authService.currentUser()?.email }}</span>
+          </div>
+
+          <mat-icon class="arrow-icon">expand_more</mat-icon>
+        </div>
       </button>
-    } @else {
-      <a mat-raised-button color="accent" routerLink="/login">
-        <mat-icon>login</mat-icon>
-        Login
-      </a>
     }
   </div>
 </mat-toolbar>
+
+<mat-menu #profileMenu="matMenu" xPosition="before" class="custom-profile-menu">
+  <div class="menu-user-info" (click)="$event.stopPropagation()">
+    <strong>{{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}</strong>
+    <small>{{ authService.currentUser()?.email }}</small>
+  </div>
+  <mat-divider></mat-divider>
+  <button mat-menu-item routerLink="/entities">
+    <mat-icon>list</mat-icon>
+    <span>My Entities</span>
+  </button>
+  <button mat-menu-item (click)="authService.logout()">
+    <mat-icon>logout</mat-icon>
+    <span>Sign Out</span>
+  </button>
+</mat-menu>

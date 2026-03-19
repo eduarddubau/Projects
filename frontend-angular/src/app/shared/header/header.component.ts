@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,18 +8,22 @@ import { AuthService } from '@core/services/auth.service';
 import { HealthService, HealthStatus } from '@core/services/health.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     CommonModule, 
-    RouterLink, 
-    RouterLinkActive, 
+    RouterLink,
     MatToolbarModule, 
     MatButtonModule, 
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatMenuModule,
+    MatIconModule,
+    MatDividerModule
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
