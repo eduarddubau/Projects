@@ -80,6 +80,19 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserResponseDto>> RestoreUser(Guid id)
+    {
+        var restoredUser = await _userService.RestoreAnyUserAsync(id);
+
+        if (restoredUser == null)
+            return NotFound(new { message = $"User with ID {id} not found." });
+
+        return Ok(restoredUser);
+    }
+
     [HttpGet("trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetDeletedUsers()

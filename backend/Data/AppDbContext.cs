@@ -82,7 +82,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 entityEntry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
 
                 entityEntry.Entity.UpdatedAt = now;
-                entityEntry.Entity.UpdatedBy = userGuid;
+
+                if (userGuid.HasValue)
+                    entityEntry.Entity.UpdatedBy = userGuid;
             }
             else if (entityEntry.State == EntityState.Deleted)
             {
@@ -90,7 +92,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 entityEntry.Entity.IsDeleted = true;
                 entityEntry.Entity.DeletedAt = now;
                 entityEntry.Entity.UpdatedAt = now;
-                entityEntry.Entity.UpdatedBy = userGuid;
+
+                if (userGuid.HasValue)
+                    entityEntry.Entity.UpdatedBy = userGuid;
 
                 entityEntry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
                 entityEntry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
