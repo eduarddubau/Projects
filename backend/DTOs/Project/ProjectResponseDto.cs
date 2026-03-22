@@ -1,4 +1,5 @@
-namespace Backend.DTOs;
+namespace Backend.DTOs.Project;
+
 
 public record ProjectResponseDto
 {

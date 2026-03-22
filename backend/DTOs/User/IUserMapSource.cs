@@ -1,3 +1,5 @@
+namespace Backend.DTOs.User;
+
 public interface IUserMapSource
 {
     string Email { get; }

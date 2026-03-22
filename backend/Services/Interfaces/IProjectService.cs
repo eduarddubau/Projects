@@ -1,22 +1,18 @@
-using Backend.Data;
-using Backend.DTOs;
-using Backend.Models;
+using Backend.DTOs.Project;
 
-namespace Backend.Services;
+namespace Backend.Services.Interfaces;
 
 public interface IProjectService
 {
-    // Standard user methods
-    Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync();
-    Task<ProjectResponseDto?> GetMyProjectByIdAsync(Guid id);
-    Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto);
-    Task<bool> DeleteMyProjectAsync(Guid id);
-    Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectDto dto);
+    Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync(CancellationToken ct = default);
+    Task<ProjectResponseDto?> GetMyProjectByIdAsync(Guid id, CancellationToken ct = default);
+    Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto, CancellationToken ct = default);
+    Task<bool> DeleteMyProjectAsync(Guid id, CancellationToken ct = default);
+    Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectDto dto, CancellationToken ct = default);
 
-    // Admin methods
-    Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync();
-    Task<ProjectResponseDto?> GetAnyProjectByIdAsync(Guid id);
-    Task<bool> DeleteAnyProjectAsync(Guid id);
-    Task<ProjectResponseDto?> RestoreAnyProjectAsync(Guid projectId);
-    Task<IEnumerable<ProjectResponseDto>> GetDeletedProjectsAsync();
+    Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync(CancellationToken ct = default);
+    Task<ProjectResponseDto?> GetAnyProjectByIdAsync(Guid id, CancellationToken ct = default);
+    Task<bool> DeleteAnyProjectAsync(Guid id, CancellationToken ct = default);
+    Task<ProjectResponseDto?> RestoreAnyProjectAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<ProjectResponseDto>> GetDeletedProjectsAsync(CancellationToken ct = default);
 }

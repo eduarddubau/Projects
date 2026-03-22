@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Backend.Services.Interfaces;
 using Backend.Services;
 using Backend.Middleware;
 using Backend.Models;
@@ -27,14 +28,13 @@ public static class ServiceExtensions
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ITokenService, TokenService>();
 
         services.AddHealthChecks()
             .AddNpgSql(config.GetConnectionString("DefaultConnection")!);
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
-
-        services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }

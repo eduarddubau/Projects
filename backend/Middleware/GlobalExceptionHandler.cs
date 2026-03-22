@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Backend.Models;
+using Backend.Exceptions;
 
 namespace Backend.Middleware;
 
@@ -21,7 +22,7 @@ public class GlobalExceptionHandler : IExceptionHandler
     {
         var (statusCode, message) = exception switch
         {
-            InvalidOperationException   => (StatusCodes.Status409Conflict, exception.Message),
+            BusinessRuleException       => (StatusCodes.Status409Conflict, exception.Message),
             UnauthorizedAccessException => (StatusCodes.Status403Forbidden, exception.Message),
             _                           => (StatusCodes.Status500InternalServerError, "A critical error occurred on the server.")
         };

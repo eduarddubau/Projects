@@ -1,14 +1,13 @@
-using Backend.DTOs;
+using Backend.DTOs.User;
 
-namespace Backend.Services;
+namespace Backend.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
-    Task<UserResponseDto?> GetAnyUserByIdAsync(Guid id);
-    Task<UserResponseDto> CreateUserAsync(CreateUserDto dto);
-    Task<bool> DeleteAnyUserAsync(Guid id);
-    Task<UserResponseDto?> RestoreAnyUserAsync(Guid id);
-    Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync();
-
+    Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(CancellationToken ct = default);
+    Task<UserResponseDto?> GetAnyUserByIdAsync(Guid id, CancellationToken ct = default);
+    Task<UserResponseDto> CreateUserAsync(CreateUserDto dto, CancellationToken ct = default);
+    Task<bool> DeleteAnyUserAsync(Guid id, CancellationToken ct = default);
+    Task<UserResponseDto?> RestoreAnyUserAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync(CancellationToken ct = default);
 }

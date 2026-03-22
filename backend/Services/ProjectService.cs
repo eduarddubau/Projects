@@ -1,7 +1,9 @@
 using Backend.Data;
-using Backend.DTOs;
+using Backend.DTOs.Project;
+using Backend.Exceptions;
 using Backend.Mappings;
 using Backend.Models;
+using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
@@ -11,7 +13,7 @@ public class ProjectService : BaseService<Project>, IProjectService
     public ProjectService(AppDbContext context, ICurrentUserService currentUser)
         : base(context, currentUser) { }
 
-    public async Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync()
+    public async Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync(CancellationToken ct = default)
     {
         return await _context.Projects
             .Include(p => p.Creator)
@@ -19,26 +21,26 @@ public class ProjectService : BaseService<Project>, IProjectService
             .Where(p => p.CreatedBy == _currentUser.UserGuid)
             .OrderByDescending(p => p.CreatedAt)
             .ProjectToDto()
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
-    public async Task<ProjectResponseDto?> GetMyProjectByIdAsync(Guid id)
+    public async Task<ProjectResponseDto?> GetMyProjectByIdAsync(Guid id, CancellationToken ct = default)
     {
         var project = await _context.Projects
             .Include(p => p.Creator)
             .Include(p => p.Updater)
-            .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid);
+            .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid, ct);
 
         return project is null ? null : project.MapToDto();
     }
 
-    public async Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto)
+    public async Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto, CancellationToken ct = default)
     {
         bool nameExists = await _context.Projects
-            .AnyAsync(p => p.Name == dto.Name && p.CreatedBy == _currentUser.UserGuid);
+            .AnyAsync(p => p.Name == dto.Name && p.CreatedBy == _currentUser.UserGuid, ct);
 
         if (nameExists)
-            throw new InvalidOperationException("You already have a project with this name.");
+            throw new BusinessRuleException("You already have a project with this name.");
 
         var project = new Project
         {
@@ -47,54 +49,54 @@ public class ProjectService : BaseService<Project>, IProjectService
         };
 
         _context.Projects.Add(project);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
-        await _context.Entry(project).Reference(p => p.Creator).LoadAsync();
-        await _context.Entry(project).Reference(p => p.Updater).LoadAsync();
+        await _context.Entry(project).Reference(p => p.Creator).LoadAsync(ct);
+        await _context.Entry(project).Reference(p => p.Updater).LoadAsync(ct);
 
         return project.MapToDto();
     }
 
-    public async Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectDto dto)
+    public async Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectDto dto, CancellationToken ct = default)
     {
         var project = await _context.Projects
-            .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid);
+            .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid, ct);
 
         if (project is null) return null;
 
         bool nameConflict = await _context.Projects
             .AnyAsync(p => p.Name == dto.Name
                         && p.CreatedBy == _currentUser.UserGuid
-                        && p.Id != id);
+                        && p.Id != id, ct);
 
         if (nameConflict)
-            throw new InvalidOperationException("You already have a project with this name.");
+            throw new BusinessRuleException("You already have a project with this name.");
 
         project.Name = dto.Name;
         project.Description = dto.Description;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
-        await _context.Entry(project).Reference(p => p.Creator).LoadAsync();
-        await _context.Entry(project).Reference(p => p.Updater).LoadAsync();
+        await _context.Entry(project).Reference(p => p.Creator).LoadAsync(ct);
+        await _context.Entry(project).Reference(p => p.Updater).LoadAsync(ct);
 
         return project.MapToDto();
     }
 
-    public async Task<bool> DeleteMyProjectAsync(Guid id)
+    public async Task<bool> DeleteMyProjectAsync(Guid id, CancellationToken ct = default)
     {
         var project = await _context.Projects
-            .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid);
+            .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid, ct);
 
         if (project is null) return false;
 
         _context.Projects.Remove(project);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return true;
     }
 
-    public async Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync()
+    public async Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync(CancellationToken ct = default)
     {
         return await _context.Projects
             .IgnoreQueryFilters()
@@ -102,41 +104,41 @@ public class ProjectService : BaseService<Project>, IProjectService
             .Include(p => p.Updater)
             .OrderByDescending(p => p.CreatedAt)
             .ProjectToDto()
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 
-    public async Task<ProjectResponseDto?> GetAnyProjectByIdAsync(Guid id)
+    public async Task<ProjectResponseDto?> GetAnyProjectByIdAsync(Guid id, CancellationToken ct = default)
     {
         var project = await _context.Projects
             .IgnoreQueryFilters()
             .Include(p => p.Creator)
             .Include(p => p.Updater)
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
 
         return project is null ? null : project.MapToDto();
     }
 
-    public async Task<bool> DeleteAnyProjectAsync(Guid id)
+    public async Task<bool> DeleteAnyProjectAsync(Guid id, CancellationToken ct = default)
     {
         var project = await _context.Projects
             .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (project is null) return false;
 
         _context.Projects.Remove(project);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return true;
     }
 
-    public async Task<ProjectResponseDto?> RestoreAnyProjectAsync(Guid id)
+    public async Task<ProjectResponseDto?> RestoreAnyProjectAsync(Guid id, CancellationToken ct = default)
     {
         var project = await _context.Projects
             .IgnoreQueryFilters()
             .Include(p => p.Creator)
             .Include(p => p.Updater)
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (project is null) return null;
 
@@ -145,12 +147,12 @@ public class ProjectService : BaseService<Project>, IProjectService
         project.IsDeleted = false;
         project.DeletedAt = null;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return project.MapToDto();
     }
 
-    public async Task<IEnumerable<ProjectResponseDto>> GetDeletedProjectsAsync()
+    public async Task<IEnumerable<ProjectResponseDto>> GetDeletedProjectsAsync(CancellationToken ct = default)
     {
         return await _context.Projects
             .IgnoreQueryFilters()
@@ -159,6 +161,6 @@ public class ProjectService : BaseService<Project>, IProjectService
             .Where(p => p.IsDeleted)
             .OrderByDescending(p => p.DeletedAt)
             .ProjectToDto()
-            .ToListAsync();
+            .ToListAsync(ct);
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Backend.DTOs;
-using Backend.Services;
+using Backend.Services.Interfaces;
+using Backend.DTOs.Project;
 
 namespace Backend.Controllers;
 
@@ -21,42 +21,40 @@ public class ProjectsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetMyProjects()
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetMyProjects(CancellationToken ct)
     {
-        var projects = await _projectService.GetMyProjectsAsync();
-
+        var projects = await _projectService.GetMyProjectsAsync(ct);
         return Ok(projects);
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> GetMyProjectById(Guid id)
+    public async Task<ActionResult<ProjectResponseDto>> GetMyProjectById(Guid id, CancellationToken ct)
     {
-        var project = await _projectService.GetMyProjectByIdAsync(id);
+        var project = await _projectService.GetMyProjectByIdAsync(id, ct);
 
-        if (project == null) return NotFound();
+        if (project is null) return NotFound();
 
         return Ok(project);
     }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<ProjectResponseDto>> CreateProject(CreateProjectDto dto)
+    public async Task<ActionResult<ProjectResponseDto>> CreateProject(CreateProjectDto dto, CancellationToken ct)
     {
-        var response = await _projectService.CreateProjectAsync(dto);
-
+        var response = await _projectService.CreateProjectAsync(dto, ct);
         return CreatedAtAction(nameof(GetMyProjectById), new { id = response.Id }, response);
     }
 
     [HttpPatch("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> UpdateMyProject(Guid id, UpdateProjectDto dto)
+    public async Task<ActionResult<ProjectResponseDto>> UpdateMyProject(Guid id, UpdateProjectDto dto, CancellationToken ct)
     {
-        var updated = await _projectService.UpdateMyProjectAsync(id, dto);
+        var updated = await _projectService.UpdateMyProjectAsync(id, dto, ct);
 
-        if (updated == null) return NotFound();
+        if (updated is null) return NotFound();
 
         return Ok(updated);
     }
@@ -64,9 +62,9 @@ public class ProjectsController : ControllerBase
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteMyProjectById(Guid id)
+    public async Task<IActionResult> DeleteMyProjectById(Guid id, CancellationToken ct)
     {
-        var success = await _projectService.DeleteMyProjectAsync(id);
+        var success = await _projectService.DeleteMyProjectAsync(id, ct);
 
         if (!success) return NotFound(new { message = "Project not found." });
 
@@ -80,10 +78,9 @@ public class ProjectsController : ControllerBase
     [Authorize(Policy = AppPolicies.AdminOnly)]
     [HttpGet("admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllProjects()
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllProjects(CancellationToken ct)
     {
-        var projects = await _projectService.GetAllProjectsAsync();
-
+        var projects = await _projectService.GetAllProjectsAsync(ct);
         return Ok(projects);
     }
 
@@ -91,27 +88,24 @@ public class ProjectsController : ControllerBase
     [HttpGet("admin/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> GetAnyProjectById(Guid id) // FIX #1: was IEnumerable<...>
+    public async Task<ActionResult<ProjectResponseDto>> GetAnyProjectById(Guid id, CancellationToken ct)
     {
-        var project = await _projectService.GetAnyProjectByIdAsync(id);
+        var project = await _projectService.GetAnyProjectByIdAsync(id, ct);
 
-        if (project == null) return NotFound(new { message = "Project not found." }); // FIX #1: was missing
+        if (project is null) return NotFound(new { message = "Project not found." });
 
         return Ok(project);
     }
 
     [Authorize(Policy = AppPolicies.AdminOnly)]
-    [HttpDelete("admin/{id:guid}")] // FIX #5: removed redundant /delete suffix
+    [HttpDelete("admin/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteAnyProjectById(Guid id)
+    public async Task<IActionResult> DeleteAnyProjectById(Guid id, CancellationToken ct)
     {
-        var success = await _projectService.DeleteAnyProjectAsync(id);
+        var success = await _projectService.DeleteAnyProjectAsync(id, ct);
 
-        if (!success)
-        {
-            return NotFound(new { message = "Project not found." });
-        }
+        if (!success) return NotFound(new { message = "Project not found." });
 
         return NoContent();
     }
@@ -120,14 +114,11 @@ public class ProjectsController : ControllerBase
     [HttpPatch("admin/{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> RestoreAnyProjectById(Guid id)
+    public async Task<ActionResult<ProjectResponseDto>> RestoreAnyProjectById(Guid id, CancellationToken ct)
     {
-        var restoredProject = await _projectService.RestoreAnyProjectAsync(id);
+        var restoredProject = await _projectService.RestoreAnyProjectAsync(id, ct);
 
-        if (restoredProject == null)
-        {
-            return NotFound(new { message = "Project not found." });
-        }
+        if (restoredProject is null) return NotFound(new { message = "Project not found." });
 
         return Ok(restoredProject);
     }
@@ -135,10 +126,9 @@ public class ProjectsController : ControllerBase
     [Authorize(Policy = AppPolicies.AdminOnly)]
     [HttpGet("admin/trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllDeletedProjects()
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllDeletedProjects(CancellationToken ct)
     {
-        var trash = await _projectService.GetDeletedProjectsAsync();
-
+        var trash = await _projectService.GetDeletedProjectsAsync(ct);
         return Ok(trash);
     }
 }

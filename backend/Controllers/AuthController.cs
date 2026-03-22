@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Backend.Config;
-using Backend.DTOs;
+using Backend.DTOs.User;
 
 namespace Backend.Controllers;
 
@@ -37,8 +37,10 @@ public class AuthController : ControllerBase
     [HttpGet("me")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserResponseDto>> GetCurrentUser()
+    public async Task<ActionResult<UserResponseDto>> GetCurrentUser(CancellationToken ct)
     {
+        if (_currentUser.UserId is null) return Unauthorized();
+
         var user = await _userManager.FindByIdAsync(_currentUser.UserId);
 
         if (user is null) return NotFound();
@@ -49,10 +51,9 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
-
         var passwordValid = user != null && await _userManager.CheckPasswordAsync(user, request.Password);
 
         if (!passwordValid)
@@ -74,11 +75,11 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest dto)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
-        var user = dto.ToEntity();
+        var user = request.ToEntity();
 
-        var result = await _userManager.CreateAsync(user, dto.Password);
+        var result = await _userManager.CreateAsync(user, request.Password);
 
         if (!result.Succeeded)
         {
@@ -88,10 +89,10 @@ public class AuthController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        await _userManager.AddToRoleAsync(user, AppRoles.User); 
+        await _userManager.AddToRoleAsync(user, AppRoles.User);
 
         var token = await _tokenService.CreateToken(user);
-        _logger.LogInformation("New user registered: {Email}", dto.Email);
+        _logger.LogInformation("New user registered: {Email}", request.Email);
 
         return StatusCode(StatusCodes.Status201Created, new
         {

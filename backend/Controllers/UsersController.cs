@@ -1,5 +1,6 @@
-using Backend.DTOs;
-using Backend.Services;
+using Backend.DTOs.User;
+using Backend.Exceptions;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,20 +26,20 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
+    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers(CancellationToken ct)
     {
-        var users = await _userService.GetAllUsersAsync();
+        var users = await _userService.GetAllUsersAsync(ct);
         return Ok(users);
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserResponseDto>> GetUser(Guid id)
+    public async Task<ActionResult<UserResponseDto>> GetUser(Guid id, CancellationToken ct)
     {
-        var user = await _userService.GetAnyUserByIdAsync(id);
+        var user = await _userService.GetAnyUserByIdAsync(id, ct);
 
-        if (user == null)
+        if (user is null)
         {
             _logger.LogWarning("User with ID {UserId} not found.", id);
             return NotFound(new { message = $"User with ID {id} not found." });
@@ -50,26 +51,18 @@ public class UsersController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserDto createUserDto)
+    public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserDto createUserDto, CancellationToken ct)
     {
-        try
-        {
-            var createdUser = await _userService.CreateUserAsync(createUserDto);
-            return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
-        }
-        catch (InvalidOperationException ex)
-        {
-            _logger.LogWarning("Email {Email} is already registered. Cannot create user.", createUserDto.Email);
-            return Conflict(new { message = ex.Message });
-        }
+        var createdUser = await _userService.CreateUserAsync(createUserDto, ct);
+        return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
     }
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteUser(Guid id)
+    public async Task<IActionResult> DeleteUser(Guid id, CancellationToken ct)
     {
-        var result = await _userService.DeleteAnyUserAsync(id);
+        var result = await _userService.DeleteAnyUserAsync(id, ct);
 
         if (!result)
         {
@@ -83,11 +76,11 @@ public class UsersController : ControllerBase
     [HttpPatch("{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserResponseDto>> RestoreUser(Guid id)
+    public async Task<ActionResult<UserResponseDto>> RestoreUser(Guid id, CancellationToken ct)
     {
-        var restoredUser = await _userService.RestoreAnyUserAsync(id);
+        var restoredUser = await _userService.RestoreAnyUserAsync(id, ct);
 
-        if (restoredUser == null)
+        if (restoredUser is null)
             return NotFound(new { message = $"User with ID {id} not found." });
 
         return Ok(restoredUser);
@@ -95,9 +88,9 @@ public class UsersController : ControllerBase
 
     [HttpGet("trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetDeletedUsers()
+    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetDeletedUsers(CancellationToken ct)
     {
-        var trash = await _userService.GetDeletedUsersAsync();
+        var trash = await _userService.GetDeletedUsersAsync(ct);
         return Ok(trash);
     }
 }

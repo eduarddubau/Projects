@@ -1,4 +1,4 @@
-using Backend.DTOs;
+using Backend.DTOs.Project;
 using Backend.Models;
 
 namespace Backend.Mappings;
