@@ -10,7 +10,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     private readonly ICurrentUserService _currentUserService;
 
-
     public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService)
         : base(options)
     {
@@ -23,19 +22,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
         base.OnModelCreating(modelBuilder);
 
-        // Global query filters to exclude soft-deleted entities
         modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
         modelBuilder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
 
-        // Configure UUID generation for primary keys and relationships for audit fields
         modelBuilder.Entity<User>(entity =>
         {
-            entity.Property(u => u.Id)
-                .ValueGeneratedOnAdd()
-                .HasDefaultValueSql("gen_random_uuid()");
-
             entity.HasOne(u => u.Creator)
-                .WithMany() 
+                .WithMany()
                 .HasForeignKey(u => u.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -47,10 +40,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         modelBuilder.Entity<Project>(entity =>
         {
-            entity.Property(p => p.Id)
-                .ValueGeneratedOnAdd()
-                .HasDefaultValueSql("gen_random_uuid()");
-
             entity.HasOne(p => p.Creator)
                 .WithMany()
                 .HasForeignKey(p => p.CreatedBy)
@@ -65,33 +54,30 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Get the current user's GUID for audit purposes
         var userGuid = _currentUserService.UserGuid;
         var now = DateTime.UtcNow;
 
-        // Process all entities that implement IAuditEntity and are being added, modified, or deleted
         var entries = ChangeTracker.Entries<IAuditEntity>()
-        .Where(e => e.State == EntityState.Added || 
-                    e.State == EntityState.Modified || 
-                    e.State == EntityState.Deleted);
+            .Where(e => e.State == EntityState.Added ||
+                        e.State == EntityState.Modified ||
+                        e.State == EntityState.Deleted);
 
-        // Handle audit fields based on the entity state
         foreach (var entityEntry in entries)
         {
             if (entityEntry.State == EntityState.Added)
             {
                 entityEntry.Entity.CreatedAt = now;
-
-                // If CreatedBy is not set, assign the current user's GUID
-                if (entityEntry.Entity.CreatedBy == Guid.Empty || entityEntry.Entity.CreatedBy == null)
-                {
-                    entityEntry.Entity.CreatedBy = userGuid;
-                }
                 entityEntry.Entity.IsDeleted = false;
+
+                if (entityEntry.Entity.CreatedBy == null || entityEntry.Entity.CreatedBy == Guid.Empty) // FIX
+                {
+                    entityEntry.Entity.CreatedBy = entityEntry.Entity is User newUser
+                        ? newUser.Id
+                        : userGuid;
+                }
             }
             else if (entityEntry.State == EntityState.Modified)
             {
-                // Prevent original audit data from being overwritten
                 entityEntry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
                 entityEntry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
 
@@ -103,9 +89,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 entityEntry.State = EntityState.Modified;
                 entityEntry.Entity.IsDeleted = true;
                 entityEntry.Entity.DeletedAt = now;
+                entityEntry.Entity.UpdatedAt = now;
                 entityEntry.Entity.UpdatedBy = userGuid;
 
-                // Prevent original audit data from being overwritten
                 entityEntry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
                 entityEntry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
             }

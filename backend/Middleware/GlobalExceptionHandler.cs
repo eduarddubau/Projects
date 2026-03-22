@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting; // Add this
 using Backend.Models;
 
 namespace Backend.Middleware;
@@ -17,22 +15,29 @@ public class GlobalExceptionHandler : IExceptionHandler
     }
 
     public async ValueTask<bool> TryHandleAsync(
-        HttpContext httpContext, 
-        Exception exception, 
+        HttpContext httpContext,
+        Exception exception,
         CancellationToken cancellationToken)
     {
-        _logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
+        var (statusCode, message) = exception switch
+        {
+            InvalidOperationException   => (StatusCodes.Status409Conflict, exception.Message),
+            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, exception.Message),
+            _                           => (StatusCodes.Status500InternalServerError, "A critical error occurred on the server.")
+        };
+
+        _logger.LogError(exception, "Unhandled exception ({StatusCode}): {Message}", statusCode, exception.Message);
 
         var response = new ErrorResponse
         {
-            StatusCode = StatusCodes.Status500InternalServerError,
-            Message = "A critical error occurred on the server.",
-            Details = _env.IsDevelopment() ? exception.Message : null 
+            StatusCode = statusCode,
+            Message = message,
+            Details = _env.IsDevelopment() ? exception.ToString() : null
         };
 
-        httpContext.Response.StatusCode = response.StatusCode;
+        httpContext.Response.StatusCode = statusCode;
         await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
 
-        return true; 
+        return true;
     }
 }

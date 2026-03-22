@@ -1,26 +1,26 @@
 namespace Backend.DTOs;
 
-public class CreateUserDto
+public record CreateUserDto : IUserMapSource
 {
-    public required string Email { get; set; }
-    public required string FirstName { get; set; }
-    public required string LastName { get; set; }
+    public required string Email { get; init; }
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
 }
 
-public class UserResponseDto
+public record UserResponseDto
 {
-    public Guid Id { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    
-    public Guid? CreatedBy { get; set; }
-    public Guid? UpdatedBy { get; set; }
+    public Guid Id { get; init; }
+    public string Email { get; init; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
 
-    public string CreatedByDisplayName { get; set; } = "System";
-    public string UpdatedByDisplayName { get; set; } = "Never";
+    public Guid? CreatedBy { get; init; }
+    public Guid? UpdatedBy { get; init; }
 
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; }
+    public string? CreatedByDisplayName { get; init; }
+    public string? UpdatedByDisplayName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
+    public bool IsDeleted { get; init; }
 }

@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
+public enum FetchResult { NotFound, Forbidden, Success }
+
 public abstract class BaseService<T> where T : class, IAuditEntity
 {
     protected readonly AppDbContext _context;
@@ -15,18 +17,18 @@ public abstract class BaseService<T> where T : class, IAuditEntity
         _currentUser = currentUser;
     }
 
-    protected async Task<T?> GetByIdSecureAsync(Guid id)
+    protected async Task<(FetchResult Result, T? Entity)> GetByIdSecureAsync(Guid id)
     {
-        var entity = await _context.Set<T>().FindAsync(id);
-        
-        if (entity == null) return null;
+        var entity = await _context.Set<T>()
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (entity is null)
+            return (FetchResult.NotFound, null);
 
         if (_currentUser.IsAdmin || entity.CreatedBy == _currentUser.UserGuid)
-        {
-            return entity;
-        }
+            return (FetchResult.Success, entity);
 
-        throw new UnauthorizedAccessException("You don't have permission to access this resource.");
+        return (FetchResult.Forbidden, null);
     }
-
 }

@@ -11,42 +11,38 @@ using Backend.Config;
 
 public static class ServiceExtensions
 {
-    // Extension method to add application services
-    public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
+    public static IServiceCollection AddApplicationServices(
+        this IServiceCollection services,
+        IConfiguration config,
+        IWebHostEnvironment env)
     {
-        // JSON and Controllers
         services.AddControllers()
-            .AddJsonOptions(options => {
+            .AddJsonOptions(options =>
+            {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-                options.JsonSerializerOptions.WriteIndented = true;
+                options.JsonSerializerOptions.WriteIndented = env.IsDevelopment();
             });
 
-        // Custom Services
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IUserService, UserService>();
 
-        // Health Checks
         services.AddHealthChecks()
             .AddNpgSql(config.GetConnectionString("DefaultConnection")!);
 
-        // Exception Handling
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
 
-        // Token Service
         services.AddScoped<ITokenService, TokenService>();
 
         return services;
     }
 
-    // Extension method to configure Identity and JWT Authentication
     public static IServiceCollection AddIdentityServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddDataProtection();
 
-        // Identity Configuration
         services.AddIdentityCore<User>(options =>
         {
             options.Password.RequireDigit = true;
@@ -60,7 +56,6 @@ public static class ServiceExtensions
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
 
-        // JWT Authentication
         services.AddOptions<JwtOptions>()
             .Bind(config.GetSection(JwtOptions.SectionName))
             .ValidateDataAnnotations()
@@ -69,13 +64,12 @@ public static class ServiceExtensions
         var jwtOptions = config.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
 
         if (jwtOptions == null || string.IsNullOrEmpty(jwtOptions.Key))
-        {
             throw new InvalidOperationException("JWT settings are missing!");
-        }
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -92,17 +86,14 @@ public static class ServiceExtensions
         return services;
     }
 
-    // Extension method to configure Authorization Policies
     public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
     {
         services.AddAuthorization(options =>
         {
-            // Policy for Admin-only actions
-            options.AddPolicy(AppPolicies.AdminOnly, policy => 
+            options.AddPolicy(AppPolicies.AdminOnly, policy =>
                 policy.RequireRole(AppRoles.Admin));
 
-            // Policy for actions allowed for both Admin and standard Users
-            options.AddPolicy(AppPolicies.StandardUser, policy => 
+            options.AddPolicy(AppPolicies.StandardUser, policy =>
                 policy.RequireRole(AppRoles.Admin, AppRoles.User));
         });
 

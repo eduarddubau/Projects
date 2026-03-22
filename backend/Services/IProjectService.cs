@@ -6,10 +6,17 @@ namespace Backend.Services;
 
 public interface IProjectService
 {
-    public Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync();
-    public Task<ProjectResponseDto?> GetProjectByIdAsync(Guid id);
-    public Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync();
-    public Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto);
-    public Task<bool> DeleteProjectAsync(Guid id);
-    public Task<ProjectResponseDto?> RestoreProjectAsync(Guid id);
+    // Standard user methods
+    Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync();
+    Task<ProjectResponseDto?> GetMyProjectByIdAsync(Guid id);
+    Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto);
+    Task<bool> DeleteMyProjectAsync(Guid id);
+    Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectDto dto);
+
+    // Admin methods
+    Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync();
+    Task<ProjectResponseDto?> GetAnyProjectByIdAsync(Guid id);
+    Task<bool> DeleteAnyProjectAsync(Guid id);
+    Task<ProjectResponseDto?> RestoreAnyProjectAsync(Guid projectId);
+    Task<IEnumerable<ProjectResponseDto>> GetDeletedProjectsAsync();
 }

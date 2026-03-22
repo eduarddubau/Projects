@@ -1,6 +1,4 @@
-using Backend.Config;
 using Backend.DTOs;
-using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,30 +8,35 @@ namespace Backend.Controllers;
 [Authorize(Policy = AppPolicies.AdminOnly)]
 [ApiController]
 [Route("api/[controller]")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    public UsersController(
+        IUserService userService,
+        ILogger<UsersController> logger)
     {
         _userService = userService;
         _logger = logger;
     }
 
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
     {
-        _logger.LogInformation("Retrieving all users.");
-        var users = await _userService.GetUsersAsync();
+        var users = await _userService.GetAllUsersAsync();
         return Ok(users);
     }
 
-    [HttpGet("{id:Guid}")]
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponseDto>> GetUser(Guid id)
     {
-        _logger.LogInformation("Retrieving user with ID {UserId}.", id);
-        var user = await _userService.GetUserByIdAsync(id);
+        var user = await _userService.GetAnyUserByIdAsync(id);
 
         if (user == null)
         {
@@ -41,19 +44,17 @@ public class UsersController : ControllerBase
             return NotFound(new { message = $"User with ID {id} not found." });
         }
 
-        _logger.LogInformation("User with ID {UserId} retrieved successfully.", id);
         return Ok(user);
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserDto createUserDto)
     {
-        _logger.LogInformation("Creating a new user with email {Email}.", createUserDto.Email);
-
         try
         {
             var createdUser = await _userService.CreateUserAsync(createUserDto);
-            _logger.LogInformation("User created successfully with ID {UserId}.", createdUser.Id);
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
         }
         catch (InvalidOperationException ex)
@@ -63,21 +64,27 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpDelete("{id:Guid}")]
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(Guid id)
     {
-        _logger.LogInformation("Attempting to delete user with ID {UserId}.", id);
-
-        var result = await _userService.DeleteUserAsync(id);
+        var result = await _userService.DeleteAnyUserAsync(id);
 
         if (!result)
         {
-            _logger.LogWarning("User with ID {UserId} not found.", id);
+            _logger.LogWarning("User with ID {UserId} not found for deletion.", id);
             return NotFound(new { message = $"User with ID {id} not found." });
         }
 
-        _logger.LogInformation("User with ID {UserId} marked as deleted successfully.", id);
         return NoContent();
     }
 
+    [HttpGet("trash")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetDeletedUsers()
+    {
+        var trash = await _userService.GetDeletedUsersAsync();
+        return Ok(trash);
+    }
 }

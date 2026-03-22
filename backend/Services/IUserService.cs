@@ -4,8 +4,11 @@ namespace Backend.Services;
 
 public interface IUserService
 {
-    Task<IEnumerable<UserResponseDto>> GetUsersAsync();
-    Task<UserResponseDto?> GetUserByIdAsync(Guid id);
+    Task<IEnumerable<UserResponseDto>> GetAllUsersAsync();
+    Task<UserResponseDto?> GetAnyUserByIdAsync(Guid id);
     Task<UserResponseDto> CreateUserAsync(CreateUserDto dto);
-    Task<bool> DeleteUserAsync(Guid id);
+    Task<bool> DeleteAnyUserAsync(Guid id);
+    Task<UserResponseDto?> RestoreAnyUserAsync(Guid id);
+    Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync();
+
 }

@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Backend.Config;
 
@@ -12,32 +13,43 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public string? UserId => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-    
+    public string UserId =>
+        _httpContextAccessor.HttpContext?.User?.FindFirstValue(JwtRegisteredClaimNames.Sub)
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? string.Empty;
+
     public Guid? UserGuid => Guid.TryParse(UserId, out var guid) ? guid : null;
 
-    public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+    public bool IsAuthenticated =>
+        _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 
-    public bool IsAdmin => _httpContextAccessor.HttpContext?.User?.IsInRole(AppRoles.Admin) ?? false;
+    public bool IsAdmin =>
+        _httpContextAccessor.HttpContext?.User?.IsInRole(AppRoles.Admin) ?? false;
 
-    public string? Email => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
+    public string? Email =>
+        _httpContextAccessor.HttpContext?.User?.FindFirstValue(JwtRegisteredClaimNames.Email)
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
 
-    public string? FirstName => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.GivenName);
+    public string? FirstName =>
+        _httpContextAccessor.HttpContext?.User?.FindFirstValue(JwtRegisteredClaimNames.GivenName)
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.GivenName);
 
-    public string? LastName => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Surname);
+    public string? LastName =>
+        _httpContextAccessor.HttpContext?.User?.FindFirstValue(JwtRegisteredClaimNames.FamilyName)
+        ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Surname);
 
-    public string? FullName 
+    public string? FullName
     {
-        get 
+        get
         {
-            if (string.IsNullOrEmpty(FirstName) && string.IsNullOrEmpty(LastName))
-                return Email;
-
-            return $"{FirstName} {LastName}".Trim();
+            var full = $"{FirstName} {LastName}".Trim();
+            return string.IsNullOrEmpty(full) ? null : full;
         }
     }
 
-    public IEnumerable<string> Roles => _httpContextAccessor.HttpContext?.User?.Claims
-        .Where(c => c.Type == ClaimTypes.Role)
-        .Select(c => c.Value) ?? Enumerable.Empty<string>();
+    public IEnumerable<string> Roles =>
+        _httpContextAccessor.HttpContext?.User?.Claims
+            .Where(c => c.Type == ClaimTypes.Role)
+            .Select(c => c.Value)
+        ?? Enumerable.Empty<string>();
 }

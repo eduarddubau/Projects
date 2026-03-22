@@ -1,33 +1,33 @@
 using Backend.Services;
 using Backend.DTOs.Auth;
 using Backend.Models;
+using Backend.Mappings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using Backend.Config;
+using Backend.DTOs;
 
 namespace Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class AuthController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
     private readonly ILogger<AuthController> _logger;
     private readonly ITokenService _tokenService;
     private readonly ICurrentUserService _currentUser;
-    private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
     public AuthController(
-        UserManager<User> userManager, 
-        RoleManager<IdentityRole<Guid>> roleManager,
-        ILogger<AuthController> logger, 
-        ITokenService tokenService, 
+        UserManager<User> userManager,
+        ILogger<AuthController> logger,
+        ITokenService tokenService,
         ICurrentUserService currentUser)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
         _logger = logger;
         _tokenService = tokenService;
         _currentUser = currentUser;
@@ -35,107 +35,68 @@ public class AuthController : ControllerBase
 
     [Authorize(Policy = AppPolicies.StandardUser)]
     [HttpGet("me")]
-    public IActionResult GetCurrentUser()
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserResponseDto>> GetCurrentUser()
     {
-        return Ok(new
-        {
-            Message = "You are authorized!",
-            UserId = _currentUser.UserId,
-            Email = _currentUser.Email,
-            FullName = $"{_currentUser.FirstName} {_currentUser.LastName}",
-            Roles = _currentUser.Roles
-        });
+        var user = await _userManager.FindByIdAsync(_currentUser.UserId);
+
+        if (user is null) return NotFound();
+
+        return Ok(user.MapToDto());
     }
 
     [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        _logger.LogInformation("Login attempt for user: {Email}", request.Email);
-
         var user = await _userManager.FindByEmailAsync(request.Email);
-        
-        if (user == null)
+
+        var passwordValid = user != null && await _userManager.CheckPasswordAsync(user, request.Password);
+
+        if (!passwordValid)
         {
-            _logger.LogWarning("Login failed: User with email {Email} not found.", request.Email);
+            _logger.LogWarning("Failed login attempt for: {Email}", request.Email);
             return Unauthorized("Invalid credentials.");
         }
 
-        var result = await _userManager.CheckPasswordAsync(user, request.Password);
+        var token = await _tokenService.CreateToken(user!);
+        _logger.LogInformation("User {Email} logged in successfully.", request.Email);
 
-        if (!result)
+        return Ok(new
         {
-            _logger.LogWarning("Login failed: Incorrect password for user {Email}.", request.Email);
-            return Unauthorized("Invalid credentials.");
-        }
-
-        var token = await _tokenService.CreateToken(user);
-
-        _logger.LogInformation("Token generated for {Email}", request.Email);
-
-        return Ok(new 
-        { 
             Token = token,
-            User = new 
-            { 
-                Id = user.Id,
-                Email = user.Email, 
-                FirstName = user.FirstName, 
-                LastName = user.LastName
-            }
+            User = user!.MapToDto()
         });
     }
 
-   [HttpPost("register")]
+    [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var user = new User 
-        { 
-            UserName = dto.Email, 
-            Email = dto.Email,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            CreatedBy = null
-        };
+        var user = dto.ToEntity();
 
         var result = await _userManager.CreateAsync(user, dto.Password);
 
         if (!result.Succeeded)
         {
             foreach (var error in result.Errors)
-            {
                 ModelState.AddModelError(error.Code, error.Description);
-            }
+
             return BadRequest(ModelState);
         }
 
-        // Set CreatedBy to the user's own ID after creation
-        user.CreatedBy = user.Id; 
-        await _userManager.UpdateAsync(user);
-        
-        const string defaultRole = AppRoles.User;
-        if (!await _roleManager.RoleExistsAsync(defaultRole))
-        {
-            await _roleManager.CreateAsync(new IdentityRole<Guid>(defaultRole));
-        }
-        await _userManager.AddToRoleAsync(user, defaultRole);
+        await _userManager.AddToRoleAsync(user, AppRoles.User); 
 
         var token = await _tokenService.CreateToken(user);
+        _logger.LogInformation("New user registered: {Email}", dto.Email);
 
-        _logger.LogInformation("New user registered and token generated: {Email}", dto.Email);
-
-        return Ok(new 
-        { 
+        return StatusCode(StatusCodes.Status201Created, new
+        {
             Token = token,
-            User = new 
-            { 
-                Id = user.Id,
-                Email = user.Email, 
-                FirstName = user.FirstName, 
-                LastName = user.LastName
-            }
+            User = user.MapToDto()
         });
     }
-
 }

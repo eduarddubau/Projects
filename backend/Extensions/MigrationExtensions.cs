@@ -11,6 +11,7 @@ public static class MigrationExtensions
     {
         using var scope = app.Services.CreateScope();
         var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
 
         try
         {
@@ -18,19 +19,13 @@ public static class MigrationExtensions
             var userManager = services.GetRequiredService<UserManager<User>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-            // Run Migrations
             if ((await context.Database.GetPendingMigrationsAsync()).Any())
-            {
                 await context.Database.MigrateAsync();
-            }
 
-            // Seed Data
-            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder");
             await DbSeeder.SeedAsync(userManager, roleManager, context, logger);
         }
         catch (Exception ex)
         {
-            var logger = services.GetRequiredService<ILogger<Program>>();
             logger.LogError(ex, "An error occurred during migration or seeding.");
             throw;
         }
