@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.DTOs.Auth;
 
-public record RegisterDto : IUserMapSource
+public record RegisterRequest : IUserMapSource
 {
     [Required]
     public string FirstName { get; init; } = string.Empty;

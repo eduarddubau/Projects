@@ -1,9 +1,5 @@
 namespace Backend.DTOs;
 
-public record CreateProjectDto(string Name, string? Description);
-
-public record UpdateProjectDto(string Name, string? Description);
-
 public record ProjectResponseDto
 {
     public Guid Id { get; init; }
