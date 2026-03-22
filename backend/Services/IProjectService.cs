@@ -11,4 +11,5 @@ public interface IProjectService
     public Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync();
     public Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto);
     public Task<bool> DeleteProjectAsync(Guid id);
+    public Task<ProjectResponseDto?> RestoreProjectAsync(Guid id);
 }

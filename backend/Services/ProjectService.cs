@@ -75,10 +75,35 @@ public class ProjectService : BaseService<Project>, IProjectService
         {
             return false;
         }
+
+        _context.Projects.Remove(project);
         
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<ProjectResponseDto?> RestoreProjectAsync(Guid projectId)
+        {
+            var currentUserId = _currentUser.UserGuid;
+
+            // Find the project, ignoring the global delete filter
+            var project = await _context.Projects
+                .IgnoreQueryFilters() 
+                .Include(p => p.Creator)
+                .Include(p => p.Updater)
+                .FirstOrDefaultAsync(p => p.Id == projectId && p.CreatedBy == currentUserId);
+
+            if (project == null) return null;
+
+            if (!project.IsDeleted) return MapToDto(project);
+
+            project.IsDeleted = false;
+            project.DeletedAt = null;
+
+            await _context.SaveChangesAsync();
+
+            return MapToDto(project);
+        }
 
     private static ProjectResponseDto MapToDto(Project project) => new()
     {

@@ -61,4 +61,30 @@ public class ProjectsController : ControllerBase
 
         return CreatedAtAction(nameof(GetProject), new { id = response.Id }, response);
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteProject(Guid id)
+    {
+        var success = await _projectService.DeleteProjectAsync(id);
+
+        if (!success)
+        {
+            return NotFound(new { message = "Project not found or you do not have permission to delete it." });
+        }
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/restore")]
+    public async Task<ActionResult<ProjectResponseDto>> RestoreProject(Guid id)
+    {
+        var restoredProject = await _projectService.RestoreProjectAsync(id);
+
+        if (restoredProject == null)
+        {
+            return NotFound(new { message = "Project not found or you do not have permission to restore it." });
+        }
+
+        return Ok(restoredProject);
+    }
 }
