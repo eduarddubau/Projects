@@ -12,13 +12,21 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<IEnumerable<UserResponseDto>> GetUsersAsync()
     {
-        var users = await _context.Users.ToListAsync();
+        var users = await _context.Users
+            .Include(u => u.Creator)
+            .Include(u => u.Updater)
+            .OrderByDescending(u => u.CreatedAt)
+            .ToListAsync();
         return users.Select(MapToDto);
     }
 
     public async Task<UserResponseDto?> GetUserByIdAsync(Guid id)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        var user = await _context.Users
+            .Include(u => u.Creator)
+            .Include(u => u.Updater)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
         return user is null ? null : MapToDto(user);
     }
 
@@ -62,11 +70,18 @@ public class UserService : BaseService<User>, IUserService
     private static UserResponseDto MapToDto(User user) => new()
     {
         Id = user.Id,
-        Email = user.Email,
+        Email = user.Email ?? string.Empty, 
         FirstName = user.FirstName,
         LastName = user.LastName,
         IsDeleted = user.IsDeleted,
         CreatedAt = user.CreatedAt,
-        CreatedBy = user.CreatedBy
+        CreatedBy = user.CreatedBy,
+        CreatedByDisplayName = user.Creator.GetDisplayName() ?? "System",
+        UpdatedAt = user.UpdatedAt,
+        UpdatedBy = user.UpdatedBy,
+        UpdatedByDisplayName = user.UpdatedAt.HasValue 
+            ? user.Updater.GetDisplayName() 
+            : "Never"
     };
+
 }

@@ -4,9 +4,9 @@ public interface IAuditEntity
 {
     Guid Id { get; set; }
     DateTime CreatedAt { get; set; }
-    string? CreatedBy { get; set; }
+    Guid? CreatedBy { get; set; }
     DateTime? UpdatedAt { get; set; }
-    string? UpdatedBy { get; set; }
+    Guid? UpdatedBy { get; set; }
     bool IsDeleted { get; set; }
     DateTime? DeletedAt { get; set; }
 }

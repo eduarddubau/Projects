@@ -3,6 +3,8 @@ namespace Backend.Services;
 public interface ICurrentUserService
 {
     string? UserId { get; }
+    Guid? UserGuid { get; }
+    bool IsAuthenticated { get; }
     bool IsAdmin { get; }
     string? Email { get; }
     string? FirstName { get; }

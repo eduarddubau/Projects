@@ -22,9 +22,11 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 }
 
 // Dummy service just for the CLI to not crash
-public class DesignTimeUserService : Backend.Services.ICurrentUserService
+public class DesignTimeUserService : Services.ICurrentUserService
 {
     public string? UserId => "Migration-Runner";
+    public Guid? UserGuid => Guid.Parse("00000000-0000-0000-0000-000000000001");
+    public bool IsAuthenticated => true;
     public bool IsAdmin => false;
     public string? Email => null;
     public string? FirstName => null;

@@ -24,8 +24,9 @@ public static class MigrationExtensions
                 await context.Database.MigrateAsync();
             }
 
-            // Run Seeding
-            await DbSeeder.SeedAsync(userManager, roleManager);
+            // Seed Data
+            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder");
+            await DbSeeder.SeedAsync(userManager, roleManager, context, logger);
         }
         catch (Exception ex)
         {

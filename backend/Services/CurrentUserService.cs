@@ -13,6 +13,10 @@ public class CurrentUserService : ICurrentUserService
     }
 
     public string? UserId => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+    
+    public Guid? UserGuid => Guid.TryParse(UserId, out var guid) ? guid : null;
+
+    public bool IsAuthenticated => _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
 
     public bool IsAdmin => _httpContextAccessor.HttpContext?.User?.IsInRole(AppRoles.Admin) ?? false;
 
@@ -21,6 +25,17 @@ public class CurrentUserService : ICurrentUserService
     public string? FirstName => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.GivenName);
 
     public string? LastName => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Surname);
+
+    public string? FullName 
+    {
+        get 
+        {
+            if (string.IsNullOrEmpty(FirstName) && string.IsNullOrEmpty(LastName))
+                return Email;
+
+            return $"{FirstName} {LastName}".Trim();
+        }
+    }
 
     public IEnumerable<string> Roles => _httpContextAccessor.HttpContext?.User?.Claims
         .Where(c => c.Type == ClaimTypes.Role)

@@ -96,7 +96,7 @@ public class AuthController : ControllerBase
             Email = dto.Email,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
-            CreatedBy = "Self-Registration"
+            CreatedBy = null
         };
 
         var result = await _userManager.CreateAsync(user, dto.Password);
@@ -109,6 +109,10 @@ public class AuthController : ControllerBase
             }
             return BadRequest(ModelState);
         }
+
+        // Set CreatedBy to the user's own ID after creation
+        user.CreatedBy = user.Id; 
+        await _userManager.UpdateAsync(user);
         
         const string defaultRole = AppRoles.User;
         if (!await _roleManager.RoleExistsAsync(defaultRole))

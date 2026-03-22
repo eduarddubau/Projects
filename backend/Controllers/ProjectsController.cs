@@ -18,20 +18,21 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Policy = AppPolicies.AdminOnly)]
+    [Route("all")]
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllProjects()
+    {
+        var projects = await _projectService.GetAllProjectsAsync();
+
+        return Ok(projects);
+    }
+
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetProjects()
     {
         var projects = await _projectService.GetMyProjectsAsync();
 
-        var response = projects.Select(p => new ProjectResponseDto
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            CreatedAt = p.CreatedAt,
-            CreatedBy = p.CreatedBy
-        }).ToList();
-
-        return Ok(response);
+        return Ok(projects);
     }
 
     [HttpGet("{id}")]
@@ -41,16 +42,7 @@ public class ProjectsController : ControllerBase
         
         if (project == null) return NotFound();
 
-        var response = new ProjectResponseDto
-        {
-            Id = project.Id,
-            Name = project.Name,
-            Description = project.Description,
-            CreatedAt = project.CreatedAt,
-            CreatedBy = project.CreatedBy
-        };
-
-        return Ok(response);
+        return Ok(project);
     }
 
     [HttpPost]

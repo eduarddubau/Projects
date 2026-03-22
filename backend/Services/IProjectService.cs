@@ -6,7 +6,9 @@ namespace Backend.Services;
 
 public interface IProjectService
 {
-    public Task<Project?> GetProjectByIdAsync(Guid id);
-    public Task<List<Project>> GetMyProjectsAsync();
-    public Task<Project> CreateProjectAsync(CreateProjectDto dto);
+    public Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync();
+    public Task<ProjectResponseDto?> GetProjectByIdAsync(Guid id);
+    public Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync();
+    public Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto);
+    public Task<bool> DeleteProjectAsync(Guid id);
 }

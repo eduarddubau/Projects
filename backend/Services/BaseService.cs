@@ -21,11 +21,12 @@ public abstract class BaseService<T> where T : class, IAuditEntity
         
         if (entity == null) return null;
 
-        if (_currentUser.IsAdmin || entity.CreatedBy == _currentUser.UserId)
+        if (_currentUser.IsAdmin || entity.CreatedBy == _currentUser.UserGuid)
         {
             return entity;
         }
 
         throw new UnauthorizedAccessException("You don't have permission to access this resource.");
     }
+
 }

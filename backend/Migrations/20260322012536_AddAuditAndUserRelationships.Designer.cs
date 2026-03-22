@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260304170214_Initial")]
-    partial class Initial
+    [Migration("20260322012536_AddAuditAndUserRelationships")]
+    partial class AddAuditAndUserRelationships
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -30,14 +30,15 @@ namespace backend.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -61,12 +62,18 @@ namespace backend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
                     b.HasKey("Id")
                         .HasName("pk_projects");
+
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("ix_projects_created_by");
+
+                    b.HasIndex("UpdatedBy")
+                        .HasDatabaseName("ix_projects_updated_by");
 
                     b.ToTable("projects", (string)null);
                 });
@@ -92,8 +99,8 @@ namespace backend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
                         .HasColumnName("created_by");
 
                     b.Property<DateTime?>("DeletedAt")
@@ -165,8 +172,8 @@ namespace backend.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text")
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
                     b.Property<string>("UserName")
@@ -177,12 +184,18 @@ namespace backend.Migrations
                     b.HasKey("Id")
                         .HasName("pk_asp_net_users");
 
+                    b.HasIndex("CreatedBy")
+                        .HasDatabaseName("ix_asp_net_users_created_by");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
+
+                    b.HasIndex("UpdatedBy")
+                        .HasDatabaseName("ix_asp_net_users_updated_by");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -347,6 +360,44 @@ namespace backend.Migrations
                         .HasName("pk_asp_net_user_tokens");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Backend.Models.Project", b =>
+                {
+                    b.HasOne("Backend.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_projects_users_created_by");
+
+                    b.HasOne("Backend.Models.User", "Updater")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_projects_users_updated_by");
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Updater");
+                });
+
+            modelBuilder.Entity("Backend.Models.User", b =>
+                {
+                    b.HasOne("Backend.Models.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_asp_net_users_asp_net_users_created_by");
+
+                    b.HasOne("Backend.Models.User", "Updater")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_asp_net_users_asp_net_users_updated_by");
+
+                    b.Navigation("Creator");
+
+                    b.Navigation("Updater");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
