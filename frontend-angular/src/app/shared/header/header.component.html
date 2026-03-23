@@ -1,35 +1,34 @@
 <mat-toolbar color="primary" class="app-header">
   <span routerLink="/" class="logo">Home</span>
 
-  <span 
-    class="status-dot" 
-    [matTooltip]="health().state === 'offline' ? health().error : 'API is Online'"
+  <span
+    class="status-dot"
+    [matTooltip]="health().state === 'offline' ? (health().error ?? 'API is offline') : 'API is Online'"
     matTooltipPosition="below"
     [class.online]="health().state === 'online'"
     [class.offline]="health().state === 'offline'">
   </span>
 
-  @if (authService.isAuthenticated()) {
-    <a mat-button routerLink="/entities" routerLinkActive="active-link">
-      Entities
+  @if (isAuthenticated()) {
+    <a mat-button routerLink="/projects" routerLinkActive="active-link">
+      Projects
     </a>
   }
 
   <span class="spacer"></span>
 
   <div class="auth-actions">
-    @if (!authService.isAuthenticated()) {
+    @if (!isAuthenticated()) {
       <a mat-button routerLink="/login">Login</a>
       <a mat-raised-button color="accent" routerLink="/register">Register</a>
-    } 
-    @else {
+    } @else {
       <button mat-button [matMenuTriggerFor]="profileMenu" class="profile-button">
         <div class="profile-content-wrapper">
           <mat-icon class="profile-icon">account_circle</mat-icon>
-          
+
           <div class="user-text-stack">
-            <span class="user-name">{{ authService.currentUser()?.firstName }}</span>
-            <span class="user-email">{{ authService.currentUser()?.email }}</span>
+            <span class="user-name">{{ currentUser()?.firstName }}</span>
+            <span class="user-email">{{ currentUser()?.email }}</span>
           </div>
 
           <mat-icon class="arrow-icon">expand_more</mat-icon>
@@ -39,17 +38,17 @@
   </div>
 </mat-toolbar>
 
-<mat-menu #profileMenu="matMenu" xPosition="before" class="custom-profile-menu">
+<mat-menu #profileMenu="matMenu" xPosition="before">
   <div class="menu-user-info" (click)="$event.stopPropagation()">
-    <strong>{{ authService.currentUser()?.firstName }} {{ authService.currentUser()?.lastName }}</strong>
-    <small>{{ authService.currentUser()?.email }}</small>
+    <strong>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</strong>
+    <small>{{ currentUser()?.email }}</small>
   </div>
   <mat-divider></mat-divider>
-  <button mat-menu-item routerLink="/entities">
-    <mat-icon>list</mat-icon>
-    <span>My Entities</span>
+  <button mat-menu-item routerLink="/projects">
+    <mat-icon>folder</mat-icon>
+    <span>My Projects</span>
   </button>
-  <button mat-menu-item (click)="authService.logout()">
+  <button mat-menu-item (click)="logout()">
     <mat-icon>logout</mat-icon>
     <span>Sign Out</span>
   </button>

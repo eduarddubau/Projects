@@ -1,38 +1,39 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { AuthService } from '@core/services/auth.service';
-import { HealthService, HealthStatus } from '@core/services/health.service';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { AuthService } from '@core/services/auth.service';
+import { HealthService } from '@core/services/health.service';
+import { HealthStatus } from '@core/models/health-status';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-header',
-  standalone: true,
   imports: [
-    CommonModule, 
     RouterLink,
-    MatToolbarModule, 
-    MatButtonModule, 
+    RouterLinkActive,
+    MatToolbarModule,
+    MatButtonModule,
     MatIconModule,
     MatTooltipModule,
     MatMenuModule,
-    MatIconModule,
     MatDividerModule
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent {
-  public authService = inject(AuthService);
-  public healthService = inject(HealthService);
-  health = toSignal(this.healthService.status$, { 
-    initialValue: { state: 'offline', error: 'Initializing...' } as HealthStatus 
+  private authService = inject(AuthService);
+  private healthService = inject(HealthService);
+
+  currentUser = this.authService.currentUser;
+  isAuthenticated = this.authService.isAuthenticated;
+  health = toSignal(this.healthService.status$, {
+    initialValue: { state: 'offline', error: 'Initializing...' } as HealthStatus
   });
 
   logout(): void {

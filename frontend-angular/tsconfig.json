@@ -6,9 +6,7 @@
     "outDir": "./dist/out-tsc",
     "paths": {
       "@core/*": ["src/app/core/*"],
-      "@models/*": ["src/app/core/models/*"],
       "@features/*": ["src/app/features/*"],
-      "@services/*": ["src/app/core/services/*"],
       "@shared/*": ["src/app/shared/*"],
       "@env/*": ["src/environments/*"]
     },
@@ -25,7 +23,7 @@
     "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "ESNext", 
+    "module": "ESNext",
     "useDefineForClassFields": false,
     "lib": ["ES2022", "dom"],
     "skipLibCheck": true

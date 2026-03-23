@@ -7,17 +7,23 @@
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       <mat-card-content>
-        
+
         <div class="row">
           <mat-form-field appearance="outline">
             <mat-label>First Name</mat-label>
             <input matInput formControlName="firstName" placeholder="John">
             <mat-icon matSuffix>person</mat-icon>
+            @if (registerForm.get('firstName')?.hasError('required') && registerForm.get('firstName')?.touched) {
+              <mat-error>First name is required</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Last Name</mat-label>
             <input matInput formControlName="lastName" placeholder="Doe">
+            @if (registerForm.get('lastName')?.hasError('required') && registerForm.get('lastName')?.touched) {
+              <mat-error>Last name is required</mat-error>
+            }
           </mat-form-field>
         </div>
 
@@ -25,7 +31,10 @@
           <mat-label>Email</mat-label>
           <input matInput type="email" formControlName="email" placeholder="you@example.com">
           <mat-icon matSuffix>email</mat-icon>
-          @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+          @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+            <mat-error>Email is required</mat-error>
+          }
+          @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
             <mat-error>Please enter a valid email address</mat-error>
           }
         </mat-form-field>
@@ -34,22 +43,31 @@
           <mat-label>Password</mat-label>
           <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password">
           <button mat-icon-button matSuffix (click)="togglePassword($event)" type="button">
-            <mat-icon>{{hidePassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+            <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
-          <mat-hint>Min 8 chars, 1 Upper, 1 Special</mat-hint>
+          <mat-hint>Min 8 chars, 1 uppercase, 1 special character</mat-hint>
+          @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+            <mat-error>Password is required</mat-error>
+          }
+          @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
+            <mat-error>Password must be at least 8 characters</mat-error>
+          }
+          @if (registerForm.get('password')?.hasError('pattern') && registerForm.get('password')?.touched) {
+            <mat-error>Password must contain at least 1 uppercase letter and 1 special character</mat-error>
+          }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Confirm Password</mat-label>
           <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword">
           <button mat-icon-button matSuffix (click)="toggleConfirmPassword($event)" type="button">
-            <mat-icon>{{hideConfirmPassword() ? 'visibility_off' : 'visibility'}}</mat-icon>
+            <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
             <mat-error>Passwords do not match</mat-error>
           }
         </mat-form-field>
-        
+
       </mat-card-content>
 
       <mat-card-actions class="actions-column">
@@ -60,7 +78,7 @@
             <span>Register & Log In</span>
           }
         </button>
-        
+
         <div class="login-link">
           Already have an account? <a routerLink="/login">Log in here</a>
         </div>

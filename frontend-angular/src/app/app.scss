@@ -1,2 +1,10 @@
-.navbar { display: flex; gap: 20px; padding: 1rem; background: #eee; }
-.active { font-weight: bold; color: blue; }
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+}

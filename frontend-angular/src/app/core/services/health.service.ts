@@ -3,24 +3,19 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { HEALTH_URL } from '@core/tokens/app.tokens';
 import { timer, Observable, of } from 'rxjs';
 import { map, switchMap, catchError, shareReplay } from 'rxjs/operators';
-
-export interface HealthStatus {
-  state: 'online' | 'offline';
-  error?: string;
-}
+import { HealthStatus } from '@core/models/health-status';
 
 @Injectable({ providedIn: 'root' })
 export class HealthService {
   private http = inject(HttpClient);
   private healthUrl = inject(HEALTH_URL);
 
-  // Emit health status every n seconds, starting immediately
   public status$: Observable<HealthStatus> = timer(0, 5000).pipe(
-    switchMap(() => 
+    switchMap(() =>
       this.http.get(this.healthUrl, { responseType: 'text' }).pipe(
         map(() => ({ state: 'online' } as HealthStatus)),
         catchError((err: HttpErrorResponse) => {
-          let errorMessage = err.status === 0 
+          const errorMessage = err.status === 0
             ? 'Network Error: Check CORS or Backend Status'
             : `API Error: ${err.status} (${this.getFriendlyStatus(err.status)})`;
 
@@ -28,11 +23,9 @@ export class HealthService {
         })
       )
     ),
-
-    shareReplay(1)
+    shareReplay({ bufferSize: 1, refCount: true })
   );
 
-  // Convert HTTP status codes to user-friendly messages
   private getFriendlyStatus(status: number): string {
     const statusMap: Record<number, string> = {
       400: 'Bad Request',

@@ -1,0 +1,102 @@
+<div class="projects-container">
+  <div class="projects-header">
+    <h1 class="projects-title">My Projects</h1>
+  </div>
+
+  <div class="mat-elevation-z2 table-card">
+
+    <div class="table-toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search projects</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchControl" placeholder="Search by name...">
+      </mat-form-field>
+
+      @if (isAdmin()) {
+        <mat-slide-toggle [formControl]="showDeletedControl" color="warn">
+          Show deleted
+        </mat-slide-toggle>
+      }
+    </div>
+
+    @if (isLoading()) {
+      <div class="state-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading projects...</p>
+      </div>
+    } @else if (hasError()) {
+      <div class="state-container">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <p>Failed to load projects. Please try again.</p>
+      </div>
+    } @else {
+      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Projects">
+
+        <ng-container matColumnDef="index">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">
+            {{ (paginator.pageIndex * paginator.pageSize) + (i + 1) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <td mat-cell *matCellDef="let row" class="description-cell">
+            {{ row.description ?? '—' }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdBy">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created By</th>
+          <td mat-cell *matCellDef="let row">{{ row.createdByDisplayName ?? '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdAt">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created At</th>
+          <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let row">
+            @if (row.isDeleted) {
+              <span class="status-badge deleted">Deleted</span>
+            } @else {
+              <span class="status-badge active">Active</span>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"
+            [class.deleted-row]="row.isDeleted"></tr>
+      </table>
+
+      @if (dataSource.data.length > 0 && paginator?.length === 0) {
+        <div class="state-container">
+          <mat-icon>search_off</mat-icon>
+          <p>No projects found matching your search.</p>
+        </div>
+      }
+
+      @if (dataSource.data.length === 0) {
+        <div class="state-container">
+          <mat-icon>folder_open</mat-icon>
+          <p>No projects yet.</p>
+        </div>
+      }
+
+      <mat-paginator
+        #paginator
+        [pageSizeOptions]="[5, 10, 20]"
+        aria-label="Select page">
+      </mat-paginator>
+    }
+
+  </div>
+</div>

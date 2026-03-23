@@ -16,12 +16,11 @@
   &:hover { opacity: 0.8; }
 }
 
-/* API Status Dot */
 .status-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #9e9e9e;
+  background-color: var(--mat-app-on-surface-variant);
   transition: all 0.3s ease;
 
   &.online {
@@ -30,18 +29,17 @@
   }
 
   &.offline {
-    background-color: #f44336;
+    background-color: var(--mat-app-error);
     animation: pulse-red 2s infinite;
   }
 }
 
 @keyframes pulse-red {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
 }
 
-/* --- Profile Button Styling --- */
 .profile-button {
   height: auto;
   padding: 6px 8px;
@@ -86,28 +84,4 @@
     height: 20px;
     opacity: 0.6;
   }
-}
-
-/* --- Dropdown Menu Styling --- */
-.menu-user-info {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  background-color: #fafafa;
-
-  strong { 
-    font-size: 0.95rem; 
-    color: #333; 
-    margin-bottom: 4px;
-  }
-
-  small { 
-    font-size: 0.8rem; 
-    color: #666; 
-  }
-}
-
-::ng-deep .mat-mdc-menu-panel {
-  max-width: none !important;
-  min-width: 250px;
 }
