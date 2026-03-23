@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Backend.Validators.Project;
 
-public class UpdateProjectDtoValidator : AbstractValidator<UpdateProjectDto>
+public class UpdateProjectRequestValidator : AbstractValidator<UpdateProjectRequest>
 {
-    public UpdateProjectDtoValidator()
+    public UpdateProjectRequestValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty()

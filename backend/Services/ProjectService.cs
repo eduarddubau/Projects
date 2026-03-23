@@ -34,7 +34,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         return project is null ? null : project.MapToDto();
     }
 
-    public async Task<ProjectResponseDto> CreateProjectAsync(CreateProjectDto dto, CancellationToken ct = default)
+    public async Task<ProjectResponseDto> CreateProjectAsync(CreateProjectRequest dto, CancellationToken ct = default)
     {
         bool nameExists = await _context.Projects
             .AnyAsync(p => p.Name == dto.Name && p.CreatedBy == _currentUser.UserGuid, ct);
@@ -57,7 +57,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         return project.MapToDto();
     }
 
-    public async Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectDto dto, CancellationToken ct = default)
+    public async Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectRequest dto, CancellationToken ct = default)
     {
         var project = await _context.Projects
             .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid, ct);

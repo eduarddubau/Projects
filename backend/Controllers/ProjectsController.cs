@@ -41,7 +41,7 @@ public class ProjectsController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<ProjectResponseDto>> CreateProject(CreateProjectDto dto, CancellationToken ct)
+    public async Task<ActionResult<ProjectResponseDto>> CreateProject(CreateProjectRequest dto, CancellationToken ct)
     {
         var response = await _projectService.CreateProjectAsync(dto, ct);
         return CreatedAtAction(nameof(GetMyProjectById), new { id = response.Id }, response);
@@ -50,7 +50,7 @@ public class ProjectsController : ControllerBase
     [HttpPatch("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> UpdateMyProject(Guid id, UpdateProjectDto dto, CancellationToken ct)
+    public async Task<ActionResult<ProjectResponseDto>> UpdateMyProject(Guid id, UpdateProjectRequest dto, CancellationToken ct)
     {
         var updated = await _projectService.UpdateMyProjectAsync(id, dto, ct);
 

@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace Backend.Validators.User;
 
-public class CreateUserDtoValidator : AbstractValidator<CreateUserDto>
+public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 {
-    public CreateUserDtoValidator()
+    public CreateUserRequestValidator()
     {
         RuleFor(x => x.FirstName)
             .NotEmpty()

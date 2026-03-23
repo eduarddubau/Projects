@@ -51,7 +51,7 @@ public class UsersController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserDto createUserDto, CancellationToken ct)
+    public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserRequest createUserDto, CancellationToken ct)
     {
         var createdUser = await _userService.CreateUserAsync(createUserDto, ct);
         return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);

@@ -45,7 +45,7 @@ public class UserService : BaseService<User>, IUserService
         return user is null ? null : user.MapToDto();
     }
 
-    public async Task<UserResponseDto> CreateUserAsync(CreateUserDto dto, CancellationToken ct = default)
+    public async Task<UserResponseDto> CreateUserAsync(CreateUserRequest dto, CancellationToken ct = default)
     {
         var emailExists = await _userManager.FindByEmailAsync(dto.Email) != null;
         if (emailExists)
