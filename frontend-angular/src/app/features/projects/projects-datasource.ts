@@ -2,7 +2,7 @@ import { DataSource } from '@angular/cdk/collections';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { Subject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, startWith } from 'rxjs/operators';
 import { Project } from '@core/models/project';
 
 export interface ProjectTableState {
@@ -29,10 +29,8 @@ export class ProjectsDataSource extends DataSource<Project> {
 
   connect(): Observable<Project[]> {
     return this.updateStream.pipe(
-      map(() => {
-        if (!this.paginator || !this.sort) return [];
-        return this._getProcessedData([...this.data]);
-      })
+      startWith(undefined),
+      map(() => this._getProcessedData([...this.data]))
     );
   }
 
@@ -44,7 +42,10 @@ export class ProjectsDataSource extends DataSource<Project> {
 
   private _getProcessedData(data: Project[]): Project[] {
     let result = this._getFilteredData(data);
-    result = this._getSortedData(result);
+
+    if (this.sort?.active && this.sort.direction !== '') {
+      result = this._getSortedData(result);
+    }
 
     if (this.paginator) {
       this.paginator.length = result.length;
@@ -52,9 +53,10 @@ export class ProjectsDataSource extends DataSource<Project> {
       if (this.paginator.pageIndex > maxPage && maxPage >= 0) {
         this.paginator.pageIndex = 0;
       }
+      return this._getPagedData(result);
     }
 
-    return this._getPagedData(result);
+    return result;
   }
 
   private _getFilteredData(data: Project[]): Project[] {

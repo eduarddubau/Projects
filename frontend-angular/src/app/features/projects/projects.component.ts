@@ -60,44 +60,21 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   showDeletedControl = new FormControl(false);
 
   ngOnInit() {
-    const fetch$ = this.isAdmin()
-      ? this.projectService.getAllProjects()
-      : this.projectService.getMyProjects();
-
-    fetch$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (projects) => {
-        this.dataSource.data = projects;
-        this.isLoading.set(false);
-        this.dataSource.triggerUpdate();
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.hasError.set(true);
-        this.isLoading.set(false);
-        this.cdr.markForCheck();
-      }
-    });
-
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      combineLatestWith(
-        this.showDeletedControl.valueChanges.pipe(startWith(this.showDeletedControl.value))
-      ),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(([searchTerm, showDeleted]) => {
-      this.dataSource.state = {
-        searchQuery: searchTerm?.trim().toLowerCase() ?? '',
-        showDeleted: !!showDeleted
-      };
-
-      if (this.dataSource.paginator) {
-        this.dataSource.paginator.pageIndex = 0;
-      }
-
-      this.cdr.markForCheck();
-    });
+    this.projectService.getMyProjects()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (projects) => {
+          this.dataSource.data = projects;
+          this.isLoading.set(false);
+          this.dataSource.triggerUpdate();
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.hasError.set(true);
+          this.isLoading.set(false);
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   ngAfterViewInit(): void {
@@ -113,6 +90,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
       this.dataSource.triggerUpdate();
     });
 
+    // Always trigger after view is ready
     this.dataSource.triggerUpdate();
     this.cdr.detectChanges();
   }
