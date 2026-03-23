@@ -22,7 +22,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 }
 
 // Dummy implementation to satisfy AppDbContext constructor during migrations
-public class DesignTimeUserService : Services.ICurrentUserService
+public class DesignTimeUserService : Services.Interfaces.ICurrentUserService
 {
     public string UserId => "migration-runner"; // FIX #3: removed ?
     public Guid? UserGuid => Guid.Parse("00000000-0000-0000-0000-000000000001");

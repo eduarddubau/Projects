@@ -1,4 +1,4 @@
-using Backend.Services;
+using Backend.Services.Interfaces;
 using Backend.DTOs.Auth;
 using Backend.Models;
 using Backend.Mappings;
