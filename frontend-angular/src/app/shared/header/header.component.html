@@ -15,6 +15,12 @@
     </a>
   }
 
+  @if (isAdmin()) {
+    <a mat-button routerLink="/admin" routerLinkActive="active-link">
+      Admin
+    </a>
+  }
+
   <span class="spacer"></span>
 
   <div class="auth-actions">
@@ -25,12 +31,10 @@
       <button mat-button [matMenuTriggerFor]="profileMenu" class="profile-button">
         <div class="profile-content-wrapper">
           <mat-icon class="profile-icon">account_circle</mat-icon>
-
           <div class="user-text-stack">
             <span class="user-name">{{ currentUser()?.firstName }}</span>
             <span class="user-email">{{ currentUser()?.email }}</span>
           </div>
-
           <mat-icon class="arrow-icon">expand_more</mat-icon>
         </div>
       </button>
@@ -48,6 +52,14 @@
     <mat-icon>folder</mat-icon>
     <span>My Projects</span>
   </button>
+  @if (isAdmin()) {
+    <mat-divider></mat-divider>
+    <button mat-menu-item routerLink="/admin">
+      <mat-icon>admin_panel_settings</mat-icon>
+      <span>Admin Panel</span>
+    </button>
+  }
+  <mat-divider></mat-divider>
   <button mat-menu-item (click)="logout()">
     <mat-icon>logout</mat-icon>
     <span>Sign Out</span>

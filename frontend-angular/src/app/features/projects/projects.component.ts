@@ -55,7 +55,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   hasError = signal(false);
 
   dataSource = new ProjectsDataSource();
-  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'status'];
+  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt'];
   searchControl = new FormControl('');
   showDeletedControl = new FormControl(false);
 
@@ -75,6 +75,25 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
           this.cdr.markForCheck();
         }
       });
+
+    this.searchControl.valueChanges.pipe(
+      startWith(this.searchControl.value),
+      debounceTime(300),
+      distinctUntilChanged(),
+      combineLatestWith(
+        this.showDeletedControl.valueChanges.pipe(startWith(this.showDeletedControl.value))
+      ),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(([searchTerm, showDeleted]) => {
+      this.dataSource.state = {
+        searchQuery: searchTerm?.trim().toLowerCase() ?? '',
+        showDeleted: !!showDeleted
+      };
+      if (this.dataSource.paginator) {
+        this.dataSource.paginator.pageIndex = 0;
+      }
+      this.cdr.markForCheck();
+    });
   }
 
   ngAfterViewInit(): void {

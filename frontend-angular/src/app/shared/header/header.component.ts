@@ -32,6 +32,7 @@ export class HeaderComponent {
 
   currentUser = this.authService.currentUser;
   isAuthenticated = this.authService.isAuthenticated;
+  isAdmin = this.authService.isAdmin; // add this
   health = toSignal(this.healthService.status$, {
     initialValue: { state: 'offline', error: 'Initializing...' } as HealthStatus
   });
