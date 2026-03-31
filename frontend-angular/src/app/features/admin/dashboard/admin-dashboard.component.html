@@ -1,0 +1,151 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Admin Dashboard</h1>
+  </div>
+
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading dashboard...</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>Failed to load dashboard data.</p>
+    </div>
+  } @else if (stats()) {
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon projects">folder</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value">{{ stats()!.totalProjects }}</span>
+              <span class="stat-label">Total Projects</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon users">people</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value">{{ stats()!.totalUsers }}</span>
+              <span class="stat-label">Total Users</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon deleted">delete</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value">{{ stats()!.deletedProjects }}</span>
+              <span class="stat-label">Deleted Projects</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon deleted">person_off</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value">{{ stats()!.deletedUsers }}</span>
+              <span class="stat-label">Deleted Users</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Quick Actions -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>Quick Actions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="actions-grid">
+          <a mat-raised-button routerLink="/admin/projects">
+            <mat-icon>folder_open</mat-icon>
+            Manage Projects
+          </a>
+          <a mat-raised-button routerLink="/admin/users">
+            <mat-icon>manage_accounts</mat-icon>
+            Manage Users
+          </a>
+          <a mat-raised-button routerLink="/admin/trash/projects">
+            <mat-icon>folder_delete</mat-icon>
+            Projects Trash
+          </a>
+          <a mat-raised-button routerLink="/admin/trash/users">
+            <mat-icon>person_remove</mat-icon>
+            Users Trash
+          </a>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recent Projects -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>Recent Projects</mat-card-title>
+        <div class="card-header-actions">
+          <a mat-button routerLink="/admin/projects">View all</a>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="stats()!.recentProjects" class="full-width-table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+          </ng-container>
+          <ng-container matColumnDef="createdBy">
+            <th mat-header-cell *matHeaderCellDef>Created By</th>
+            <td mat-cell *matCellDef="let row">{{ row.createdByDisplayName ?? '—' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Created At</th>
+            <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="recentProjectColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: recentProjectColumns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recent Users -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>Recent Users</mat-card-title>
+        <div class="card-header-actions">
+          <a mat-button routerLink="/admin/users">View all</a>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <table mat-table [dataSource]="stats()!.recentUsers" class="full-width-table">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
+          </ng-container>
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let row">{{ row.email }}</td>
+          </ng-container>
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef>Created At</th>
+            <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="recentUserColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: recentUserColumns"></tr>
+        </table>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
