@@ -78,19 +78,8 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
     this.dataSource.sort = this.sort;
-
-    this.sort.sortChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      if (this.dataSource.paginator) this.dataSource.paginator.pageIndex = 0;
-      this.dataSource.triggerUpdate();
-    });
-
-    this.paginator.page.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.dataSource.triggerUpdate();
-    });
-
-    // Always trigger after view is ready
+    this.dataSource.paginator = this.paginator;
     this.dataSource.triggerUpdate();
     this.cdr.detectChanges();
   }

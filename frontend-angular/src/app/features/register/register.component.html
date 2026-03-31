@@ -13,17 +13,13 @@
             <mat-label>First Name</mat-label>
             <input matInput formControlName="firstName" placeholder="John">
             <mat-icon matSuffix>person</mat-icon>
-            @if (registerForm.get('firstName')?.hasError('required') && registerForm.get('firstName')?.touched) {
-              <mat-error>First name is required</mat-error>
-            }
+            <mat-error>First name is required</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Last Name</mat-label>
             <input matInput formControlName="lastName" placeholder="Doe">
-            @if (registerForm.get('lastName')?.hasError('required') && registerForm.get('lastName')?.touched) {
-              <mat-error>Last name is required</mat-error>
-            }
+            <mat-error>Last name is required</mat-error>
           </mat-form-field>
         </div>
 
@@ -31,36 +27,37 @@
           <mat-label>Email</mat-label>
           <input matInput type="email" formControlName="email" placeholder="you@example.com">
           <mat-icon matSuffix>email</mat-icon>
-          @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+          @if (registerForm.get('email')?.hasError('required')) {
             <mat-error>Email is required</mat-error>
-          }
-          @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
+          } @else if (registerForm.get('email')?.hasError('email')) {
             <mat-error>Please enter a valid email address</mat-error>
+          } @else if (registerForm.get('email')?.hasError('serverError')) {
+            <mat-error>{{ registerForm.get('email')?.getError('serverError') }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
           <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password">
-          <button mat-icon-button matSuffix (click)="togglePassword($event)" type="button">
+          <button mat-icon-button matSuffix type="button" (click)="togglePassword($event)">
             <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           <mat-hint>Min 8 chars, 1 uppercase, 1 special character</mat-hint>
-          @if (registerForm.get('password')?.hasError('required') && registerForm.get('password')?.touched) {
+          @if (registerForm.get('password')?.hasError('required')) {
             <mat-error>Password is required</mat-error>
-          }
-          @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
+          } @else if (registerForm.get('password')?.hasError('minlength')) {
             <mat-error>Password must be at least 8 characters</mat-error>
-          }
-          @if (registerForm.get('password')?.hasError('pattern') && registerForm.get('password')?.touched) {
-            <mat-error>Password must contain at least 1 uppercase letter and 1 special character</mat-error>
+          } @else if (registerForm.get('password')?.hasError('pattern')) {
+            <mat-error>Must contain at least 1 uppercase letter and 1 special character</mat-error>
+          } @else if (registerForm.get('password')?.hasError('serverError')) {
+            <mat-error>{{ registerForm.get('password')?.getError('serverError') }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Confirm Password</mat-label>
           <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword">
-          <button mat-icon-button matSuffix (click)="toggleConfirmPassword($event)" type="button">
+          <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPassword($event)">
             <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
@@ -71,7 +68,8 @@
       </mat-card-content>
 
       <mat-card-actions class="actions-column">
-        <button mat-raised-button color="primary" type="submit" [disabled]="registerForm.invalid || isLoading()">
+        <button mat-raised-button color="primary" type="submit"
+                [disabled]="registerForm.invalid || isLoading()">
           @if (isLoading()) {
             <mat-spinner diameter="20"></mat-spinner>
           } @else {

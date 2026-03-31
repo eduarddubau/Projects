@@ -1,5 +1,4 @@
 <div class="projects-container">
-  
   <div class="projects-header">
     <h1 class="projects-title">My Projects</h1>
   </div>
@@ -30,7 +29,10 @@
         <mat-icon color="warn">error_outline</mat-icon>
         <p>Failed to load projects. Please try again.</p>
       </div>
-    } @else {
+    }
+
+    <div [hidden]="isLoading() || hasError()">
+
       <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Projects">
 
         <ng-container matColumnDef="index">
@@ -97,7 +99,8 @@
         [pageSizeOptions]="[5, 10, 20]"
         aria-label="Select page">
       </mat-paginator>
-    }
+
+    </div>
 
   </div>
 </div>

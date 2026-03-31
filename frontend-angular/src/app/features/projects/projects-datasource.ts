@@ -1,7 +1,7 @@
 import { DataSource } from '@angular/cdk/collections';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, merge, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { Project } from '@core/models/project';
 
@@ -12,15 +12,34 @@ export interface ProjectTableState {
 
 export class ProjectsDataSource extends DataSource<Project> {
   data: Project[] = [];
-  paginator: MatPaginator | undefined;
-  sort: MatSort | undefined;
 
+  private _paginator: MatPaginator | undefined;
+  private _sort: MatSort | undefined;
   private _state: ProjectTableState = { searchQuery: '', showDeleted: false };
-  private updateStream = new Subject<void>();
+  private _updateStream = new Subject<void>();
+  private _controlsSub: Subscription | undefined;
+
+  set paginator(paginator: MatPaginator | undefined) {
+    this._paginator = paginator;
+    this._rewireControls();
+  }
+
+  get paginator(): MatPaginator | undefined {
+    return this._paginator;
+  }
+
+  set sort(sort: MatSort | undefined) {
+    this._sort = sort;
+    this._rewireControls();
+  }
+
+  get sort(): MatSort | undefined {
+    return this._sort;
+  }
 
   set state(newState: ProjectTableState) {
     this._state = newState;
-    this.triggerUpdate();
+    this._updateStream.next();
   }
 
   get state(): ProjectTableState {
@@ -28,16 +47,40 @@ export class ProjectsDataSource extends DataSource<Project> {
   }
 
   connect(): Observable<Project[]> {
-    return this.updateStream.pipe(
+    return this._updateStream.pipe(
       startWith(undefined),
       map(() => this._getProcessedData([...this.data]))
     );
   }
 
-  disconnect(): void {}
+  disconnect(): void {
+    this._controlsSub?.unsubscribe();
+    this._updateStream.complete();
+  }
 
   triggerUpdate(): void {
-    this.updateStream.next();
+    this._updateStream.next();
+  }
+
+  /**
+   * Re-subscribes whenever sort or paginator are (re)assigned,
+   * so change events from either control feed into the update stream.
+   */
+  private _rewireControls(): void {
+    this._controlsSub?.unsubscribe();
+
+    const sources = [
+      this._sort?.sortChange,
+      this._paginator?.page,
+    ].filter(Boolean);
+
+    if (sources.length) {
+      this._controlsSub = merge(...sources).subscribe(() => {
+        // Reset to first page on sort so results aren't confusing
+        if (this._paginator) this._paginator.pageIndex = 0;
+        this._updateStream.next();
+      });
+    }
   }
 
   private _getProcessedData(data: Project[]): Project[] {
