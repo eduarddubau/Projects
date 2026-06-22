@@ -1,0 +1,81 @@
+using Backend.DTOs.User;
+using Backend.Validators.User;
+
+namespace Backend.Tests.Validators.User;
+
+public class CreateUserRequestValidatorTests
+{
+    private readonly CreateUserRequestValidator _validator = new();
+
+    private static CreateUserRequest ValidRequest() => new()
+    {
+        FirstName = "Ada",
+        LastName = "Lovelace",
+        Email = "ada@example.com"
+    };
+
+    [Fact]
+    public void Validate_WithValidRequest_HasNoErrors()
+    {
+        var result = _validator.Validate(ValidRequest());
+
+        Assert.True(result.IsValid);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("not-an-email")]
+    public void Validate_WithInvalidEmail_HasError(string email)
+    {
+        var request = ValidRequest() with { Email = email };
+
+        var result = _validator.Validate(request);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.Email));
+    }
+
+    [Fact]
+    public void Validate_WithEmptyFirstName_HasError()
+    {
+        var request = ValidRequest() with { FirstName = "" };
+
+        var result = _validator.Validate(request);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.FirstName));
+    }
+
+    [Fact]
+    public void Validate_WithFirstNameTooLong_HasError()
+    {
+        var request = ValidRequest() with { FirstName = new string('a', 51) };
+
+        var result = _validator.Validate(request);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.FirstName));
+    }
+
+    [Fact]
+    public void Validate_WithEmptyLastName_HasError()
+    {
+        var request = ValidRequest() with { LastName = "" };
+
+        var result = _validator.Validate(request);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.LastName));
+    }
+
+    [Fact]
+    public void Validate_WithLastNameTooLong_HasError()
+    {
+        var request = ValidRequest() with { LastName = new string('a', 51) };
+
+        var result = _validator.Validate(request);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.LastName));
+    }
+}
