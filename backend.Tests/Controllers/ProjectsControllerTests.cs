@@ -101,7 +101,7 @@ public class ProjectsControllerTests
     public async Task DeleteMyProjectById_WhenFound_ReturnsNoContent()
     {
         var id = Guid.NewGuid();
-        _projectService.Setup(s => s.DeleteMyProjectAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _projectService.Setup(s => s.DeleteMyProjectByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _controller.DeleteMyProjectById(id, CancellationToken.None);
 
@@ -112,7 +112,7 @@ public class ProjectsControllerTests
     public async Task DeleteMyProjectById_WhenNotFound_ReturnsNotFound()
     {
         var id = Guid.NewGuid();
-        _projectService.Setup(s => s.DeleteMyProjectAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _projectService.Setup(s => s.DeleteMyProjectByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var result = await _controller.DeleteMyProjectById(id, CancellationToken.None);
 
@@ -158,7 +158,7 @@ public class ProjectsControllerTests
     public async Task DeleteAnyProjectById_WhenFound_ReturnsNoContent()
     {
         var id = Guid.NewGuid();
-        _projectService.Setup(s => s.DeleteAnyProjectAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        _projectService.Setup(s => s.DeleteAnyProjectByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         var result = await _controller.DeleteAnyProjectById(id, CancellationToken.None);
 
@@ -169,7 +169,7 @@ public class ProjectsControllerTests
     public async Task DeleteAnyProjectById_WhenNotFound_ReturnsNotFound()
     {
         var id = Guid.NewGuid();
-        _projectService.Setup(s => s.DeleteAnyProjectAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _projectService.Setup(s => s.DeleteAnyProjectByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         var result = await _controller.DeleteAnyProjectById(id, CancellationToken.None);
 
@@ -180,7 +180,7 @@ public class ProjectsControllerTests
     public async Task RestoreAnyProjectById_WhenFound_ReturnsOk()
     {
         var project = SampleProject();
-        _projectService.Setup(s => s.RestoreAnyProjectAsync(project.Id, It.IsAny<CancellationToken>())).ReturnsAsync(project);
+        _projectService.Setup(s => s.RestoreAnyProjectByIdAsync(project.Id, It.IsAny<CancellationToken>())).ReturnsAsync(project);
 
         var result = await _controller.RestoreAnyProjectById(project.Id, CancellationToken.None);
 
@@ -192,7 +192,7 @@ public class ProjectsControllerTests
     public async Task RestoreAnyProjectById_WhenNotFound_ReturnsNotFound()
     {
         var id = Guid.NewGuid();
-        _projectService.Setup(s => s.RestoreAnyProjectAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((ProjectResponseDto?)null);
+        _projectService.Setup(s => s.RestoreAnyProjectByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((ProjectResponseDto?)null);
 
         var result = await _controller.RestoreAnyProjectById(id, CancellationToken.None);
 
@@ -203,7 +203,7 @@ public class ProjectsControllerTests
     public async Task GetAllDeletedProjects_ReturnsOkWithProjects()
     {
         var projects = new[] { SampleProject() };
-        _projectService.Setup(s => s.GetDeletedProjectsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(projects);
+        _projectService.Setup(s => s.GetAllDeletedProjectsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(projects);
 
         var result = await _controller.GetAllDeletedProjects(CancellationToken.None);
 

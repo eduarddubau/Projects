@@ -19,7 +19,7 @@ public static class ProjectMappingExtensions
         UpdatedByDisplayName = project.Updater.GetDisplayName() ?? string.Empty
     };
 
-    public static IQueryable<ProjectResponseDto> ProjectToDto(this IQueryable<Project> query)
+    public static IQueryable<ProjectResponseDto> MapToDto(this IQueryable<Project> query)
     {
         return query.Select(p => new ProjectResponseDto
         {

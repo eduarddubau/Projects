@@ -124,11 +124,11 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task DeleteMyProjectAsync_WhenOwnedByCurrentUser_SoftDeletesAndReturnsTrue()
+    public async Task DeleteMyProjectByIdAsync_WhenOwnedByCurrentUser_SoftDeletesAndReturnsTrue()
     {
         var project = AddProject("Mine", _userId);
 
-        var result = await _service.DeleteMyProjectAsync(project.Id);
+        var result = await _service.DeleteMyProjectByIdAsync(project.Id);
 
         Assert.True(result);
         var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
@@ -136,11 +136,11 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task DeleteMyProjectAsync_WhenOwnedByAnotherUser_ReturnsFalse()
+    public async Task DeleteMyProjectByIdAsync_WhenOwnedByAnotherUser_ReturnsFalse()
     {
         var project = AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.DeleteMyProjectAsync(project.Id);
+        var result = await _service.DeleteMyProjectByIdAsync(project.Id);
 
         Assert.False(result);
     }
@@ -168,11 +168,11 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task DeleteAnyProjectAsync_SoftDeletesRegardlessOfOwner()
+    public async Task DeleteAnyProjectByIdAsync_SoftDeletesRegardlessOfOwner()
     {
         var project = AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.DeleteAnyProjectAsync(project.Id);
+        var result = await _service.DeleteAnyProjectByIdAsync(project.Id);
 
         Assert.True(result);
         var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
@@ -180,19 +180,19 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task DeleteAnyProjectAsync_WhenNotFound_ReturnsFalse()
+    public async Task DeleteAnyProjectByIdAsync_WhenNotFound_ReturnsFalse()
     {
-        var result = await _service.DeleteAnyProjectAsync(Guid.NewGuid());
+        var result = await _service.DeleteAnyProjectByIdAsync(Guid.NewGuid());
 
         Assert.False(result);
     }
 
     [Fact]
-    public async Task RestoreAnyProjectAsync_WhenDeleted_RestoresAndReturnsDto()
+    public async Task RestoreAnyProjectByIdAsync_WhenDeleted_RestoresAndReturnsDto()
     {
         var project = AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.RestoreAnyProjectAsync(project.Id);
+        var result = await _service.RestoreAnyProjectByIdAsync(project.Id);
 
         Assert.NotNull(result);
         Assert.False(result!.IsDeleted);
@@ -202,20 +202,20 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task RestoreAnyProjectAsync_WhenNotFound_ReturnsNull()
+    public async Task RestoreAnyProjectByIdAsync_WhenNotFound_ReturnsNull()
     {
-        var result = await _service.RestoreAnyProjectAsync(Guid.NewGuid());
+        var result = await _service.RestoreAnyProjectByIdAsync(Guid.NewGuid());
 
         Assert.Null(result);
     }
 
     [Fact]
-    public async Task GetDeletedProjectsAsync_ReturnsOnlyDeletedProjects()
+    public async Task GetAllDeletedProjectsAsync_ReturnsOnlyDeletedProjects()
     {
         AddProject("Active", _userId);
         AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.GetDeletedProjectsAsync();
+        var result = await _service.GetAllDeletedProjectsAsync();
 
         Assert.Equal(["Deleted"], result.Select(p => p.Name));
     }

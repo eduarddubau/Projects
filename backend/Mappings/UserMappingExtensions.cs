@@ -27,7 +27,7 @@ public static class UserMappingExtensions
         UpdatedByDisplayName = user.Updater.GetDisplayName() ?? string.Empty
     };
 
-    public static IQueryable<UserResponseDto> UserToDto(this IQueryable<User> query)
+    public static IQueryable<UserResponseDto> MapToDto(this IQueryable<User> query)
     {
         return query.Select(u => new UserResponseDto
         {

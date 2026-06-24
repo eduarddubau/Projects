@@ -1,11 +1,9 @@
 using Backend.Data;
 using Backend.Models;
-using Microsoft.EntityFrameworkCore;
 using Backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
-
-public enum FetchResult { NotFound, Forbidden, Success }
 
 public abstract class BaseService<T> where T : class, IAuditEntity
 {
@@ -18,18 +16,34 @@ public abstract class BaseService<T> where T : class, IAuditEntity
         _currentUser = currentUser;
     }
 
-    protected async Task<(FetchResult Result, T? Entity)> GetByIdSecureAsync(Guid id)
+    protected async Task<bool> SoftDeleteAnyByIdAsync(Guid id, CancellationToken ct = default)
     {
         var entity = await _context.Set<T>()
             .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(e => e.Id == id);
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
 
-        if (entity is null)
-            return (FetchResult.NotFound, null);
+        if (entity is null) return false;
 
-        if (_currentUser.IsAdmin || entity.CreatedBy == _currentUser.UserGuid)
-            return (FetchResult.Success, entity);
+        _context.Set<T>().Remove(entity);
+        await _context.SaveChangesAsync(ct);
 
-        return (FetchResult.Forbidden, null);
+        return true;
+    }
+
+    protected async Task<T?> RestoreAnyByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var entity = await _context.Set<T>()
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(e => e.Id == id, ct);
+
+        if (entity is null) return null;
+        if (!entity.IsDeleted) return entity;
+
+        entity.IsDeleted = false;
+        entity.DeletedAt = null;
+
+        await _context.SaveChangesAsync(ct);
+
+        return entity;
     }
 }

@@ -64,7 +64,7 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteMyProjectById(Guid id, CancellationToken ct)
     {
-        var success = await _projectService.DeleteMyProjectAsync(id, ct);
+        var success = await _projectService.DeleteMyProjectByIdAsync(id, ct);
 
         if (!success) return NotFound(new { message = "Project not found." });
 
@@ -103,7 +103,7 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAnyProjectById(Guid id, CancellationToken ct)
     {
-        var success = await _projectService.DeleteAnyProjectAsync(id, ct);
+        var success = await _projectService.DeleteAnyProjectByIdAsync(id, ct);
 
         if (!success) return NotFound(new { message = "Project not found." });
 
@@ -116,7 +116,7 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProjectResponseDto>> RestoreAnyProjectById(Guid id, CancellationToken ct)
     {
-        var restoredProject = await _projectService.RestoreAnyProjectAsync(id, ct);
+        var restoredProject = await _projectService.RestoreAnyProjectByIdAsync(id, ct);
 
         if (restoredProject is null) return NotFound(new { message = "Project not found." });
 
@@ -128,7 +128,7 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllDeletedProjects(CancellationToken ct)
     {
-        var trash = await _projectService.GetDeletedProjectsAsync(ct);
+        var trash = await _projectService.GetAllDeletedProjectsAsync(ct);
         return Ok(trash);
     }
 }

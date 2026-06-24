@@ -30,7 +30,7 @@ public class UserService : BaseService<User>, IUserService
             .Include(u => u.Creator)
             .Include(u => u.Updater)
             .OrderByDescending(u => u.CreatedAt)
-            .UserToDto()
+            .MapToDto()
             .ToListAsync(ct);
     }
 
@@ -64,35 +64,15 @@ public class UserService : BaseService<User>, IUserService
         return user.MapToDto();
     }
 
-    public async Task<bool> DeleteAnyUserAsync(Guid id, CancellationToken ct = default)
-    {
-        var user = await _context.Users
-            .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(u => u.Id == id, ct);
-
-        if (user is null) return false;
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync(ct);
-
-        return true;
-    }
+    public Task<bool> DeleteAnyUserAsync(Guid id, CancellationToken ct = default) => SoftDeleteAnyByIdAsync(id, ct);
 
     public async Task<UserResponseDto?> RestoreAnyUserAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await _context.Users
-            .IgnoreQueryFilters()
-            .Include(u => u.Creator)
-            .Include(u => u.Updater)
-            .FirstOrDefaultAsync(u => u.Id == id, ct);
-
+        var user = await RestoreAnyByIdAsync(id, ct);
         if (user is null) return null;
-        if (!user.IsDeleted) return user.MapToDto();
 
-        user.IsDeleted = false;
-        user.DeletedAt = null;
-
-        await _context.SaveChangesAsync(ct);
+        await _context.Entry(user).Reference(u => u.Creator).LoadAsync(ct);
+        await _context.Entry(user).Reference(u => u.Updater).LoadAsync(ct);
 
         return user.MapToDto();
     }
@@ -105,7 +85,7 @@ public class UserService : BaseService<User>, IUserService
             .Include(u => u.Updater)
             .Where(u => u.IsDeleted)
             .OrderByDescending(u => u.DeletedAt)
-            .UserToDto()
+            .MapToDto()
             .ToListAsync(ct);
     }
 
