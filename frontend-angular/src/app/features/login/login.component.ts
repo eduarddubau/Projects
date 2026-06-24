@@ -51,7 +51,7 @@ export class LoginComponent {
 
       this.authService.login(credentials).subscribe({
         next: () => {
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/dashboard';
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] ?? '/projects';
           this.router.navigateByUrl(returnUrl);
         },
         error: (err) => {

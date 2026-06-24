@@ -79,6 +79,25 @@ services:
       api:
         condition: service_healthy
 
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.61.1-noble
+    container_name: frontend-e2e
+    working_dir: /app
+    volumes:
+      - ./frontend-angular:/app:z
+      - e2e_node_modules:/app/node_modules
+    environment:
+      - E2E_BASE_URL=http://frontend:4200
+    command: >
+      sh -c "until bash -c 'echo > /dev/tcp/frontend/4200' 2>/dev/null; do sleep 1; done &&
+             npm install &&
+             npx playwright test"
+    depends_on:
+      - frontend
+    profiles:
+      - e2e
+
 volumes:
   postgres_data:
   angular_node_modules:
+  e2e_node_modules:

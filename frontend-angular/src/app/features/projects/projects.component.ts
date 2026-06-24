@@ -13,6 +13,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { combineLatestWith, debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
@@ -20,6 +22,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProjectsDataSource } from './projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { AuthService } from '@core/services/auth.service';
+import { Project } from '@core/models/project';
+import { ProjectFormDialogComponent, ProjectFormResult } from './project-form-dialog/project-form-dialog.component';
+import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-projects',
@@ -49,13 +54,15 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
 
   isAdmin = this.authService.isAuthenticated;
   isLoading = signal(true);
   hasError = signal(false);
 
   dataSource = new ProjectsDataSource();
-  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt'];
+  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
   searchControl = new FormControl('');
   showDeletedControl = new FormControl(false);
 
@@ -101,5 +108,70 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
     this.dataSource.paginator = this.paginator;
     this.dataSource.triggerUpdate();
     this.cdr.detectChanges();
+  }
+
+  openCreateDialog(): void {
+    this.dialog.open(ProjectFormDialogComponent, { width: '480px', data: {} })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: ProjectFormResult | undefined) => {
+        if (!result) return;
+
+        this.projectService.createProject(result).subscribe({
+          next: (project) => {
+            this.dataSource.data = [project, ...this.dataSource.data];
+            this.dataSource.triggerUpdate();
+            this.cdr.markForCheck();
+            this.snackBar.open('Project created.', 'Close', { duration: 3000 });
+          },
+          error: () => this.snackBar.open('Failed to create project.', 'Close', { duration: 5000 })
+        });
+      });
+  }
+
+  openEditDialog(project: Project): void {
+    this.dialog.open(ProjectFormDialogComponent, { width: '480px', data: { project } })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result: ProjectFormResult | undefined) => {
+        if (!result) return;
+
+        this.projectService.updateProject(project.id, result).subscribe({
+          next: (updated) => {
+            this.dataSource.data = this.dataSource.data.map(p => p.id === updated.id ? updated : p);
+            this.dataSource.triggerUpdate();
+            this.cdr.markForCheck();
+            this.snackBar.open('Project updated.', 'Close', { duration: 3000 });
+          },
+          error: () => this.snackBar.open('Failed to update project.', 'Close', { duration: 5000 })
+        });
+      });
+  }
+
+  confirmDelete(project: Project): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Delete Project',
+        message: `Are you sure you want to delete "${project.name}"? This can be undone by an administrator.`,
+        confirmLabel: 'Delete',
+        warn: true
+      }
+    })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed: boolean | undefined) => {
+        if (!confirmed) return;
+
+        this.projectService.deleteMyProject(project.id).subscribe({
+          next: () => {
+            this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
+            this.dataSource.triggerUpdate();
+            this.cdr.markForCheck();
+            this.snackBar.open('Project deleted.', 'Close', { duration: 3000 });
+          },
+          error: () => this.snackBar.open('Failed to delete project.', 'Close', { duration: 5000 })
+        });
+      });
   }
 }

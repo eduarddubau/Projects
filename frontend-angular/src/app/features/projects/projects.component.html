@@ -1,6 +1,10 @@
 <div class="projects-container">
   <div class="projects-header">
     <h1 class="projects-title">My Projects</h1>
+    <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      New Project
+    </button>
   </div>
 
   <div class="mat-elevation-z2 table-card">
@@ -71,6 +75,20 @@
               <span class="status-badge deleted">Deleted</span>
             } @else {
               <span class="status-badge active">Active</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let row">
+            @if (!row.isDeleted) {
+              <button mat-icon-button matTooltip="Edit" aria-label="Edit" (click)="openEditDialog(row)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Delete" aria-label="Delete" (click)="confirmDelete(row)">
+                <mat-icon>delete</mat-icon>
+              </button>
             }
           </td>
         </ng-container>
