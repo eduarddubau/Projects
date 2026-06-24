@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@core/guards/auth.guard';
 import { adminGuard } from '@core/guards/admin.guard';
+import { guestGuard } from '@core/guards/guest.guard';
 
 export const routes: Routes = [
   {
@@ -9,11 +10,13 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    loadComponent: () => import('./features/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () => import('./features/login/login.component').then(m => m.LoginComponent),
+    canActivate: [guestGuard]
   },
   {
     path: 'register',
-    loadComponent: () => import('./features/register/register.component').then(m => m.RegisterComponent)
+    loadComponent: () => import('./features/register/register.component').then(m => m.RegisterComponent),
+    canActivate: [guestGuard]
   },
   {
     path: 'projects',
