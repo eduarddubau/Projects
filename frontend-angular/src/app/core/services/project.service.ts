@@ -30,6 +30,10 @@ export class ProjectService {
     return this.http.delete<void>(`${this.apiUrl}/projects/${id}`);
   }
 
+  restoreMyProject(id: string): Observable<Project> {
+    return this.http.patch<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
+  }
+
   // Admin
   getAllProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/projects/admin`);

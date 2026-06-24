@@ -41,5 +41,17 @@ test.describe('My Projects CRUD', () => {
 
     await expect(page.getByText('Project deleted.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
+
+    await page.getByRole('switch', { name: 'Show deleted' }).click();
+    const deletedRow = page.locator('tr', { hasText: updatedName });
+    await expect(deletedRow).toBeVisible();
+    await expect(deletedRow.getByText('Deleted')).toBeVisible();
+
+    await deletedRow.getByRole('button', { name: 'Restore' }).click();
+    await expect(page.getByText('Project restored.')).toBeVisible();
+    await expect(deletedRow.getByText('Active')).toBeVisible();
+
+    await page.getByRole('switch', { name: 'Show deleted' }).click();
+    await expect(page.locator('tr', { hasText: updatedName })).toBeVisible();
   });
 });

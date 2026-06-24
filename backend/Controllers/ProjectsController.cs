@@ -71,6 +71,18 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPatch("{id:guid}/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectResponseDto>> RestoreMyProjectById(Guid id, CancellationToken ct)
+    {
+        var restoredProject = await _projectService.RestoreMyProjectByIdAsync(id, ct);
+
+        if (restoredProject is null) return NotFound(new { message = "Project not found." });
+
+        return Ok(restoredProject);
+    }
+
     // -------------------------------------------------------------------------
     // Admin endpoints
     // -------------------------------------------------------------------------

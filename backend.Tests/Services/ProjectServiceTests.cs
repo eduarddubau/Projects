@@ -48,6 +48,18 @@ public class ProjectServiceTests
     }
 
     [Fact]
+    public async Task GetMyProjectsAsync_IncludesCurrentUsersDeletedProjects()
+    {
+        AddProject("Active", _userId);
+        AddProject("Deleted", _userId, isDeleted: true);
+        AddProject("Someone else's deleted", Guid.NewGuid(), isDeleted: true);
+
+        var result = await _service.GetMyProjectsAsync();
+
+        Assert.Equal(["Active", "Deleted"], result.Select(p => p.Name).OrderBy(n => n));
+    }
+
+    [Fact]
     public async Task GetMyProjectByIdAsync_WhenOwnedByCurrentUser_ReturnsDto()
     {
         var project = AddProject("Mine", _userId);
@@ -205,6 +217,38 @@ public class ProjectServiceTests
     public async Task RestoreAnyProjectByIdAsync_WhenNotFound_ReturnsNull()
     {
         var result = await _service.RestoreAnyProjectByIdAsync(Guid.NewGuid());
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RestoreMyProjectByIdAsync_WhenOwnedByCurrentUserAndDeleted_RestoresAndReturnsDto()
+    {
+        var project = AddProject("Deleted", _userId, isDeleted: true);
+
+        var result = await _service.RestoreMyProjectByIdAsync(project.Id);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsDeleted);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
+        Assert.False(stored.IsDeleted);
+        Assert.Null(stored.DeletedAt);
+    }
+
+    [Fact]
+    public async Task RestoreMyProjectByIdAsync_WhenOwnedByAnotherUser_ReturnsNull()
+    {
+        var project = AddProject("Someone else's deleted", Guid.NewGuid(), isDeleted: true);
+
+        var result = await _service.RestoreMyProjectByIdAsync(project.Id);
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RestoreMyProjectByIdAsync_WhenNotFound_ReturnsNull()
+    {
+        var result = await _service.RestoreMyProjectByIdAsync(Guid.NewGuid());
 
         Assert.Null(result);
     }

@@ -16,6 +16,7 @@ public class ProjectService : BaseService<Project>, IProjectService
     public async Task<IEnumerable<ProjectResponseDto>> GetMyProjectsAsync(CancellationToken ct = default)
     {
         return await _context.Projects
+            .IgnoreQueryFilters()
             .Include(p => p.Creator)
             .Include(p => p.Updater)
             .Where(p => p.CreatedBy == _currentUser.UserGuid)
@@ -94,6 +95,27 @@ public class ProjectService : BaseService<Project>, IProjectService
         await _context.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    public async Task<ProjectResponseDto?> RestoreMyProjectByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var project = await _context.Projects
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == _currentUser.UserGuid, ct);
+
+        if (project is null) return null;
+
+        if (project.IsDeleted)
+        {
+            project.IsDeleted = false;
+            project.DeletedAt = null;
+            await _context.SaveChangesAsync(ct);
+        }
+
+        await _context.Entry(project).Reference(p => p.Creator).LoadAsync(ct);
+        await _context.Entry(project).Reference(p => p.Updater).LoadAsync(ct);
+
+        return project.MapToDto();
     }
 
     public async Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync(CancellationToken ct = default)

@@ -120,6 +120,29 @@ public class ProjectsControllerTests
     }
 
     [Fact]
+    public async Task RestoreMyProjectById_WhenFound_ReturnsOk()
+    {
+        var project = SampleProject();
+        _projectService.Setup(s => s.RestoreMyProjectByIdAsync(project.Id, It.IsAny<CancellationToken>())).ReturnsAsync(project);
+
+        var result = await _controller.RestoreMyProjectById(project.Id, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(project, okResult.Value);
+    }
+
+    [Fact]
+    public async Task RestoreMyProjectById_WhenNotFound_ReturnsNotFound()
+    {
+        var id = Guid.NewGuid();
+        _projectService.Setup(s => s.RestoreMyProjectByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((ProjectResponseDto?)null);
+
+        var result = await _controller.RestoreMyProjectById(id, CancellationToken.None);
+
+        Assert.IsType<NotFoundObjectResult>(result.Result);
+    }
+
+    [Fact]
     public async Task GetAllProjects_ReturnsOkWithProjects()
     {
         var projects = new[] { SampleProject() };

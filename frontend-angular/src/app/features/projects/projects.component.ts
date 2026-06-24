@@ -21,7 +21,6 @@ import { combineLatestWith, debounceTime, distinctUntilChanged, startWith } from
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProjectsDataSource } from './projects-datasource';
 import { ProjectService } from '@core/services/project.service';
-import { AuthService } from '@core/services/auth.service';
 import { Project } from '@core/models/project';
 import { ProjectFormDialogComponent, ProjectFormResult } from './project-form-dialog/project-form-dialog.component';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
@@ -51,18 +50,16 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   private projectService = inject(ProjectService);
-  private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  isAdmin = this.authService.isAuthenticated;
   isLoading = signal(true);
   hasError = signal(false);
 
   dataSource = new ProjectsDataSource();
-  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
+  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'status', 'actions'];
   searchControl = new FormControl('');
   showDeletedControl = new FormControl(false);
 
@@ -165,7 +162,9 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
 
         this.projectService.deleteMyProject(project.id).subscribe({
           next: () => {
-            this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
+            this.dataSource.data = this.dataSource.data.map(p =>
+              p.id === project.id ? { ...p, isDeleted: true } : p
+            );
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();
             this.snackBar.open('Project deleted.', 'Close', { duration: 3000 });
@@ -173,5 +172,17 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
           error: () => this.snackBar.open('Failed to delete project.', 'Close', { duration: 5000 })
         });
       });
+  }
+
+  restoreProject(project: Project): void {
+    this.projectService.restoreMyProject(project.id).subscribe({
+      next: (updated) => {
+        this.dataSource.data = this.dataSource.data.map(p => p.id === updated.id ? updated : p);
+        this.dataSource.triggerUpdate();
+        this.cdr.markForCheck();
+        this.snackBar.open('Project restored.', 'Close', { duration: 3000 });
+      },
+      error: () => this.snackBar.open('Failed to restore project.', 'Close', { duration: 5000 })
+    });
   }
 }
