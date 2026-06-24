@@ -11,21 +11,21 @@
         <div class="row">
           <mat-form-field appearance="outline">
             <mat-label>First Name</mat-label>
-            <input matInput formControlName="firstName" placeholder="John">
+            <input matInput formControlName="firstName" placeholder="John" autocomplete="given-name">
             <mat-icon matSuffix>person</mat-icon>
             <mat-error>First name is required</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline">
             <mat-label>Last Name</mat-label>
-            <input matInput formControlName="lastName" placeholder="Doe">
+            <input matInput formControlName="lastName" placeholder="Doe" autocomplete="family-name">
             <mat-error>Last name is required</mat-error>
           </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="you@example.com">
+          <input matInput type="email" formControlName="email" placeholder="you@example.com" autocomplete="email">
           <mat-icon matSuffix>email</mat-icon>
           @if (registerForm.get('email')?.hasError('required')) {
             <mat-error>Email is required</mat-error>
@@ -38,7 +38,7 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password">
+          <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
           <button mat-icon-button matSuffix type="button" (click)="togglePassword($event)">
             <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
@@ -56,7 +56,7 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Confirm Password</mat-label>
-          <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword">
+          <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword" autocomplete="new-password">
           <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPassword($event)">
             <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>

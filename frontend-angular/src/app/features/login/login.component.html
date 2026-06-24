@@ -11,7 +11,7 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" placeholder="name@example.com">
+          <input matInput formControlName="email" type="email" placeholder="name@example.com" autocomplete="username">
           @if (loginForm.get('email')?.hasError('required')) {
             <mat-error>Email is required</mat-error>
           }
@@ -22,7 +22,7 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput formControlName="password" [type]="showPassword ? 'text' : 'password'">
+          <input matInput formControlName="password" [type]="showPassword ? 'text' : 'password'" autocomplete="current-password">
 
           <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button" aria-label="Toggle password visibility">
             <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
