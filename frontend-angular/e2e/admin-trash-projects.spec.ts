@@ -34,7 +34,7 @@ test.describe('Admin Projects Trash', () => {
     const purgeableCount = await purgeableRows.count();
     expect(purgeableCount).toBeGreaterThan(0);
 
-    await page.getByRole('button', { name: 'Select All' }).click();
+    await page.getByRole('table', { name: 'Deleted Projects' }).getByRole('checkbox', { name: 'Select all rows on this page' }).click();
     await expect(page.getByRole('button', { name: `Purge Selected (${purgeableCount})` })).toBeVisible();
 
     await page.getByRole('button', { name: `Purge Selected (${purgeableCount})` }).click();
