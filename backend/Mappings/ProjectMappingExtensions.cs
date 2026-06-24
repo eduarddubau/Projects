@@ -11,6 +11,7 @@ public static class ProjectMappingExtensions
         Name = project.Name,
         Description = project.Description,
         IsDeleted = project.IsDeleted,
+        DeletedAt = project.DeletedAt,
         CreatedAt = project.CreatedAt,
         CreatedBy = project.CreatedBy,
         CreatedByDisplayName = project.Creator.GetDisplayName() ?? string.Empty,
@@ -26,7 +27,8 @@ public static class ProjectMappingExtensions
             Id = p.Id,
             Name = p.Name,
             Description = p.Description,
-            IsDeleted = p.IsDeleted, 
+            IsDeleted = p.IsDeleted,
+            DeletedAt = p.DeletedAt,
             CreatedAt = p.CreatedAt,
             CreatedBy = p.CreatedBy,
             CreatedByDisplayName = p.Creator == null

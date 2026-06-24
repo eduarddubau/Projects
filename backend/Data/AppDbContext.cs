@@ -9,6 +9,7 @@ namespace Backend.Data;
 public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     private readonly ICurrentUserService _currentUserService;
+    private readonly HashSet<object> _hardDeleteOverrides = new();
 
     public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService)
         : base(options)
@@ -17,6 +18,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     }
 
     public DbSet<Project> Projects { get; set; }
+
+    // Bypasses the soft-delete interception below for this entity's next removal.
+    public void MarkForHardDelete(object entity) => _hardDeleteOverrides.Add(entity);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +92,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             }
             else if (entityEntry.State == EntityState.Deleted)
             {
+                if (_hardDeleteOverrides.Remove(entityEntry.Entity))
+                    continue;
+
                 entityEntry.State = EntityState.Modified;
                 entityEntry.Entity.IsDeleted = true;
                 entityEntry.Entity.DeletedAt = now;

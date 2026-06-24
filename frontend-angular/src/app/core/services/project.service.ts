@@ -34,6 +34,10 @@ export class ProjectService {
     return this.http.patch<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
   }
 
+  getMyDeletedProjects(): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.apiUrl}/projects/trash`);
+  }
+
   // Admin
   getAllProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/projects/admin`);
@@ -47,11 +51,15 @@ export class ProjectService {
     return this.http.delete<void>(`${this.apiUrl}/projects/admin/${id}`);
   }
 
-  restoreProject(id: string): Observable<Project> {
-    return this.http.patch<Project>(`${this.apiUrl}/projects/admin/${id}/restore`, {});
+  restoreProjects(ids: string[]): Observable<{ restoredCount: number }> {
+    return this.http.post<{ restoredCount: number }>(`${this.apiUrl}/projects/admin/restore`, ids);
   }
 
   getDeletedProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/projects/admin/trash`);
+  }
+
+  purgeProjects(ids: string[]): Observable<{ purgedCount: number }> {
+    return this.http.post<{ purgedCount: number }>(`${this.apiUrl}/projects/admin/purge`, ids);
   }
 }

@@ -35,6 +35,9 @@ public static class ServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ITokenService, TokenService>();
 
+        services.AddOptions<ProjectRetentionOptions>()
+            .Bind(config.GetSection(ProjectRetentionOptions.SectionName));
+
         services.AddHealthChecks()
             .AddNpgSql(config.GetConnectionString("DefaultConnection")!);
 

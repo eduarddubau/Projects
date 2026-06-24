@@ -12,7 +12,7 @@ test.describe('My Projects CRUD', () => {
     await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
   });
 
-  test('creates, edits, and deletes a project', async ({ page }) => {
+  test('creates, edits, deletes, and restores a project via Trash', async ({ page }) => {
     const projectName = `E2E Project ${Date.now()}`;
     const updatedName = `${projectName} (updated)`;
 
@@ -42,16 +42,18 @@ test.describe('My Projects CRUD', () => {
     await expect(page.getByText('Project deleted.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
 
-    await page.getByRole('switch', { name: 'Show deleted' }).click();
-    const deletedRow = page.locator('tr', { hasText: updatedName });
-    await expect(deletedRow).toBeVisible();
-    await expect(deletedRow.getByText('Deleted')).toBeVisible();
+    await page.getByRole('button', { name: 'Dev dev2@example.com' }).click();
+    await page.getByRole('menuitem', { name: 'Trash' }).click();
+    await expect(page.getByRole('heading', { name: 'Trash' })).toBeVisible();
+    const trashRow = page.locator('tr', { hasText: updatedName });
+    await expect(trashRow).toBeVisible();
 
-    await deletedRow.getByRole('button', { name: 'Restore' }).click();
+    await trashRow.getByRole('button', { name: 'Restore' }).click();
     await expect(page.getByText('Project restored.')).toBeVisible();
-    await expect(deletedRow.getByText('Active')).toBeVisible();
+    await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
 
-    await page.getByRole('switch', { name: 'Show deleted' }).click();
+    await page.getByRole('button', { name: 'Back to My Projects' }).click();
+    await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toBeVisible();
   });
 });

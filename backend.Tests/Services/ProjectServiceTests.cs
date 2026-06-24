@@ -1,3 +1,4 @@
+using Backend.Config;
 using Backend.Data;
 using Backend.DTOs.Project;
 using Backend.Exceptions;
@@ -5,6 +6,7 @@ using Backend.Models;
 using Backend.Services;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Backend.Tests.Services;
@@ -15,6 +17,7 @@ public class ProjectServiceTests
     private readonly AppDbContext _context;
     private readonly ProjectService _service;
     private readonly Guid _userId = Guid.NewGuid();
+    private const int TrashWindowDays = 30;
 
     public ProjectServiceTests()
     {
@@ -23,14 +26,14 @@ public class ProjectServiceTests
             .Options;
 
         _context = new AppDbContext(options, _currentUser.Object);
-        _service = new ProjectService(_context, _currentUser.Object);
+        _service = new ProjectService(_context, _currentUser.Object, Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays }));
 
         _currentUser.Setup(c => c.UserGuid).Returns(_userId);
     }
 
-    private Project AddProject(string name, Guid createdBy, bool isDeleted = false)
+    private Project AddProject(string name, Guid createdBy, bool isDeleted = false, DateTime? deletedAt = null)
     {
-        var project = new Project { Name = name, CreatedBy = createdBy, IsDeleted = isDeleted };
+        var project = new Project { Name = name, CreatedBy = createdBy, IsDeleted = isDeleted, DeletedAt = deletedAt };
         _context.Projects.Add(project);
         _context.SaveChanges();
         return project;
@@ -48,15 +51,27 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task GetMyProjectsAsync_IncludesCurrentUsersDeletedProjects()
+    public async Task GetMyProjectsAsync_ExcludesDeletedProjects()
     {
         AddProject("Active", _userId);
         AddProject("Deleted", _userId, isDeleted: true);
-        AddProject("Someone else's deleted", Guid.NewGuid(), isDeleted: true);
 
         var result = await _service.GetMyProjectsAsync();
 
-        Assert.Equal(["Active", "Deleted"], result.Select(p => p.Name).OrderBy(n => n));
+        Assert.Equal(["Active"], result.Select(p => p.Name));
+    }
+
+    [Fact]
+    public async Task GetMyDeletedProjectsAsync_ReturnsOwnDeletedProjectsWithinRetentionWindow()
+    {
+        AddProject("Active", _userId);
+        AddProject("RecentlyDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+        AddProject("OldDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
+        AddProject("Someone else's deleted", Guid.NewGuid(), isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+
+        var result = await _service.GetMyDeletedProjectsAsync();
+
+        Assert.Equal(["RecentlyDeleted"], result.Select(p => p.Name));
     }
 
     [Fact]
@@ -200,25 +215,37 @@ public class ProjectServiceTests
     }
 
     [Fact]
-    public async Task RestoreAnyProjectByIdAsync_WhenDeleted_RestoresAndReturnsDto()
+    public async Task RestoreAnyProjectsAsync_WhenDeleted_RestoresAndReturnsCount()
     {
         var project = AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.RestoreAnyProjectByIdAsync(project.Id);
+        var result = await _service.RestoreAnyProjectsAsync([project.Id]);
 
-        Assert.NotNull(result);
-        Assert.False(result!.IsDeleted);
+        Assert.Equal(1, result);
         var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
         Assert.False(stored.IsDeleted);
         Assert.Null(stored.DeletedAt);
     }
 
     [Fact]
-    public async Task RestoreAnyProjectByIdAsync_WhenNotFound_ReturnsNull()
+    public async Task RestoreAnyProjectsAsync_WhenNotFound_ReturnsZero()
     {
-        var result = await _service.RestoreAnyProjectByIdAsync(Guid.NewGuid());
+        var result = await _service.RestoreAnyProjectsAsync([Guid.NewGuid()]);
 
-        Assert.Null(result);
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public async Task RestoreAnyProjectsAsync_WithMultipleIds_RestoresAllAndReturnsCount()
+    {
+        var deleted1 = AddProject("Deleted1", _userId, isDeleted: true);
+        var deleted2 = AddProject("Deleted2", _userId, isDeleted: true);
+
+        var result = await _service.RestoreAnyProjectsAsync([deleted1.Id, deleted2.Id]);
+
+        Assert.Equal(2, result);
+        Assert.False((await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == deleted1.Id)).IsDeleted);
+        Assert.False((await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == deleted2.Id)).IsDeleted);
     }
 
     [Fact]
@@ -262,5 +289,75 @@ public class ProjectServiceTests
         var result = await _service.GetAllDeletedProjectsAsync();
 
         Assert.Equal(["Deleted"], result.Select(p => p.Name));
+    }
+
+    [Fact]
+    public async Task GetAllDeletedProjectsAsync_ReturnsAllDeletedRegardlessOfAge()
+    {
+        AddProject("RecentlyDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+        AddProject("OldDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
+
+        var result = await _service.GetAllDeletedProjectsAsync();
+
+        Assert.Equal(["OldDeleted", "RecentlyDeleted"], result.Select(p => p.Name).OrderBy(n => n));
+    }
+
+    [Fact]
+    public async Task GetAllDeletedProjectsAsync_FlagsOnlyProjectsOlderThanRetentionWindowAsPurgeable()
+    {
+        AddProject("RecentlyDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+        AddProject("OldDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
+
+        var result = await _service.GetAllDeletedProjectsAsync();
+
+        Assert.False(result.Single(p => p.Name == "RecentlyDeleted").IsPurgeable);
+        Assert.True(result.Single(p => p.Name == "OldDeleted").IsPurgeable);
+    }
+
+    [Fact]
+    public async Task PurgeProjectsAsync_WhenDeleted_HardDeletesAndReturnsCount()
+    {
+        var project = AddProject("Deleted", _userId, isDeleted: true);
+
+        var result = await _service.PurgeProjectsAsync([project.Id]);
+
+        Assert.Equal(1, result);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == project.Id);
+        Assert.Null(stored);
+    }
+
+    [Fact]
+    public async Task PurgeProjectsAsync_WhenNotDeleted_SkipsItAndDoesNotDelete()
+    {
+        var project = AddProject("Active", _userId);
+
+        var result = await _service.PurgeProjectsAsync([project.Id]);
+
+        Assert.Equal(0, result);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == project.Id);
+        Assert.NotNull(stored);
+    }
+
+    [Fact]
+    public async Task PurgeProjectsAsync_WhenNotFound_ReturnsZero()
+    {
+        var result = await _service.PurgeProjectsAsync([Guid.NewGuid()]);
+
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public async Task PurgeProjectsAsync_WithMultipleIds_PurgesOnlyTheDeletedOnesAndReturnsCount()
+    {
+        var deleted1 = AddProject("Deleted1", _userId, isDeleted: true);
+        var deleted2 = AddProject("Deleted2", _userId, isDeleted: true);
+        var active = AddProject("Active", _userId);
+
+        var result = await _service.PurgeProjectsAsync([deleted1.Id, deleted2.Id, active.Id]);
+
+        Assert.Equal(2, result);
+        Assert.Null(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == deleted1.Id));
+        Assert.Null(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == deleted2.Id));
+        Assert.NotNull(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == active.Id));
     }
 }

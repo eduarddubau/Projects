@@ -83,6 +83,14 @@ public class ProjectsController : ControllerBase
         return Ok(restoredProject);
     }
 
+    [HttpGet("trash")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetMyDeletedProjects(CancellationToken ct)
+    {
+        var trash = await _projectService.GetMyDeletedProjectsAsync(ct);
+        return Ok(trash);
+    }
+
     // -------------------------------------------------------------------------
     // Admin endpoints
     // -------------------------------------------------------------------------
@@ -123,16 +131,12 @@ public class ProjectsController : ControllerBase
     }
 
     [Authorize(Policy = AppPolicies.AdminOnly)]
-    [HttpPatch("admin/{id:guid}/restore")]
+    [HttpPost("admin/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> RestoreAnyProjectById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> RestoreAnyProjects([FromBody] List<Guid> ids, CancellationToken ct)
     {
-        var restoredProject = await _projectService.RestoreAnyProjectByIdAsync(id, ct);
-
-        if (restoredProject is null) return NotFound(new { message = "Project not found." });
-
-        return Ok(restoredProject);
+        var restoredCount = await _projectService.RestoreAnyProjectsAsync(ids, ct);
+        return Ok(new { restoredCount });
     }
 
     [Authorize(Policy = AppPolicies.AdminOnly)]
@@ -142,5 +146,14 @@ public class ProjectsController : ControllerBase
     {
         var trash = await _projectService.GetAllDeletedProjectsAsync(ct);
         return Ok(trash);
+    }
+
+    [Authorize(Policy = AppPolicies.AdminOnly)]
+    [HttpPost("admin/purge")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> PurgeProjects([FromBody] List<Guid> ids, CancellationToken ct)
+    {
+        var purgedCount = await _projectService.PurgeProjectsAsync(ids, ct);
+        return Ok(new { purgedCount });
     }
 }

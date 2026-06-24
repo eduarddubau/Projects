@@ -19,6 +19,7 @@ public static class UserMappingExtensions
         FirstName = user.FirstName,
         LastName = user.LastName,
         IsDeleted = user.IsDeleted,
+        DeletedAt = user.DeletedAt,
         CreatedAt = user.CreatedAt,
         CreatedBy = user.CreatedBy,
         CreatedByDisplayName = user.Creator.GetDisplayName() ?? string.Empty,
@@ -36,6 +37,7 @@ public static class UserMappingExtensions
             FirstName = u.FirstName,
             LastName = u.LastName,
             IsDeleted = u.IsDeleted,
+            DeletedAt = u.DeletedAt,
             CreatedAt = u.CreatedAt,
             CreatedBy = u.CreatedBy,
             CreatedByDisplayName = u.Creator == null

@@ -9,4 +9,6 @@ export interface Project {
   createdAt: string;
   updatedAt?: string;
   isDeleted: boolean;
+  deletedAt?: string;
+  isPurgeable: boolean;
 }

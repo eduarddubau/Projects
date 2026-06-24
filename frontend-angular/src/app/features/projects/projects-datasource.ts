@@ -1,13 +1,13 @@
 import { DataSource } from '@angular/cdk/collections';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Subject, Observable, merge, Subscription } from 'rxjs';
+import { Subject, Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { Project } from '@core/models/project';
 
 export interface ProjectTableState {
   searchQuery: string;
-  showDeleted: boolean;
+  minAgeDays?: number;
 }
 
 export class ProjectsDataSource extends DataSource<Project> {
@@ -15,9 +15,10 @@ export class ProjectsDataSource extends DataSource<Project> {
 
   private _paginator: MatPaginator | undefined;
   private _sort: MatSort | undefined;
-  private _state: ProjectTableState = { searchQuery: '', showDeleted: false };
+  private _state: ProjectTableState = { searchQuery: '' };
   private _updateStream = new Subject<void>();
-  private _controlsSub: Subscription | undefined;
+  private _sortSub: Subscription | undefined;
+  private _pageSub: Subscription | undefined;
 
   set paginator(paginator: MatPaginator | undefined) {
     this._paginator = paginator;
@@ -54,7 +55,8 @@ export class ProjectsDataSource extends DataSource<Project> {
   }
 
   disconnect(): void {
-    this._controlsSub?.unsubscribe();
+    this._sortSub?.unsubscribe();
+    this._pageSub?.unsubscribe();
     this._updateStream.complete();
   }
 
@@ -63,24 +65,23 @@ export class ProjectsDataSource extends DataSource<Project> {
   }
 
   /**
-   * Re-subscribes whenever sort or paginator are (re)assigned,
-   * so change events from either control feed into the update stream.
+   * Re-subscribes whenever sort or paginator are (re)assigned. Sort and page
+   * changes are handled separately because only a sort change should reset
+   * back to the first page — resetting on every page-change event would
+   * undo the page change itself.
    */
   private _rewireControls(): void {
-    this._controlsSub?.unsubscribe();
+    this._sortSub?.unsubscribe();
+    this._pageSub?.unsubscribe();
 
-    const sources = [
-      this._sort?.sortChange,
-      this._paginator?.page,
-    ].filter(Boolean);
+    this._sortSub = this._sort?.sortChange.subscribe(() => {
+      if (this._paginator) this._paginator.pageIndex = 0;
+      this._updateStream.next();
+    });
 
-    if (sources.length) {
-      this._controlsSub = merge(...sources).subscribe(() => {
-        // Reset to first page on sort so results aren't confusing
-        if (this._paginator) this._paginator.pageIndex = 0;
-        this._updateStream.next();
-      });
-    }
+    this._pageSub = this._paginator?.page.subscribe(() => {
+      this._updateStream.next();
+    });
   }
 
   private _getProcessedData(data: Project[]): Project[] {
@@ -102,12 +103,28 @@ export class ProjectsDataSource extends DataSource<Project> {
     return result;
   }
 
+  /**
+   * Returns exactly what's currently rendered in the table — filtered,
+   * sorted, and paginated. "Select all" style actions should use this
+   * rather than the full filtered set, so the count never exceeds what's
+   * actually visible/checked on screen.
+   */
+  getCurrentPageData(): Project[] {
+    return this._getProcessedData([...this.data]);
+  }
+
   private _getFilteredData(data: Project[]): Project[] {
     return data.filter(item => {
       const matchesSearch = item.name.toLowerCase().includes(this._state.searchQuery.toLowerCase());
-      const matchesDeleted = this._state.showDeleted ? true : !item.isDeleted;
-      return matchesSearch && matchesDeleted;
+      const matchesAge = this._state.minAgeDays == null || this._isOlderThan(item, this._state.minAgeDays);
+      return matchesSearch && matchesAge;
     });
+  }
+
+  private _isOlderThan(item: Project, days: number): boolean {
+    if (!item.deletedAt) return false;
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+    return new Date(item.deletedAt).getTime() < cutoff;
   }
 
   private _getPagedData(data: Project[]): Project[] {
@@ -127,6 +144,7 @@ export class ProjectsDataSource extends DataSource<Project> {
         case 'name':        return compare(a.name, b.name, isAsc);
         case 'createdAt':   return compare(a.createdAt, b.createdAt, isAsc);
         case 'createdBy':   return compare(a.createdByDisplayName ?? '', b.createdByDisplayName ?? '', isAsc);
+        case 'deletedAt':   return compare(a.deletedAt ?? '', b.deletedAt ?? '', isAsc);
         default:            return 0;
       }
     });

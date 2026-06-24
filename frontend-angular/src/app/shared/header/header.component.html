@@ -52,6 +52,10 @@
     <mat-icon>folder</mat-icon>
     <span>My Projects</span>
   </button>
+  <button mat-menu-item routerLink="/projects/trash">
+    <mat-icon>delete_outline</mat-icon>
+    <span>Trash</span>
+  </button>
   @if (isAdmin()) {
     <mat-divider></mat-divider>
     <button mat-menu-item routerLink="/admin">

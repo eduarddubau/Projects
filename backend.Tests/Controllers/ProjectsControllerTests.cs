@@ -200,26 +200,16 @@ public class ProjectsControllerTests
     }
 
     [Fact]
-    public async Task RestoreAnyProjectById_WhenFound_ReturnsOk()
+    public async Task RestoreAnyProjects_ReturnsOkWithRestoredCount()
     {
-        var project = SampleProject();
-        _projectService.Setup(s => s.RestoreAnyProjectByIdAsync(project.Id, It.IsAny<CancellationToken>())).ReturnsAsync(project);
+        var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        _projectService.Setup(s => s.RestoreAnyProjectsAsync(ids, It.IsAny<CancellationToken>())).ReturnsAsync(2);
 
-        var result = await _controller.RestoreAnyProjectById(project.Id, CancellationToken.None);
+        var result = await _controller.RestoreAnyProjects(ids, CancellationToken.None);
 
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        Assert.Equal(project, okResult.Value);
-    }
-
-    [Fact]
-    public async Task RestoreAnyProjectById_WhenNotFound_ReturnsNotFound()
-    {
-        var id = Guid.NewGuid();
-        _projectService.Setup(s => s.RestoreAnyProjectByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync((ProjectResponseDto?)null);
-
-        var result = await _controller.RestoreAnyProjectById(id, CancellationToken.None);
-
-        Assert.IsType<NotFoundObjectResult>(result.Result);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var restoredCount = okResult.Value!.GetType().GetProperty("restoredCount")!.GetValue(okResult.Value);
+        Assert.Equal(2, restoredCount);
     }
 
     [Fact]
@@ -232,5 +222,18 @@ public class ProjectsControllerTests
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(projects, okResult.Value);
+    }
+
+    [Fact]
+    public async Task PurgeProjects_ReturnsOkWithPurgedCount()
+    {
+        var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        _projectService.Setup(s => s.PurgeProjectsAsync(ids, It.IsAny<CancellationToken>())).ReturnsAsync(2);
+
+        var result = await _controller.PurgeProjects(ids, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var purgedCount = okResult.Value!.GetType().GetProperty("purgedCount")!.GetValue(okResult.Value);
+        Assert.Equal(2, purgedCount);
     }
 }

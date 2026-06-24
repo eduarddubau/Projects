@@ -7,88 +7,131 @@ namespace Backend.Data;
 
 public static class DbSeeder
 {
+    private const string DefaultPassword = "Password123!";
+    private const int UserCount = 3;
+
     public static async Task SeedAsync(
         UserManager<User> userManager,
         RoleManager<IdentityRole<Guid>> roleManager,
         AppDbContext context,
-        ILogger logger)
+        ILogger logger,
+        ProjectRetentionOptions retentionOptions)
     {
         logger.LogInformation("Starting database seeding...");
 
-        // Seed Roles
-        foreach (var roleName in new[] { AppRoles.Admin, AppRoles.User })
+        await SeedRolesAsync(roleManager, logger);
+
+        for (var index = 1; index <= UserCount; index++)
         {
-            if (!await roleManager.RoleExistsAsync(roleName))
-            {
-                logger.LogInformation("Creating role: {RoleName}", roleName);
-                await roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
-            }
-        }
+            var user = await SeedUserAsync(userManager, logger, index);
+            if (user is null) continue;
 
-        // Seed Users
-        const int userCount = 3;
-        for (int i = 1; i <= userCount; i++)
-        {
-            var email = $"dev{i}@example.com";
-            var user = await userManager.FindByEmailAsync(email);
-
-            if (user == null)
-            {
-                logger.LogInformation("Seeding user: {Email}", email);
-                user = new User
-                {
-                    UserName = email,
-                    Email = email,
-                    FirstName = "Dev",
-                    LastName = $"User{i}",
-                    EmailConfirmed = true
-                };
-
-                var result = await userManager.CreateAsync(user, "Password123!");
-
-                if (result.Succeeded)
-                {
-                    var role = i == 1 ? AppRoles.Admin : AppRoles.User;
-                    await userManager.AddToRoleAsync(user, role);
-                }
-                else
-                {
-                    logger.LogError("Failed to seed user {Email}: {Errors}",
-                        email, string.Join(", ", result.Errors.Select(e => e.Description)));
-                    continue;
-                }
-            }
-
-            // Seed Projects
-            var userHasProjects = await context.Projects.AnyAsync(p => p.CreatedBy == user.Id);
-
-            if (!userHasProjects)
-            {
-                logger.LogInformation("Seeding starter projects for user: {Email}", email);
-
-                context.Projects.AddRange(
-                    new Project
-                    {
-                        Name = $"{user.FirstName}'s First Project",
-                        Description = "Automatically generated starter project.",
-                        CreatedBy = user.Id
-                    },
-                    new Project
-                    {
-                        Name = $"Ongoing Research Project no {i}",
-                        Description = "A project for tracking long-term goals.",
-                        CreatedBy = user.Id
-                    }
-                );
-
-                await context.SaveChangesAsync();
-            }
-            else
-            {
-                logger.LogDebug("User {Email} already has projects. Skipping project seed.", email);
-            }
+            await SeedProjectsForUserAsync(context, logger, user, index, retentionOptions.TrashWindowDays);
         }
 
         logger.LogInformation("Database seeding completed successfully.");
+    }
+
+    private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager, ILogger logger)
+    {
+        foreach (var roleName in new[] { AppRoles.Admin, AppRoles.User })
+        {
+            if (await roleManager.RoleExistsAsync(roleName)) continue;
+
+            logger.LogInformation("Creating role: {RoleName}", roleName);
+            await roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
+        }
+    }
+
+    private static async Task<User?> SeedUserAsync(UserManager<User> userManager, ILogger logger, int index)
+    {
+        var email = $"dev{index}@example.com";
+        var existingUser = await userManager.FindByEmailAsync(email);
+        if (existingUser is not null) return existingUser;
+
+        logger.LogInformation("Seeding user: {Email}", email);
+        var user = new User
+        {
+            UserName = email,
+            Email = email,
+            FirstName = "Dev",
+            LastName = $"User{index}",
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(user, DefaultPassword);
+        if (!result.Succeeded)
+        {
+            logger.LogError("Failed to seed user {Email}: {Errors}",
+                email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            return null;
+        }
+
+        var role = index == 1 ? AppRoles.Admin : AppRoles.User;
+        await userManager.AddToRoleAsync(user, role);
+
+        return user;
+    }
+
+    private static async Task SeedProjectsForUserAsync(
+        AppDbContext context, ILogger logger, User user, int index, int trashWindowDays)
+    {
+        if (await context.Projects.AnyAsync(p => p.CreatedBy == user.Id))
+        {
+            logger.LogDebug("User {Email} already has projects. Skipping project seed.", user.Email);
+            return;
+        }
+
+        logger.LogInformation("Seeding projects for user: {Email}", user.Email);
+
+        var activeProjects = new[]
+        {
+            new Project
+            {
+                Name = $"{user.FirstName}'s First Project",
+                Description = "Automatically generated starter project.",
+                CreatedBy = user.Id
+            },
+            new Project
+            {
+                Name = $"Ongoing Research Project no {index}",
+                Description = "A project for tracking long-term goals.",
+                CreatedBy = user.Id
+            }
+        };
+
+        // Tiered ages relative to the retention window, so the admin purge filters
+        // (>30/>60/>90 days) each have something to show: one project still within
+        // the window, and three past it by increasing margins.
+        var deletedAges = new[]
+        {
+            5,
+            trashWindowDays + 5,
+            trashWindowDays + 35,
+            trashWindowDays + 65
+        };
+
+        var deletedProjects = deletedAges.Select(ageDays => new Project
+        {
+            Name = $"{user.FirstName}'s Project Deleted {ageDays} Days Ago",
+            Description = ageDays <= trashWindowDays
+                ? "Soft-deleted recently; still within the trash retention window."
+                : $"Soft-deleted {ageDays} days ago; past the {trashWindowDays}-day retention window.",
+            CreatedBy = user.Id
+        }).ToArray();
+
+        context.Projects.AddRange(activeProjects);
+        context.Projects.AddRange(deletedProjects);
+        await context.SaveChangesAsync();
+
+        // SaveChangesAsync forces IsDeleted = false for newly Added entities, so these
+        // are seeded active first, then soft-deleted with backdated timestamps here.
+        for (var i = 0; i < deletedProjects.Length; i++)
+        {
+            deletedProjects[i].IsDeleted = true;
+            deletedProjects[i].DeletedAt = DateTime.UtcNow.AddDays(-deletedAges[i]);
+        }
+
+        await context.SaveChangesAsync();
     }
 }

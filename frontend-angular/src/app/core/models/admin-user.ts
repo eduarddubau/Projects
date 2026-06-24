@@ -10,4 +10,5 @@ export interface AdminUser {
   createdAt: string;
   updatedAt?: string;
   isDeleted: boolean;
+  deletedAt?: string;
 }

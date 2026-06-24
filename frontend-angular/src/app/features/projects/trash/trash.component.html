@@ -1,17 +1,18 @@
-<div class="projects-container">
-  <div class="projects-header">
-    <h1 class="projects-title">My Projects</h1>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      New Project
+<div class="trash-container">
+  <div class="trash-header">
+    <button mat-button routerLink="/projects">
+      <mat-icon>arrow_back</mat-icon>
+      Back to My Projects
     </button>
+    <h1 class="trash-title">Trash</h1>
+    <p class="trash-subtitle">Deleted projects are kept here for a limited time before they're no longer recoverable.</p>
   </div>
 
   <div class="mat-elevation-z2 table-card">
 
     <div class="table-toolbar">
       <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Search projects</mat-label>
+        <mat-label>Search deleted projects</mat-label>
         <mat-icon matPrefix>search</mat-icon>
         <input matInput [formControl]="searchControl" placeholder="Search by name...">
       </mat-form-field>
@@ -20,18 +21,18 @@
     @if (isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Loading projects...</p>
+        <p>Loading trash...</p>
       </div>
     } @else if (hasError()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
-        <p>Failed to load projects. Please try again.</p>
+        <p>Failed to load trash. Please try again.</p>
       </div>
     }
 
     <div [hidden]="isLoading() || hasError()">
 
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Projects">
+      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Deleted Projects">
 
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef>#</th>
@@ -52,24 +53,17 @@
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="createdBy">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created By</th>
-          <td mat-cell *matCellDef="let row">{{ row.createdByDisplayName ?? '—' }}</td>
-        </ng-container>
-
-        <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created At</th>
-          <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
+        <ng-container matColumnDef="deletedAt">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Deleted At</th>
+          <td mat-cell *matCellDef="let row">{{ row.deletedAt | date:'yyyy-MM-dd' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let row">
-            <button mat-icon-button matTooltip="Edit" aria-label="Edit" (click)="openEditDialog(row)">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button matTooltip="Delete" aria-label="Delete" (click)="confirmDelete(row)">
-              <mat-icon>delete</mat-icon>
+            <button mat-stroked-button (click)="restoreProject(row)">
+              <mat-icon>restore</mat-icon>
+              Restore
             </button>
           </td>
         </ng-container>
@@ -81,14 +75,14 @@
       @if (dataSource.data.length > 0 && paginator?.length === 0) {
         <div class="state-container">
           <mat-icon>search_off</mat-icon>
-          <p>No projects found matching your search.</p>
+          <p>No deleted projects found matching your search.</p>
         </div>
       }
 
       @if (dataSource.data.length === 0) {
         <div class="state-container">
-          <mat-icon>folder_open</mat-icon>
-          <p>No projects yet.</p>
+          <mat-icon>delete_outline</mat-icon>
+          <p>Trash is empty.</p>
         </div>
       }
 

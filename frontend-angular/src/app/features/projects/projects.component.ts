@@ -8,7 +8,6 @@ import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,7 +16,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { combineLatestWith, debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProjectsDataSource } from './projects-datasource';
 import { ProjectService } from '@core/services/project.service';
@@ -35,7 +34,6 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
     MatSortModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSlideToggleModule,
     MatProgressSpinnerModule,
     MatIconModule,
     MatButtonModule,
@@ -59,9 +57,8 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   hasError = signal(false);
 
   dataSource = new ProjectsDataSource();
-  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'status', 'actions'];
+  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
   searchControl = new FormControl('');
-  showDeletedControl = new FormControl(false);
 
   ngOnInit() {
     this.projectService.getMyProjects()
@@ -84,15 +81,9 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
       startWith(this.searchControl.value),
       debounceTime(300),
       distinctUntilChanged(),
-      combineLatestWith(
-        this.showDeletedControl.valueChanges.pipe(startWith(this.showDeletedControl.value))
-      ),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe(([searchTerm, showDeleted]) => {
-      this.dataSource.state = {
-        searchQuery: searchTerm?.trim().toLowerCase() ?? '',
-        showDeleted: !!showDeleted
-      };
+    ).subscribe((searchTerm) => {
+      this.dataSource.state = { searchQuery: searchTerm?.trim().toLowerCase() ?? '' };
       if (this.dataSource.paginator) {
         this.dataSource.paginator.pageIndex = 0;
       }
@@ -150,7 +141,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
       width: '400px',
       data: {
         title: 'Delete Project',
-        message: `Are you sure you want to delete "${project.name}"? This can be undone by an administrator.`,
+        message: `Are you sure you want to delete "${project.name}"? You can restore it from Trash later.`,
         confirmLabel: 'Delete',
         warn: true
       }
@@ -162,9 +153,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
 
         this.projectService.deleteMyProject(project.id).subscribe({
           next: () => {
-            this.dataSource.data = this.dataSource.data.map(p =>
-              p.id === project.id ? { ...p, isDeleted: true } : p
-            );
+            this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();
             this.snackBar.open('Project deleted.', 'Close', { duration: 3000 });
@@ -172,17 +161,5 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
           error: () => this.snackBar.open('Failed to delete project.', 'Close', { duration: 5000 })
         });
       });
-  }
-
-  restoreProject(project: Project): void {
-    this.projectService.restoreMyProject(project.id).subscribe({
-      next: (updated) => {
-        this.dataSource.data = this.dataSource.data.map(p => p.id === updated.id ? updated : p);
-        this.dataSource.triggerUpdate();
-        this.cdr.markForCheck();
-        this.snackBar.open('Project restored.', 'Close', { duration: 3000 });
-      },
-      error: () => this.snackBar.open('Failed to restore project.', 'Close', { duration: 5000 })
-    });
   }
 }

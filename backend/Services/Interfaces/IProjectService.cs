@@ -10,10 +10,12 @@ public interface IProjectService
     Task<bool> DeleteMyProjectByIdAsync(Guid id, CancellationToken ct = default);
     Task<ProjectResponseDto?> UpdateMyProjectAsync(Guid id, UpdateProjectRequest dto, CancellationToken ct = default);
     Task<ProjectResponseDto?> RestoreMyProjectByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<ProjectResponseDto>> GetMyDeletedProjectsAsync(CancellationToken ct = default);
 
     Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync(CancellationToken ct = default);
     Task<ProjectResponseDto?> GetAnyProjectByIdAsync(Guid id, CancellationToken ct = default);
     Task<bool> DeleteAnyProjectByIdAsync(Guid id, CancellationToken ct = default);
-    Task<ProjectResponseDto?> RestoreAnyProjectByIdAsync(Guid id, CancellationToken ct = default);
+    Task<int> RestoreAnyProjectsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
     Task<IEnumerable<ProjectResponseDto>> GetAllDeletedProjectsAsync(CancellationToken ct = default);
+    Task<int> PurgeProjectsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
 }

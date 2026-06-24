@@ -21,6 +21,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'projects/trash',
+    loadComponent: () => import('./features/projects/trash/trash.component').then(m => m.TrashComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'admin',
     canActivate: [adminGuard],
     loadChildren: () => import('./features/admin/admin.routes').then(m => m.adminRoutes)

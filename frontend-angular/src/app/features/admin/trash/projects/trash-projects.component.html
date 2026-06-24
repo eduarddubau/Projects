@@ -1,0 +1,135 @@
+<div class="trash-container">
+  <div class="trash-header">
+    <h1 class="trash-title">Projects Trash</h1>
+    <p class="trash-subtitle">
+      Projects deleted by any user. Items past the retention window can be permanently deleted.
+    </p>
+  </div>
+
+  <div class="mat-elevation-z2 table-card">
+
+    <div class="table-toolbar">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <mat-icon matPrefix>search</mat-icon>
+        <input matInput [formControl]="searchControl" placeholder="Search by name...">
+      </mat-form-field>
+
+      <mat-button-toggle-group [formControl]="ageFilterControl" aria-label="Filter by age">
+        <mat-button-toggle value="all">All</mat-button-toggle>
+        <mat-button-toggle value="30">&gt;30 days</mat-button-toggle>
+        <mat-button-toggle value="60">&gt;60 days</mat-button-toggle>
+        <mat-button-toggle value="90">&gt;90 days</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button mat-stroked-button (click)="toggleSelectAll()">
+        <mat-icon>{{ isAllSelected() ? 'deselect' : 'select_all' }}</mat-icon>
+        {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
+      </button>
+
+      <button mat-stroked-button color="accent" [disabled]="selection.isEmpty()" (click)="confirmRestoreSelected()">
+        <mat-icon>restore</mat-icon>
+        Restore Selected ({{ selection.selected.length }})
+      </button>
+
+      <button mat-raised-button color="warn" [disabled]="!canPurgeSelected()" (click)="confirmPurgeSelected()">
+        <mat-icon>delete_forever</mat-icon>
+        Purge Selected ({{ selection.selected.length }})
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <div class="state-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Loading...</p>
+      </div>
+    } @else if (hasError()) {
+      <div class="state-container">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <p>Failed to load trash. Please try again.</p>
+      </div>
+    }
+
+    <div [hidden]="isLoading() || hasError()">
+
+      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Deleted Projects">
+
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              [checked]="selection.isSelected(row)"
+              (change)="toggleSelection(row)"
+              [attr.aria-label]="'Select ' + row.name">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="index">
+          <th mat-header-cell *matHeaderCellDef>#</th>
+          <td mat-cell *matCellDef="let row; let i = index">
+            {{ (paginator.pageIndex * paginator.pageSize) + (i + 1) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="createdBy">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created By</th>
+          <td mat-cell *matCellDef="let row">{{ row.createdByDisplayName ?? '—' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="deletedAt">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Deleted At</th>
+          <td mat-cell *matCellDef="let row">{{ row.deletedAt | date:'yyyy-MM-dd' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let row">
+            <div class="actions-cell">
+              <button mat-stroked-button (click)="restoreProject(row)">
+                <mat-icon>restore</mat-icon>
+                Restore
+              </button>
+              @if (row.isPurgeable) {
+                <button mat-stroked-button color="warn" (click)="confirmPurge(row)">
+                  <mat-icon>delete_forever</mat-icon>
+                  Purge
+                </button>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+
+      @if (dataSource.data.length > 0 && paginator?.length === 0) {
+        <div class="state-container">
+          <mat-icon>search_off</mat-icon>
+          <p>No deleted projects found matching your search.</p>
+        </div>
+      }
+
+      @if (dataSource.data.length === 0) {
+        <div class="state-container">
+          <mat-icon>delete_outline</mat-icon>
+          <p>Trash is empty.</p>
+        </div>
+      }
+
+      <mat-paginator
+        #paginator
+        [pageSizeOptions]="[5, 10, 20]"
+        aria-label="Select page">
+      </mat-paginator>
+
+    </div>
+
+  </div>
+</div>
