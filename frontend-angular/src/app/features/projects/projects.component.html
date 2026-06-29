@@ -1,10 +1,16 @@
 <div class="projects-container">
   <div class="projects-header">
     <h1 class="projects-title">My Projects</h1>
-    <button mat-raised-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      New Project
-    </button>
+    <div class="header-actions">
+      <button mat-raised-button routerLink="/projects/trash">
+        <mat-icon>delete_outline</mat-icon>
+        Trash
+      </button>
+      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        New Project
+      </button>
+    </div>
   </div>
 
   <div class="mat-elevation-z2 table-card">

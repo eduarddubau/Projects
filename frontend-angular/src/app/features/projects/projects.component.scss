@@ -17,6 +17,12 @@
   margin: 0;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .table-card {
   border-radius: 8px;
   overflow: hidden;
