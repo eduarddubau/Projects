@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '@shared/header/header.component';
+import { BreadcrumbComponent } from '@shared/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent],
+  imports: [RouterOutlet, HeaderComponent, BreadcrumbComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

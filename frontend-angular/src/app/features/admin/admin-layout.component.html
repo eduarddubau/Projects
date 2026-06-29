@@ -1,0 +1,65 @@
+<mat-sidenav-container class="admin-container">
+  <mat-sidenav
+    #drawer
+    class="admin-sidenav"
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="!isHandset()">
+    <mat-nav-list>
+      <a
+        mat-list-item
+        routerLink="/admin"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeIfHandset(drawer)">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle>Dashboard</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="/admin/projects"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)">
+        <mat-icon matListItemIcon>folder</mat-icon>
+        <span matListItemTitle>Projects</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="/admin/users"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)">
+        <mat-icon matListItemIcon>people</mat-icon>
+        <span matListItemTitle>Users</span>
+      </a>
+
+      <mat-divider></mat-divider>
+      <h3 matSubheader>Trash</h3>
+
+      <a
+        mat-list-item
+        routerLink="/admin/trash/projects"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)">
+        <mat-icon matListItemIcon>delete</mat-icon>
+        <span matListItemTitle>Projects</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="/admin/trash/users"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)">
+        <mat-icon matListItemIcon>person_off</mat-icon>
+        <span matListItemTitle>Users</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="admin-content">
+    @if (isHandset()) {
+      <button mat-button class="drawer-toggle" (click)="drawer.toggle()">
+        <mat-icon>menu</mat-icon>
+        Admin menu
+      </button>
+    }
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

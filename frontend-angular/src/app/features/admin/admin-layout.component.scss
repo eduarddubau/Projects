@@ -1,0 +1,29 @@
+.admin-container {
+  height: 100%;
+}
+
+.admin-sidenav {
+  width: 240px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+
+  .active {
+    background-color: var(--mat-sys-secondary-container);
+
+    --mat-list-list-item-label-text-color: var(--mat-sys-on-secondary-container);
+    --mat-list-list-item-leading-icon-color: var(--mat-sys-on-secondary-container);
+  }
+
+  h3[matSubheader] {
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-toggle {
+  align-self: flex-start;
+  margin: 8px;
+}

@@ -9,17 +9,19 @@
     [class.offline]="health().state === 'offline'">
   </span>
 
-  @if (isAuthenticated()) {
-    <a mat-button routerLink="/projects" routerLinkActive="active-link">
-      Projects
-    </a>
-  }
-
-  @if (isAdmin()) {
-    <a mat-button routerLink="/admin" routerLinkActive="active-link">
-      Admin
-    </a>
-  }
+  <!-- Inline nav (desktop) -->
+  <nav class="nav-inline">
+    @if (isAuthenticated()) {
+      <a mat-button routerLink="/projects" routerLinkActive="active-link">
+        Projects
+      </a>
+    }
+    @if (isAdmin()) {
+      <a mat-button routerLink="/admin" routerLinkActive="active-link">
+        Admin
+      </a>
+    }
+  </nav>
 
   <span class="spacer"></span>
 
@@ -40,7 +42,48 @@
       </button>
     }
   </div>
+
+  <!-- Hamburger (mobile) -->
+  <button mat-icon-button class="nav-hamburger" [matMenuTriggerFor]="mobileMenu"
+          aria-label="Open navigation menu">
+    <mat-icon>menu</mat-icon>
+  </button>
 </mat-toolbar>
+
+<!-- Mobile navigation menu -->
+<mat-menu #mobileMenu="matMenu" xPosition="before">
+  @if (isAuthenticated()) {
+    <button mat-menu-item routerLink="/projects">
+      <mat-icon>folder</mat-icon>
+      <span>Projects</span>
+    </button>
+    <button mat-menu-item routerLink="/projects/trash">
+      <mat-icon>delete_outline</mat-icon>
+      <span>Trash</span>
+    </button>
+    @if (isAdmin()) {
+      <mat-divider></mat-divider>
+      <button mat-menu-item routerLink="/admin">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <span>Admin Panel</span>
+      </button>
+    }
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Sign Out</span>
+    </button>
+  } @else {
+    <button mat-menu-item routerLink="/login">
+      <mat-icon>login</mat-icon>
+      <span>Login</span>
+    </button>
+    <button mat-menu-item routerLink="/register">
+      <mat-icon>person_add</mat-icon>
+      <span>Register</span>
+    </button>
+  }
+</mat-menu>
 
 <mat-menu #profileMenu="matMenu" xPosition="before">
   <div class="menu-user-info" (click)="$event.stopPropagation()">

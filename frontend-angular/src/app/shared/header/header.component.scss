@@ -16,6 +16,30 @@
   &:hover { opacity: 0.8; }
 }
 
+.nav-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .active-link {
+    font-weight: 600;
+    background-color: color-mix(in srgb, currentColor 16%, transparent);
+  }
+}
+
+// Hamburger is hidden on desktop; inline nav hidden on mobile.
+.nav-hamburger { display: none; }
+
+@media (max-width: 720px) {
+  .nav-inline { display: none; }
+  .nav-hamburger { display: inline-flex; }
+
+  .profile-button .user-text-stack,
+  .profile-button .arrow-icon {
+    display: none;
+  }
+}
+
 .status-dot {
   width: 10px;
   height: 10px;
