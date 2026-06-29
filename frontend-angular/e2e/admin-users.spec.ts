@@ -49,4 +49,40 @@ test.describe('Admin Users', () => {
     await expect(page.getByText('restored.')).toBeVisible();
     await expect(page.locator('tr', { hasText: 'dev3@example.com' })).toHaveCount(0);
   });
+
+  test('permanently erases a deleted user (GDPR), removing them from trash for good', async ({ page }) => {
+    // Create a throwaway user via the API so we never erase a seeded account other specs rely on.
+    const token = await page.evaluate(() => localStorage.getItem('authToken'));
+    const email = `erase-${Date.now()}@example.com`;
+    const createResp = await page.request.post('/api/users', {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { email, firstName: 'Erase', lastName: 'Target' }
+    });
+    expect(createResp.ok()).toBeTruthy();
+
+    await page.reload();
+    const row = page.locator('tr', { hasText: email });
+    await expect(row).toBeVisible();
+    await row.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByText('deleted.')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Trash' }).click();
+    await expect(page.getByRole('heading', { name: 'Users Trash' })).toBeVisible();
+
+    const trashRow = page.locator('tr', { hasText: email });
+    await expect(trashRow).toBeVisible();
+    await trashRow.getByRole('button', { name: 'Erase' }).click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByText('permanently erased')).toBeVisible();
+    await dialog.getByRole('button', { name: 'Erase' }).click();
+
+    await expect(page.getByText('permanently erased.')).toBeVisible();
+    await expect(page.locator('tr', { hasText: email })).toHaveCount(0);
+
+    // Erasure is permanent: the user stays gone from the trash even after a reload.
+    await page.reload();
+    await expect(page.locator('tr', { hasText: email })).toHaveCount(0);
+  });
 });

@@ -41,16 +41,32 @@
   --mat-form-field-outlined-container-shape: 20px;
 }
 
-.button-warning {
+.button-warning,
+.button-danger {
   --mat-outlined-button-state-layer-color: currentColor;
   --mat-outlined-button-ripple-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.button-warning {
   --mdc-outlined-button-label-text-color: #b45309;
   --mdc-outlined-button-outline-color: #b45309;
   color: #b45309;
 }
 
+.button-danger {
+  --mdc-outlined-button-label-text-color: var(--mat-sys-error);
+  --mdc-outlined-button-outline-color: var(--mat-sys-error);
+  color: var(--mat-sys-error);
+}
+
 .full-width-table {
   width: 100%;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .mat-column-index {

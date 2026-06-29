@@ -15,6 +15,19 @@ public class User : IdentityUser<Guid>, IAuditEntity
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 
+    /// <summary>
+    /// True once the user's personal data has been irreversibly scrubbed (GDPR erasure).
+    /// The row is retained so audit foreign keys (CreatedBy/UpdatedBy) stay valid, but the
+    /// account is hidden from the trash and can no longer be restored.
+    /// </summary>
+    public bool IsAnonymized { get; set; }
+
+    /// <summary>
+    /// When the user's data was erased — a write-once compliance timestamp for proving
+    /// when a data-erasure (GDPR) request was fulfilled. Null until anonymized.
+    /// </summary>
+    public DateTime? AnonymizedAt { get; set; }
+
     [ForeignKey("CreatedBy")]
     public virtual User? Creator { get; set; }
 

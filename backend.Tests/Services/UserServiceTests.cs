@@ -164,4 +164,66 @@ public class UserServiceTests
 
         Assert.Equal(["deleted@example.com"], result.Select(u => u.Email));
     }
+
+    [Fact]
+    public async Task GetDeletedUsersAsync_ExcludesAnonymizedUsers()
+    {
+        AddUser("deleted@example.com", isDeleted: true);
+        var anonymized = AddUser("erased@example.com", isDeleted: true);
+        anonymized.IsAnonymized = true;
+        _context.SaveChanges();
+
+        var result = await _service.GetDeletedUsersAsync();
+
+        Assert.Equal(["deleted@example.com"], result.Select(u => u.Email));
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_WhenDeleted_ScrubsPiiAndKeepsRow()
+    {
+        var user = AddUser("jane@example.com", isDeleted: true);
+
+        var result = await _service.AnonymizeUserAsync(user.Id);
+
+        Assert.True(result);
+
+        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == user.Id);
+        Assert.True(stored.IsAnonymized);
+        Assert.NotNull(stored.AnonymizedAt);
+        Assert.True(stored.IsDeleted);
+        Assert.Equal("Deleted", stored.FirstName);
+        Assert.Equal("User", stored.LastName);
+        Assert.DoesNotContain("jane@example.com", stored.Email);
+        Assert.Null(stored.PasswordHash);
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_WhenNotDeleted_ReturnsFalse()
+    {
+        var user = AddUser("active@example.com");
+
+        var result = await _service.AnonymizeUserAsync(user.Id);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_WhenAlreadyAnonymized_ReturnsFalse()
+    {
+        var user = AddUser("erased@example.com", isDeleted: true);
+        user.IsAnonymized = true;
+        _context.SaveChanges();
+
+        var result = await _service.AnonymizeUserAsync(user.Id);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_WhenNotFound_ReturnsFalse()
+    {
+        var result = await _service.AnonymizeUserAsync(Guid.NewGuid());
+
+        Assert.False(result);
+    }
 }

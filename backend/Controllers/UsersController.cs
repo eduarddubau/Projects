@@ -93,4 +93,20 @@ public class UsersController : ControllerBase
         var trash = await _userService.GetDeletedUsersAsync(ct);
         return Ok(trash);
     }
+
+    [HttpPost("{id:guid}/anonymize")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AnonymizeUser(Guid id, CancellationToken ct)
+    {
+        var result = await _userService.AnonymizeUserAsync(id, ct);
+
+        if (!result)
+        {
+            _logger.LogWarning("User with ID {UserId} not found for anonymization.", id);
+            return NotFound(new { message = $"Deleted user with ID {id} not found." });
+        }
+
+        return NoContent();
+    }
 }

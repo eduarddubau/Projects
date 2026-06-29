@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -19,6 +20,7 @@ import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { UserService } from '@core/services/user.service';
 import { AdminUser } from '@core/models/admin-user';
+import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-trash-users',
@@ -46,6 +48,7 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
   private userService = inject(UserService);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
   isLoading = signal(true);
@@ -111,5 +114,31 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
       },
       error: () => this.snackBar.open('Failed to restore user.', 'Close', { duration: 5000 })
     });
+  }
+
+  confirmErase(user: AdminUser): void {
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '460px',
+      data: {
+        title: 'Permanently Erase User',
+        message: `"${user.firstName} ${user.lastName}" (${user.email}) will be permanently erased. Their personal data is scrubbed and they can no longer be restored. This is irreversible and is intended for data-erasure (GDPR) requests.`,
+        confirmLabel: 'Erase',
+        warn: true
+      }
+    })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed: boolean | undefined) => {
+        if (!confirmed) return;
+
+        this.userService.anonymizeUser(user.id).subscribe({
+          next: () => {
+            this.dataSource.data = this.dataSource.data.filter(u => u.id !== user.id);
+            this.cdr.markForCheck();
+            this.snackBar.open('User permanently erased.', 'Close', { duration: 3000 });
+          },
+          error: () => this.snackBar.open('Failed to erase user.', 'Close', { duration: 5000 })
+        });
+      });
   }
 }

@@ -9,5 +9,6 @@ public interface IUserService
     Task<UserResponseDto> CreateUserAsync(CreateUserRequest dto, CancellationToken ct = default);
     Task<bool> DeleteAnyUserAsync(Guid id, CancellationToken ct = default);
     Task<UserResponseDto?> RestoreAnyUserAsync(Guid id, CancellationToken ct = default);
+    Task<bool> AnonymizeUserAsync(Guid id, CancellationToken ct = default);
     Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync(CancellationToken ct = default);
 }

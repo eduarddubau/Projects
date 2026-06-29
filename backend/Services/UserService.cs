@@ -83,10 +83,42 @@ public class UserService : BaseService<User>, IUserService
             .IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
-            .Where(u => u.IsDeleted)
+            .Where(u => u.IsDeleted && !u.IsAnonymized)
             .OrderByDescending(u => u.DeletedAt)
             .MapToDto()
             .ToListAsync(ct);
+    }
+
+    /// <summary>
+    /// Irreversibly scrubs a deleted user's personal data (GDPR erasure) while keeping the row,
+    /// so audit foreign keys referencing them stay valid. The account is hidden from the trash
+    /// afterwards and cannot be restored.
+    /// </summary>
+    public async Task<bool> AnonymizeUserAsync(Guid id, CancellationToken ct = default)
+    {
+        var user = await _context.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == id && u.IsDeleted && !u.IsAnonymized, ct);
+
+        if (user is null) return false;
+
+        var tombstone = $"deleted-{user.Id:N}@anonymized.invalid";
+
+        user.FirstName = "Deleted";
+        user.LastName = "User";
+        user.Email = tombstone;
+        user.NormalizedEmail = tombstone.ToUpperInvariant();
+        user.UserName = tombstone;
+        user.NormalizedUserName = tombstone.ToUpperInvariant();
+        user.PhoneNumber = null;
+        user.PasswordHash = null;
+        user.SecurityStamp = Guid.NewGuid().ToString();
+        user.IsAnonymized = true;
+        user.AnonymizedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+
+        return true;
     }
 
     private static string GenerateSecurePassword()

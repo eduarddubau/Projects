@@ -5,7 +5,7 @@
       Back to Users
     </button>
     <h1 class="trash-title">Users Trash</h1>
-    <p class="trash-subtitle">Users deleted by an admin are kept here and can be restored.</p>
+    <p class="trash-subtitle">Deleted users can be restored, or permanently erased to fulfil a data-erasure (GDPR) request.</p>
   </div>
 
   <div class="mat-elevation-z2 table-card">
@@ -58,10 +58,16 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let row">
-            <button mat-stroked-button class="button-warning" (click)="restoreUser(row)">
-              <mat-icon>restore</mat-icon>
-              Restore
-            </button>
+            <div class="actions-cell">
+              <button mat-stroked-button class="button-warning" (click)="restoreUser(row)">
+                <mat-icon>restore</mat-icon>
+                Restore
+              </button>
+              <button mat-stroked-button class="button-danger" (click)="confirmErase(row)">
+                <mat-icon>delete_forever</mat-icon>
+                Erase
+              </button>
+            </div>
           </td>
         </ng-container>
 

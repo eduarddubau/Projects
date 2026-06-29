@@ -32,4 +32,8 @@ export class UserService {
   getDeletedUsers(): Observable<AdminUser[]> {
     return this.http.get<AdminUser[]>(`${this.apiUrl}/users/trash`);
   }
+
+  anonymizeUser(id: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/users/${id}/anonymize`, {});
+  }
 }
