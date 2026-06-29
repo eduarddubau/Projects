@@ -15,12 +15,35 @@ public static class DbSeeder
         RoleManager<IdentityRole<Guid>> roleManager,
         AppDbContext context,
         ILogger logger,
-        ProjectRetentionOptions retentionOptions)
+        ProjectRetentionOptions retentionOptions,
+        AdminSeedOptions adminOptions,
+        bool isDevelopment)
     {
         logger.LogInformation("Starting database seeding...");
 
+        // Roles are required for the app to function in every environment.
         await SeedRolesAsync(roleManager, logger);
 
+        // The configured admin is seeded in every environment so the same account
+        // exists everywhere (its credentials come from configuration/secrets).
+        await SeedAdminAsync(userManager, logger, adminOptions);
+
+        if (isDevelopment)
+        {
+            // Development additionally gets the full demo dataset (dev users +
+            // sample/trash projects) that the local app and E2E specs rely on.
+            await SeedDevelopmentDataAsync(userManager, context, logger, retentionOptions);
+        }
+
+        logger.LogInformation("Database seeding completed successfully.");
+    }
+
+    private static async Task SeedDevelopmentDataAsync(
+        UserManager<User> userManager,
+        AppDbContext context,
+        ILogger logger,
+        ProjectRetentionOptions retentionOptions)
+    {
         for (var index = 1; index <= UserCount; index++)
         {
             var user = await SeedUserAsync(userManager, logger, index);
@@ -28,8 +51,45 @@ public static class DbSeeder
 
             await SeedProjectsForUserAsync(context, logger, user, index, retentionOptions.TrashWindowDays);
         }
+    }
 
-        logger.LogInformation("Database seeding completed successfully.");
+    private static async Task SeedAdminAsync(UserManager<User> userManager, ILogger logger, AdminSeedOptions options)
+    {
+        // An admin account is mandatory in every environment: fail fast so a
+        // misconfigured setup is caught at startup rather than running an app
+        // nobody can administer.
+        if (string.IsNullOrWhiteSpace(options.Email) || string.IsNullOrWhiteSpace(options.Password))
+            throw new InvalidOperationException(
+                $"No admin credentials configured. Set {AdminSeedOptions.SectionName}:Email and " +
+                $"{AdminSeedOptions.SectionName}:Password via configuration/secrets " +
+                $"(e.g. {AdminSeedOptions.SectionName}__Email / {AdminSeedOptions.SectionName}__Password).");
+
+        var existing = await userManager.FindByEmailAsync(options.Email);
+        if (existing is not null)
+        {
+            logger.LogInformation("Admin account {Email} already exists. Skipping admin seed.", options.Email);
+            return;
+        }
+
+        logger.LogInformation("Seeding admin account: {Email}", options.Email);
+        var admin = new User
+        {
+            UserName = options.Email,
+            Email = options.Email,
+            FirstName = options.FirstName,
+            LastName = options.LastName,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(admin, options.Password);
+        if (!result.Succeeded)
+        {
+            logger.LogError("Failed to seed admin {Email}: {Errors}",
+                options.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            return;
+        }
+
+        await userManager.AddToRoleAsync(admin, AppRoles.Admin);
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager, ILogger logger)

@@ -35,8 +35,14 @@ public static class ServiceExtensions
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ITokenService, TokenService>();
 
+        // Test-only fixture seeding; the controller that uses it is gated to Development.
+        services.AddScoped<ITestSeedService, TestSeedService>();
+
         services.AddOptions<ProjectRetentionOptions>()
             .Bind(config.GetSection(ProjectRetentionOptions.SectionName));
+
+        services.AddOptions<AdminSeedOptions>()
+            .Bind(config.GetSection(AdminSeedOptions.SectionName));
 
         services.AddHealthChecks()
             .AddNpgSql(config.GetConnectionString("DefaultConnection")!);

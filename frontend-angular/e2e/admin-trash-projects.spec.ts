@@ -1,4 +1,19 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+// Seeds soft-deleted projects with backdated DeletedAt via the Development-only
+// test-seed endpoint, so each test owns its fixtures and never depends on (or
+// consumes) shared seed data. Returns the unique run id used to name the rows.
+async function seedDeletedProjects(
+  page: Page,
+  projects: { name: string; deletedDaysAgo: number }[]
+): Promise<void> {
+  const token = await page.evaluate(() => localStorage.getItem('authToken'));
+  const resp = await page.request.post('/api/test-seed/deleted-projects', {
+    headers: { Authorization: `Bearer ${token}` },
+    data: { projects }
+  });
+  expect(resp.ok()).toBeTruthy();
+}
 
 test.describe('Admin Projects Trash', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,36 +28,71 @@ test.describe('Admin Projects Trash', () => {
   });
 
   test('loads with both restore and purge actions available', async ({ page }) => {
+    // A within-window row (restore only) and a past-window row (restore + purge).
+    const runId = `load-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    await seedDeletedProjects(page, [
+      { name: `Trash ${runId} Recent`, deletedDaysAgo: 5 },
+      { name: `Trash ${runId} Ancient`, deletedDaysAgo: 95 }
+    ]);
+    await page.reload();
+    await page.getByPlaceholder('Search by name...').fill(runId);
+
     await expect(page.locator('table[aria-label="Deleted Projects"]')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Restore' }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Purge', exact: true }).first()).toBeVisible();
   });
 
   test('age filter narrows to only items older than the selected threshold', async ({ page }) => {
-    await expect(page.locator('tr', { hasText: 'Deleted 5 Days Ago' }).first()).toBeVisible();
+    const runId = `age-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    const recent = `Trash ${runId} Recent 5d`;
+    const stale = `Trash ${runId} Stale 35d`;
+    await seedDeletedProjects(page, [
+      { name: recent, deletedDaysAgo: 5 },
+      { name: stale, deletedDaysAgo: 35 }
+    ]);
+    await page.reload();
+    await page.getByPlaceholder('Search by name...').fill(runId);
+
+    await expect(page.locator('tr', { hasText: recent })).toBeVisible();
 
     await page.getByRole('radio', { name: '>30 days' }).click();
 
-    await expect(page.locator('tr', { hasText: 'Deleted 5 Days Ago' })).toHaveCount(0);
-    await expect(page.locator('tr', { hasText: 'Deleted 35 Days Ago' }).first()).toBeVisible();
+    await expect(page.locator('tr', { hasText: recent })).toHaveCount(0);
+    await expect(page.locator('tr', { hasText: stale })).toBeVisible();
   });
 
   test('selects all purgeable rows and purges them in bulk', async ({ page }) => {
+    const runId = `purge-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    const ancientNames = [
+      `Trash ${runId} Ancient A`,
+      `Trash ${runId} Ancient B`,
+      `Trash ${runId} Ancient C`
+    ];
+    await seedDeletedProjects(page, [
+      // A within-window row that must NOT be purgeable, plus three past >90 days.
+      { name: `Trash ${runId} Recent`, deletedDaysAgo: 5 },
+      ...ancientNames.map((name) => ({ name, deletedDaysAgo: 95 }))
+    ]);
+    await page.reload();
+
+    // Searching this run's id isolates the table to only its rows, so "select
+    // all on this page" reaches exactly the purgeable rows we seeded.
+    await page.getByPlaceholder('Search by name...').fill(runId);
     await page.getByRole('radio', { name: '>90 days' }).click();
 
-    const purgeableRows = page.locator('tr', { hasText: 'Deleted 95 Days Ago' });
-    const purgeableCount = await purgeableRows.count();
-    expect(purgeableCount).toBeGreaterThan(0);
+    const purgeableRows = page.locator('tr', { hasText: `Trash ${runId} Ancient` });
+    await expect(purgeableRows).toHaveCount(3);
 
-    await page.getByRole('table', { name: 'Deleted Projects' }).getByRole('checkbox', { name: 'Select all rows on this page' }).click();
-    await expect(page.getByRole('button', { name: `Purge Selected (${purgeableCount})` })).toBeVisible();
+    await page.getByRole('table', { name: 'Deleted Projects' })
+      .getByRole('checkbox', { name: 'Select all rows on this page' }).click();
+    await expect(page.getByRole('button', { name: 'Purge Selected (3)' })).toBeVisible();
 
-    await page.getByRole('button', { name: `Purge Selected (${purgeableCount})` }).click();
+    await page.getByRole('button', { name: 'Purge Selected (3)' }).click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.getByText(`${purgeableCount} projects will be permanently purged`)).toBeVisible();
+    await expect(dialog.getByText('3 projects will be permanently purged')).toBeVisible();
     await dialog.getByRole('button', { name: 'Purge' }).click();
 
-    await expect(page.getByText(`${purgeableCount} projects permanently purged.`)).toBeVisible();
-    await expect(page.locator('tr', { hasText: 'Deleted 95 Days Ago' })).toHaveCount(0);
+    await expect(page.getByText('3 projects permanently purged.')).toBeVisible();
+    await expect(page.locator('tr', { hasText: `Trash ${runId} Ancient` })).toHaveCount(0);
   });
 });
