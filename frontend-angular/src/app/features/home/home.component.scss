@@ -1,0 +1,171 @@
+:host {
+  display: block;
+}
+
+.landing {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  padding: 64px 0 48px;
+
+  @media (max-width: 860px) {
+    flex-direction: column;
+    text-align: center;
+    padding: 40px 0 32px;
+  }
+}
+
+.hero-content {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+  padding: 6px 12px;
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font: var(--mat-sys-display-medium);
+  margin: 0 0 16px;
+  line-height: 1.1;
+
+  .accent {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.subtitle {
+  font: var(--mat-sys-body-large);
+  color: var(--mat-sys-on-surface-variant);
+  max-width: 48ch;
+  margin: 0 0 32px;
+
+  @media (max-width: 860px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.cta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  @media (max-width: 860px) {
+    justify-content: center;
+  }
+}
+
+.cta {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 1rem;
+}
+
+.welcome-back {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.95rem;
+}
+
+/* ---------- Hero visual ---------- */
+.hero-visual {
+  position: relative;
+  flex: 0 0 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 860px) {
+    flex-basis: 200px;
+    height: 200px;
+  }
+}
+
+.glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--mat-sys-primary-container) 0%,
+    transparent 70%
+  );
+  filter: blur(8px);
+}
+
+.hero-icon {
+  position: relative;
+  font-size: 140px;
+  width: 140px;
+  height: 140px;
+  color: var(--mat-sys-primary);
+
+  @media (max-width: 860px) {
+    font-size: 100px;
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* ---------- Features ---------- */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 20px;
+  padding: 32px 0;
+}
+
+.feature-card {
+  height: 100%;
+
+  h3 {
+    font: var(--mat-sys-title-medium);
+    margin: 16px 0 8px;
+  }
+
+  p {
+    color: var(--mat-sys-on-surface-variant);
+    margin: 0;
+  }
+}
+
+.feature-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: var(--mat-sys-primary);
+}
+
+/* ---------- Closing ---------- */
+.closing {
+  text-align: center;
+  padding: 56px 24px 72px;
+
+  h2 {
+    font: var(--mat-sys-headline-medium);
+    margin: 0 0 8px;
+  }
+
+  p {
+    color: var(--mat-sys-on-surface-variant);
+    margin: 0 0 24px;
+  }
+}

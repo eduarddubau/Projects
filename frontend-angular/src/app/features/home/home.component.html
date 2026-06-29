@@ -1,21 +1,65 @@
-<div style="padding: 2rem; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-  <h1 style="color: #dd0031;">Angular 21 + .NET 10 Bridge</h1>
-  <hr />
-  
-  <div [style.background-color]="connectionColor()" 
-        style="padding: 1rem; border-radius: 8px; color: white; margin-top: 1rem;">
-    <h2>Status: {{ connectionStatus() }}</h2>
+<div class="landing">
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <span class="eyebrow">Angular 21 &middot; .NET 10</span>
+      <h1>
+        Manage your projects,<br />
+        <span class="accent">without the busywork.</span>
+      </h1>
+      <p class="subtitle">
+        {{ appName }} gives your team a clean, fast home for everything you're
+        building — with role-based access, soft-delete safety, and security
+        built in from day one.
+      </p>
 
-    @if (apiData()) {
-      <p>Message: {{ apiData().message }}</p>
-      <small>Timestamp: {{ apiData().timestamp | date:'medium' }}</small>
-    } @else {
-      <p>Waiting for backend response...</p>
+      <div class="cta-row">
+        @if (isAuthenticated()) {
+          <a mat-flat-button color="primary" routerLink="/projects" class="cta">
+            <mat-icon>folder</mat-icon>
+            Go to your projects
+          </a>
+          <span class="welcome-back">
+            Welcome back, {{ currentUser()?.firstName }}.
+          </span>
+        } @else {
+          <a mat-flat-button color="primary" routerLink="/register" class="cta">
+            Get started — it's free
+          </a>
+          <a mat-stroked-button routerLink="/login" class="cta">
+            Sign in
+          </a>
+        }
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="glow"></div>
+      <mat-icon class="hero-icon">dashboard</mat-icon>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    @for (feature of features; track feature.title) {
+      <mat-card class="feature-card" appearance="outlined">
+        <mat-card-content>
+          <mat-icon class="feature-icon">{{ feature.icon }}</mat-icon>
+          <h3>{{ feature.title }}</h3>
+          <p>{{ feature.description }}</p>
+        </mat-card-content>
+      </mat-card>
     }
-  </div>
+  </section>
 
-  <button (click)="checkConnection()" 
-          style="margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer;">
-    Retry Connection
-  </button>
+  <!-- Closing CTA -->
+  @if (!isAuthenticated()) {
+    <section class="closing">
+      <h2>Ready to get organized?</h2>
+      <p>Create an account in seconds and start your first project.</p>
+      <a mat-flat-button color="primary" routerLink="/register" class="cta">
+        Create your account
+      </a>
+    </section>
+  }
 </div>
