@@ -16,31 +16,31 @@
   } @else if (stats()) {
     <!-- Stats Cards -->
     <div class="stats-grid">
-      <mat-card class="stat-card">
+      <mat-card class="stat-card" routerLink="/admin/projects">
         <mat-card-content>
           <div class="stat-content">
             <mat-icon class="stat-icon projects">folder</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.totalProjects }}</span>
-              <span class="stat-label">Total Projects</span>
+              <span class="stat-value">{{ stats()!.activeProjects }}</span>
+              <span class="stat-label">Active Projects</span>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="stat-card">
+      <mat-card class="stat-card" routerLink="/admin/users">
         <mat-card-content>
           <div class="stat-content">
             <mat-icon class="stat-icon users">people</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.totalUsers }}</span>
-              <span class="stat-label">Total Users</span>
+              <span class="stat-value">{{ stats()!.activeUsers }}</span>
+              <span class="stat-label">Active Users</span>
             </div>
           </div>
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="stat-card">
+      <mat-card class="stat-card" routerLink="/admin/trash/projects">
         <mat-card-content>
           <div class="stat-content">
             <mat-icon class="stat-icon deleted">delete</mat-icon>
@@ -52,7 +52,7 @@
         </mat-card-content>
       </mat-card>
 
-      <mat-card class="stat-card">
+      <mat-card class="stat-card" routerLink="/admin/trash/users">
         <mat-card-content>
           <div class="stat-content">
             <mat-icon class="stat-icon deleted">person_off</mat-icon>
@@ -64,33 +64,6 @@
         </mat-card-content>
       </mat-card>
     </div>
-
-    <!-- Quick Actions -->
-    <mat-card class="section-card">
-      <mat-card-header>
-        <mat-card-title>Quick Actions</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <div class="actions-grid">
-          <a mat-raised-button routerLink="/admin/projects">
-            <mat-icon>folder_open</mat-icon>
-            Manage Projects
-          </a>
-          <a mat-raised-button routerLink="/admin/users">
-            <mat-icon>manage_accounts</mat-icon>
-            Manage Users
-          </a>
-          <a mat-raised-button routerLink="/admin/trash/projects">
-            <mat-icon>folder_delete</mat-icon>
-            Projects Trash
-          </a>
-          <a mat-raised-button routerLink="/admin/trash/users">
-            <mat-icon>person_remove</mat-icon>
-            Users Trash
-          </a>
-        </div>
-      </mat-card-content>
-    </mat-card>
 
     <!-- Recent Projects -->
     <mat-card class="section-card">

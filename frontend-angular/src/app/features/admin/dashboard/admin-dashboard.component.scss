@@ -26,6 +26,13 @@
 }
 
 .stat-card {
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: var(--mat-sys-level2);
+  }
+
   .stat-content {
     display: flex;
     align-items: center;
@@ -71,19 +78,6 @@
 
   .card-header-actions {
     margin-left: auto;
-  }
-}
-
-.actions-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 8px 0;
-
-  a {
-    display: flex;
-    align-items: center;
-    gap: 8px;
   }
 }
 

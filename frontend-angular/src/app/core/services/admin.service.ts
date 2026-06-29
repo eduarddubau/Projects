@@ -7,9 +7,9 @@ import { Project } from '@core/models/project';
 import { AdminUser } from '@core/models/admin-user';
 
 export interface DashboardStats {
-  totalProjects: number;
+  activeProjects: number;
   deletedProjects: number;
-  totalUsers: number;
+  activeUsers: number;
   deletedUsers: number;
   recentProjects: Project[];
   recentUsers: AdminUser[];
@@ -27,14 +27,19 @@ export class AdminService {
       allUsers: this.userService.getAllUsers(),
       deletedUsers: this.userService.getDeletedUsers(),
     }).pipe(
-      map(({ allProjects, deletedProjects, allUsers, deletedUsers }) => ({
-        totalProjects: allProjects.length,
-        deletedProjects: deletedProjects.length,
-        totalUsers: allUsers.length,
-        deletedUsers: deletedUsers.length,
-        recentProjects: allProjects.slice(0, 5),
-        recentUsers: allUsers.slice(0, 5),
-      }))
+      map(({ allProjects, deletedProjects, allUsers, deletedUsers }) => {
+        const activeProjects = allProjects.filter(p => !p.isDeleted);
+        const activeUsers = allUsers.filter(u => !u.isDeleted);
+
+        return {
+          activeProjects: activeProjects.length,
+          deletedProjects: deletedProjects.length,
+          activeUsers: activeUsers.length,
+          deletedUsers: deletedUsers.length,
+          recentProjects: activeProjects.slice(0, 5),
+          recentUsers: activeUsers.slice(0, 5),
+        };
+      })
     );
   }
 }
