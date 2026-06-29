@@ -123,9 +123,33 @@ public class UserService : BaseService<User>, IUserService
 
     private static string GenerateSecurePassword()
     {
-        const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-        return new string(Enumerable.Range(0, 16)
-            .Select(_ => chars[Random.Shared.Next(chars.Length)])
-            .ToArray());
+        const string lower = "abcdefghijklmnopqrstuvwxyz";
+        const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const string digits = "0123456789";
+        const string symbols = "!@#$%^&*";
+        const string all = lower + upper + digits + symbols;
+
+        // Guarantee one character from each class Identity's password policy
+        // requires, then fill the remaining length from the full pool. Without
+        // this, a random draw can omit a class and Identity rejects the password.
+        var password = new List<char>
+        {
+            lower[Random.Shared.Next(lower.Length)],
+            upper[Random.Shared.Next(upper.Length)],
+            digits[Random.Shared.Next(digits.Length)],
+            symbols[Random.Shared.Next(symbols.Length)]
+        };
+
+        password.AddRange(Enumerable.Range(0, 12)
+            .Select(_ => all[Random.Shared.Next(all.Length)]));
+
+        // Shuffle so the guaranteed characters aren't always in the same positions.
+        for (int i = password.Count - 1; i > 0; i--)
+        {
+            int j = Random.Shared.Next(i + 1);
+            (password[i], password[j]) = (password[j], password[i]);
+        }
+
+        return new string(password.ToArray());
     }
 }
