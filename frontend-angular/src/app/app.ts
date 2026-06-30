@@ -7,7 +7,7 @@ import { BreadcrumbComponent } from '@shared/breadcrumb/breadcrumb.component';
   selector: 'app-root',
   imports: [RouterOutlet, HeaderComponent, BreadcrumbComponent],
   templateUrl: './app.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './app.scss',
 })
 export class AppComponent {}

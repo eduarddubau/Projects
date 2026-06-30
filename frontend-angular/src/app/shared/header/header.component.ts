@@ -24,7 +24,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatDividerModule,
   ],
   templateUrl: './header.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent {

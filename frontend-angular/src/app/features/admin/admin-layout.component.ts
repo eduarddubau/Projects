@@ -22,7 +22,7 @@ import { map } from 'rxjs';
     MatDividerModule,
   ],
   templateUrl: './admin-layout.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './admin-layout.component.scss',
 })
 export class AdminLayoutComponent {

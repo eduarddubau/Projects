@@ -14,7 +14,7 @@ interface Crumb {
   selector: 'app-breadcrumb',
   imports: [RouterLink, MatIconModule],
   templateUrl: './breadcrumb.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './breadcrumb.component.scss',
 })
 export class BreadcrumbComponent {
