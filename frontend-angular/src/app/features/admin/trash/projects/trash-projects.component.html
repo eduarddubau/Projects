@@ -22,7 +22,7 @@
       </mat-button-toggle-group>
 
       <div class="toolbar-actions">
-        <button mat-stroked-button class="button-warning" [disabled]="selection.isEmpty()" (click)="confirmRestoreSelected()">
+        <button mat-stroked-button [disabled]="selection.isEmpty()" (click)="confirmRestoreSelected()">
           <mat-icon>restore</mat-icon>
           Restore Selected ({{ selection.selected.length }})
         </button>
@@ -94,7 +94,7 @@
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let row">
             <div class="actions-cell">
-              <button mat-stroked-button class="button-warning" (click)="restoreProject(row)">
+              <button mat-stroked-button (click)="restoreProject(row)">
                 <mat-icon>restore</mat-icon>
                 Restore
               </button>

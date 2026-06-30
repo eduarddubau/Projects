@@ -49,22 +49,12 @@
   flex-wrap: wrap;
 }
 
-.button-danger,
-.button-warning {
+.button-danger {
   --mat-outlined-button-state-layer-color: currentColor;
   --mat-outlined-button-ripple-color: color-mix(in srgb, currentColor 10%, transparent);
-}
-
-.button-danger {
   --mdc-outlined-button-label-text-color: var(--mat-sys-error);
   --mdc-outlined-button-outline-color: var(--mat-sys-error);
   color: var(--mat-sys-error);
-}
-
-.button-warning {
-  --mdc-outlined-button-label-text-color: #b45309;
-  --mdc-outlined-button-outline-color: #b45309;
-  color: #b45309;
 }
 
 .full-width-table {
