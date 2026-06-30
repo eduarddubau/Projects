@@ -54,7 +54,7 @@ test.describe('Admin Users', () => {
     await expect(page.locator('tr', { hasText: email })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Trash' }).click();
-    await expect(page.getByRole('heading', { name: 'Users Trash' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Deleted Users' })).toBeVisible();
 
     await page.getByPlaceholder('Search by name or email...').fill(email);
     const trashRow = page.locator('tr', { hasText: email });
@@ -85,7 +85,7 @@ test.describe('Admin Users', () => {
     await expect(page.getByText('deleted.')).toBeVisible();
 
     await page.getByRole('button', { name: 'Trash' }).click();
-    await expect(page.getByRole('heading', { name: 'Users Trash' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Deleted Users' })).toBeVisible();
 
     await page.getByPlaceholder('Search by name or email...').fill(email);
     const trashRow = page.locator('tr', { hasText: email });

@@ -26,20 +26,20 @@ test.describe('My Projects CRUD', () => {
     const row = page.locator('tr', { hasText: projectName });
     await expect(row).toBeVisible();
 
-    await row.getByRole('button', { name: 'Edit' }).click();
-    dialog = page.getByRole('dialog');
-    await dialog.getByLabel('Name').fill(updatedName);
-    await dialog.getByRole('button', { name: 'Save' }).click();
-
+    // Edit happens on the detail page, opened by clicking the row.
+    await row.click();
+    await page.getByRole('button', { name: 'Edit' }).click();
+    await page.getByLabel('Name').fill(updatedName);
+    await page.getByRole('button', { name: 'Save changes' }).click();
     await expect(page.getByText('Project updated.')).toBeVisible();
-    const updatedRow = page.locator('tr', { hasText: updatedName });
-    await expect(updatedRow).toBeVisible();
 
-    await updatedRow.getByRole('button', { name: 'Delete' }).click();
+    // Delete from the detail page; the app returns to the list afterwards.
+    await page.getByRole('button', { name: 'Delete' }).click();
     dialog = page.getByRole('dialog');
     await dialog.getByRole('button', { name: 'Delete' }).click();
 
     await expect(page.getByText('Project deleted.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Dev dev2@example.com' }).click();

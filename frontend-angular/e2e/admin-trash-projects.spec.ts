@@ -24,7 +24,7 @@ test.describe('Admin Projects Trash', () => {
     await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 
     await page.goto('/admin/trash/projects');
-    await expect(page.getByRole('heading', { name: 'Projects Trash' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Deleted Projects' })).toBeVisible();
   });
 
   test('loads with both restore and purge actions available', async ({ page }) => {
