@@ -45,6 +45,15 @@
   width: 100%;
 }
 
+.clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-high);
+  }
+}
+
 .description-cell {
   max-width: 300px;
   overflow: hidden;

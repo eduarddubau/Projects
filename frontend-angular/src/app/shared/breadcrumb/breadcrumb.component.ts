@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRouteSnapshot, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { filter } from 'rxjs';
+import { BreadcrumbService } from './breadcrumb.service';
 
 interface Crumb {
   label: string;
@@ -17,8 +18,23 @@ interface Crumb {
 })
 export class BreadcrumbComponent {
   private router = inject(Router);
+  private breadcrumbService = inject(BreadcrumbService);
 
-  crumbs = signal<Crumb[]>([]);
+  private routerCrumbs = signal<Crumb[]>([]);
+
+  // Replace the last crumb's label with the dynamic override (e.g. a record
+  // name) when one is set; otherwise use the labels from the route.
+  readonly crumbs = computed(() => {
+    const crumbs = this.routerCrumbs();
+    const leafLabel = this.breadcrumbService.leafLabel();
+    if (leafLabel && crumbs.length) {
+      const lastIndex = crumbs.length - 1;
+      return crumbs.map((crumb, i) =>
+        i === lastIndex ? { ...crumb, label: leafLabel } : crumb
+      );
+    }
+    return crumbs;
+  });
 
   constructor() {
     this.router.events
@@ -26,10 +42,10 @@ export class BreadcrumbComponent {
         filter((e) => e instanceof NavigationEnd),
         takeUntilDestroyed()
       )
-      .subscribe(() => this.crumbs.set(this.build()));
+      .subscribe(() => this.routerCrumbs.set(this.build()));
 
     // Build once for the initial route (e.g. on a hard refresh).
-    this.crumbs.set(this.build());
+    this.routerCrumbs.set(this.build());
   }
 
   private build(): Crumb[] {

@@ -1,0 +1,103 @@
+.detail-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+
+  mat-card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .header-actions {
+    margin-left: auto;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+  }
+}
+
+// Material's M3 palette has no "danger" role, so colour the destructive
+// button with the error token directly. Edit keeps the default button styling.
+.button-danger {
+  --mat-outlined-button-state-layer-color: currentColor;
+  --mat-outlined-button-ripple-color: color-mix(in srgb, currentColor 10%, transparent);
+  --mdc-outlined-button-label-text-color: var(--mat-sys-error);
+  --mdc-outlined-button-outline-color: var(--mat-sys-error);
+  color: var(--mat-sys-error);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 12px 24px;
+  margin: 16px 0 0;
+
+  dt {
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .mono {
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+
+    dd {
+      margin-bottom: 12px;
+    }
+  }
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  gap: 12px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}

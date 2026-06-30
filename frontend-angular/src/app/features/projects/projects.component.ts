@@ -12,7 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
@@ -50,6 +50,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   private projectService = inject(ProjectService);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
@@ -119,23 +120,8 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
       });
   }
 
-  openEditDialog(project: Project): void {
-    this.dialog.open(ProjectFormDialogComponent, { width: '480px', data: { project } })
-      .afterClosed()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((result: ProjectFormResult | undefined) => {
-        if (!result) return;
-
-        this.projectService.updateProject(project.id, result).subscribe({
-          next: (updated) => {
-            this.dataSource.data = this.dataSource.data.map(p => p.id === updated.id ? updated : p);
-            this.dataSource.triggerUpdate();
-            this.cdr.markForCheck();
-            this.snackBar.open('Project updated.', 'Close', { duration: 3000 });
-          },
-          error: () => this.snackBar.open('Failed to update project.', 'Close', { duration: 5000 })
-        });
-      });
+  openDetail(project: Project): void {
+    this.router.navigate(['/projects', project.id]);
   }
 
   confirmDelete(project: Project): void {

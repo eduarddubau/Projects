@@ -20,13 +20,24 @@ export const routes: Routes = [
   },
   {
     path: 'projects',
-    loadComponent: () => import('./features/projects/projects.component').then(m => m.ProjectsComponent),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'projects/trash',
-    loadComponent: () => import('./features/projects/trash/trash.component').then(m => m.TrashComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    data: { breadcrumb: 'Projects' },
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./features/projects/projects.component').then(m => m.ProjectsComponent)
+      },
+      {
+        path: 'trash',
+        loadComponent: () => import('./features/projects/trash/trash.component').then(m => m.TrashComponent),
+        data: { breadcrumb: 'Trash' }
+      },
+      {
+        path: ':id',
+        loadComponent: () => import('./features/projects/detail/project-detail.component').then(m => m.ProjectDetailComponent),
+        data: { breadcrumb: 'Details' }
+      }
+    ]
   },
   {
     path: 'admin',

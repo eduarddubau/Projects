@@ -1,0 +1,86 @@
+<div class="detail-container">
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading project…</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>We couldn't find that project. It may have been deleted.</p>
+      <a mat-stroked-button routerLink="/projects">Back to Projects</a>
+    </div>
+  } @else if (project(); as p) {
+    <mat-card class="detail-card" appearance="outlined">
+      <mat-card-header class="detail-header">
+        <mat-card-title>{{ p.name }}</mat-card-title>
+        @if (!isEditing()) {
+          <div class="header-actions">
+            <button mat-stroked-button (click)="startEdit()">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+            <button mat-stroked-button class="button-danger" (click)="confirmDelete(p)">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          </div>
+        }
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (isEditing()) {
+          <form [formGroup]="form" class="edit-form" (ngSubmit)="save()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Name</mat-label>
+              <input matInput formControlName="name" maxlength="100" required>
+              @if (form.controls.name.hasError('required')) {
+                <mat-error>Name is required.</mat-error>
+              }
+              @if (form.controls.name.hasError('maxlength')) {
+                <mat-error>Name must be 100 characters or fewer.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description</mat-label>
+              <textarea matInput formControlName="description" rows="4" maxlength="500"></textarea>
+              @if (form.controls.description.hasError('maxlength')) {
+                <mat-error>Description must be 500 characters or fewer.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-button type="button" (click)="cancelEdit()" [disabled]="isSaving()">
+                Cancel
+              </button>
+              <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSaving()">
+                Save changes
+              </button>
+            </div>
+          </form>
+        } @else {
+          <dl class="detail-grid">
+            <dt>Description</dt>
+            <dd>{{ p.description || '—' }}</dd>
+
+            <dt>Created by</dt>
+            <dd>{{ p.createdByDisplayName || '—' }}</dd>
+
+            <dt>Created at</dt>
+            <dd>{{ p.createdAt | date:'medium' }}</dd>
+
+            <dt>Last updated by</dt>
+            <dd>{{ p.updatedByDisplayName || '—' }}</dd>
+
+            <dt>Last updated</dt>
+            <dd>{{ p.updatedAt ? (p.updatedAt | date:'medium') : '—' }}</dd>
+
+            <dt>Project ID</dt>
+            <dd class="mono">{{ p.id }}</dd>
+          </dl>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+</div>
