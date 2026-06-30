@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatSidenavModule, MatDrawer } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
@@ -22,6 +22,7 @@ import { map } from 'rxjs';
     MatDividerModule,
   ],
   templateUrl: './admin-layout.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-layout.component.scss',
 })
 export class AdminLayoutComponent {
@@ -31,7 +32,7 @@ export class AdminLayoutComponent {
     this.breakpoints
       .observe([Breakpoints.Handset, '(max-width: 720px)'])
       .pipe(map((result) => result.matches)),
-    { initialValue: false }
+    { initialValue: false },
   );
 
   /** On mobile the drawer overlays content, so close it after navigating. */

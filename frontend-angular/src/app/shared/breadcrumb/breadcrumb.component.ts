@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRouteSnapshot, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +14,7 @@ interface Crumb {
   selector: 'app-breadcrumb',
   imports: [RouterLink, MatIconModule],
   templateUrl: './breadcrumb.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './breadcrumb.component.scss',
 })
 export class BreadcrumbComponent {
@@ -29,9 +30,7 @@ export class BreadcrumbComponent {
     const leafLabel = this.breadcrumbService.leafLabel();
     if (leafLabel && crumbs.length) {
       const lastIndex = crumbs.length - 1;
-      return crumbs.map((crumb, i) =>
-        i === lastIndex ? { ...crumb, label: leafLabel } : crumb
-      );
+      return crumbs.map((crumb, i) => (i === lastIndex ? { ...crumb, label: leafLabel } : crumb));
     }
     return crumbs;
   });
@@ -40,7 +39,7 @@ export class BreadcrumbComponent {
     this.router.events
       .pipe(
         filter((e) => e instanceof NavigationEnd),
-        takeUntilDestroyed()
+        takeUntilDestroyed(),
       )
       .subscribe(() => this.routerCrumbs.set(this.build()));
 

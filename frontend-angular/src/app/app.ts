@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from '@shared/header/header.component';
 import { BreadcrumbComponent } from '@shared/breadcrumb/breadcrumb.component';
@@ -7,6 +7,7 @@ import { BreadcrumbComponent } from '@shared/breadcrumb/breadcrumb.component';
   selector: 'app-root',
   imports: [RouterOutlet, HeaderComponent, BreadcrumbComponent],
   templateUrl: './app.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.scss',
 })
 export class AppComponent {}

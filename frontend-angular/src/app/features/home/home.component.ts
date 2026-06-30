@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,6 +15,7 @@ interface Feature {
   selector: 'app-home',
   imports: [RouterLink, MatButtonModule, MatIconModule, MatCardModule],
   templateUrl: './home.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './home.component.scss',
 })
 export class HomeComponent {
@@ -42,8 +43,7 @@ export class HomeComponent {
     {
       icon: 'restore_from_trash',
       title: 'Nothing lost',
-      description:
-        'Deleted a project by mistake? Restore it from Trash — no panic, no data loss.',
+      description: 'Deleted a project by mistake? Restore it from Trash — no panic, no data loss.',
     },
     {
       icon: 'shield',

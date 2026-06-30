@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,10 +21,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatIconModule,
     MatTooltipModule,
     MatMenuModule,
-    MatDividerModule
+    MatDividerModule,
   ],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent {
   private authService = inject(AuthService);
@@ -34,7 +35,7 @@ export class HeaderComponent {
   isAuthenticated = this.authService.isAuthenticated;
   isAdmin = this.authService.isAdmin; // add this
   health = toSignal(this.healthService.status$, {
-    initialValue: { state: 'offline', error: 'Initializing...' } as HealthStatus
+    initialValue: { state: 'offline', error: 'Initializing...' } as HealthStatus,
   });
 
   logout(): void {
