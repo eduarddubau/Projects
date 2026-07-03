@@ -14,6 +14,7 @@ public class AuthControllerTests
 {
     private readonly Mock<UserManager<User>> _userManager;
     private readonly Mock<ITokenService> _tokenService = new();
+    private readonly Mock<IRefreshTokenService> _refreshTokenService = new();
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly AuthController _controller;
 
@@ -22,10 +23,15 @@ public class AuthControllerTests
         var store = new Mock<IUserStore<User>>();
         _userManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
+        _refreshTokenService
+            .Setup(r => r.IssueAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync("refresh-token");
+
         _controller = new AuthController(
             _userManager.Object,
             Mock.Of<ILogger<AuthController>>(),
             _tokenService.Object,
+            _refreshTokenService.Object,
             _currentUser.Object);
     }
 
@@ -142,5 +148,55 @@ public class AuthControllerTests
         var result = await _controller.GetCurrentUser(CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task Refresh_WithValidToken_ReturnsOkWithNewTokens()
+    {
+        var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com" };
+        _refreshTokenService
+            .Setup(r => r.RotateAsync("rt", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RefreshRotationResult(true, user.Id, "new-rt"));
+        _userManager.Setup(m => m.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
+        _tokenService.Setup(t => t.CreateToken(user)).ReturnsAsync("jwt-token");
+
+        var result = await _controller.Refresh(new RefreshRequest("rt"), CancellationToken.None);
+
+        Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Refresh_WithInvalidToken_ReturnsUnauthorized()
+    {
+        _refreshTokenService
+            .Setup(r => r.RotateAsync("bad", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(RefreshRotationResult.Failure);
+
+        var result = await _controller.Refresh(new RefreshRequest("bad"), CancellationToken.None);
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Refresh_WhenUserGone_ReturnsUnauthorized()
+    {
+        var userId = Guid.NewGuid();
+        _refreshTokenService
+            .Setup(r => r.RotateAsync("rt", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new RefreshRotationResult(true, userId, "new-rt"));
+        _userManager.Setup(m => m.FindByIdAsync(userId.ToString())).ReturnsAsync((User?)null);
+
+        var result = await _controller.Refresh(new RefreshRequest("rt"), CancellationToken.None);
+
+        Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Logout_RevokesTokenAndReturnsNoContent()
+    {
+        var result = await _controller.Logout(new RefreshRequest("rt"), CancellationToken.None);
+
+        Assert.IsType<NoContentResult>(result);
+        _refreshTokenService.Verify(r => r.RevokeAsync("rt", It.IsAny<CancellationToken>()), Times.Once);
     }
 }
