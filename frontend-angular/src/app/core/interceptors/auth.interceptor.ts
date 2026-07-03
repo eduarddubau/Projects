@@ -1,27 +1,38 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { inject, PLATFORM_ID } from '@angular/core'; // Use @angular/core
-import { isPlatformBrowser } from '@angular/common';
-import { throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { inject } from '@angular/core';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { AuthService } from '@core/services/auth.service';
+
+// Auth endpoints where a 401 must not trigger a refresh-and-retry (avoids loops).
+const NO_REFRESH_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
   const token = authService.getToken();
+  const authReq = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
 
-  if (token) {
-    req = req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` }
-    });
-  }
-
-  return next(req).pipe(
+  return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
-        authService.logout();
-      }
-      return throwError(() => error);
+      const canRefresh =
+        error.status === 401 &&
+        !NO_REFRESH_PATHS.some(path => req.url.includes(path)) &&
+        !!authService.getRefreshToken();
+
+      if (!canRefresh) return throwError(() => error);
+
+      // Access token expired: refresh once, then replay the original request.
+      return authService.refresh().pipe(
+        switchMap(newToken =>
+          next(req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } }))
+        ),
+        catchError(refreshError => {
+          authService.logout();
+          return throwError(() => refreshError);
+        })
+      );
     })
   );
 };

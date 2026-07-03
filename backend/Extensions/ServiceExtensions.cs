@@ -34,6 +34,7 @@ public static class ServiceExtensions
         services.AddScoped<IProjectService, ProjectService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
         // Test-only fixture seeding; the controller that uses it is gated to Development.
         services.AddScoped<ITestSeedService, TestSeedService>();

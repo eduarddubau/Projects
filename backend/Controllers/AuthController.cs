@@ -19,17 +19,20 @@ public class AuthController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly ILogger<AuthController> _logger;
     private readonly ITokenService _tokenService;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly ICurrentUserService _currentUser;
 
     public AuthController(
         UserManager<User> userManager,
         ILogger<AuthController> logger,
         ITokenService tokenService,
+        IRefreshTokenService refreshTokenService,
         ICurrentUserService currentUser)
     {
         _userManager = userManager;
         _logger = logger;
         _tokenService = tokenService;
+        _refreshTokenService = refreshTokenService;
         _currentUser = currentUser;
     }
 
@@ -63,12 +66,14 @@ public class AuthController : ControllerBase
         }
 
         var token = await _tokenService.CreateToken(user!);
+        var refreshToken = await _refreshTokenService.IssueAsync(user!.Id, ct);
         _logger.LogInformation("User {Email} logged in successfully.", request.Email);
 
         return Ok(new
         {
             Token = token,
-            User = user!.MapToDto()
+            RefreshToken = refreshToken,
+            User = user.MapToDto()
         });
     }
 
@@ -92,12 +97,45 @@ public class AuthController : ControllerBase
         await _userManager.AddToRoleAsync(user, AppRoles.User);
 
         var token = await _tokenService.CreateToken(user);
+        var refreshToken = await _refreshTokenService.IssueAsync(user.Id, ct);
         _logger.LogInformation("New user registered: {Email}", request.Email);
 
         return StatusCode(StatusCodes.Status201Created, new
         {
             Token = token,
+            RefreshToken = refreshToken,
             User = user.MapToDto()
         });
+    }
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken ct)
+    {
+        var rotation = await _refreshTokenService.RotateAsync(request.RefreshToken, ct);
+        if (!rotation.Succeeded)
+            return Unauthorized("Invalid refresh token.");
+
+        var user = await _userManager.FindByIdAsync(rotation.UserId.ToString());
+        if (user is null)
+            return Unauthorized("Invalid refresh token.");
+
+        var token = await _tokenService.CreateToken(user);
+
+        return Ok(new
+        {
+            Token = token,
+            RefreshToken = rotation.NewRawToken,
+            User = user.MapToDto()
+        });
+    }
+
+    [HttpPost("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout([FromBody] RefreshRequest request, CancellationToken ct)
+    {
+        await _refreshTokenService.RevokeAsync(request.RefreshToken, ct);
+        return NoContent();
     }
 }

@@ -18,6 +18,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     }
 
     public DbSet<Project> Projects { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     // Bypasses the soft-delete interception below for this entity's next removal.
     public void MarkForHardDelete(object entity) => _hardDeleteOverrides.Add(entity);
@@ -53,6 +54,16 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(p => p.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasIndex(rt => rt.TokenHash).IsUnique();
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(rt => rt.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

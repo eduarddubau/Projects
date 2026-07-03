@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { Observable, tap, map, throwError, finalize, shareReplay } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { jwtDecode } from 'jwt-decode';
 import { API_URL } from '@core/tokens/app.tokens';
@@ -30,6 +30,9 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.currentUser());
   isAdmin = computed(() => this.currentUser()?.isAdmin ?? false);
 
+  // Shared in-flight refresh so concurrent 401s trigger only one refresh call.
+  private refresh$: Observable<string> | null = null;
+
   private getInitialUser(): User | null {
     if (!isPlatformBrowser(this.platformId)) return null;
 
@@ -39,14 +42,16 @@ export class AuthService {
     try {
       const decoded = jwtDecode<DecodedToken>(token);
 
-      if (decoded.exp < Date.now() / 1000) {
-        localStorage.removeItem('authToken');
+      // An expired access token is fine while a refresh token remains; the
+      // interceptor refreshes on demand.
+      if (decoded.exp < Date.now() / 1000 && !localStorage.getItem('refreshToken')) {
+        this.clearSession();
         return null;
       }
 
       return this.mapDecodedToUser(decoded);
     } catch {
-      localStorage.removeItem('authToken');
+      this.clearSession();
       return null;
     }
   }
@@ -73,6 +78,31 @@ export class AuthService {
     return localStorage.getItem('authToken');
   }
 
+  getRefreshToken(): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return localStorage.getItem('refreshToken');
+  }
+
+  /** Swaps the refresh token for a new access token, sharing one in-flight
+   *  request across concurrent callers. */
+  refresh(): Observable<string> {
+    if (this.refresh$) return this.refresh$;
+
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) return throwError(() => new Error('No refresh token available.'));
+
+    this.refresh$ = this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/refresh`, { refreshToken })
+      .pipe(
+        tap(response => this.setSession(response)),
+        map(response => response.token),
+        finalize(() => (this.refresh$ = null)),
+        shareReplay(1)
+      );
+
+    return this.refresh$;
+  }
+
   login(credentials: LoginCredentials) {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
       tap(response => this.setSession(response))
@@ -88,6 +118,7 @@ export class AuthService {
   private setSession(response: AuthResponse) {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('authToken', response.token);
+      localStorage.setItem('refreshToken', response.refreshToken);
     }
     // Re-parse token to get roles since AuthResponse.user doesn't include them
     const token = response.token;
@@ -100,10 +131,20 @@ export class AuthService {
   }
 
   logout() {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('authToken');
+    // Revoke the token server-side, then clear the local session.
+    const refreshToken = this.getRefreshToken();
+    if (refreshToken) {
+      this.http.post(`${this.apiUrl}/auth/logout`, { refreshToken }).subscribe({ error: () => {} });
     }
+    this.clearSession();
     this.currentUser.set(null);
     this.router.navigate(['/login']);
+  }
+
+  private clearSession(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+    }
   }
 }
