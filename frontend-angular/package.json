@@ -23,6 +23,8 @@
     "@angular/platform-server": "^22.0.4",
     "@angular/router": "^22.0.4",
     "@angular/ssr": "^22.0.4",
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/space-grotesk": "^5.2.10",
     "express": "^5.1.0",
     "jwt-decode": "^4.0.0",
     "material-icons": "^1.13.14",

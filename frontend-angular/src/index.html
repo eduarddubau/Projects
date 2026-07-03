@@ -2,17 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>FrontendAngular</title>
+    <title>Projects — organize your work</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap"
-      rel="stylesheet"
+    <meta
+      name="description"
+      content="Projects gives your team a clean, fast home for everything you're building."
     />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f6f8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#18181c" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Applies the stored theme before first paint so a dark-mode reload never flashes light. -->
+    <script>
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset['theme'] = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <app-root></app-root>

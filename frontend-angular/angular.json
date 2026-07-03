@@ -32,6 +32,8 @@
               }
             ],
             "styles": [
+              "node_modules/@fontsource-variable/space-grotesk/index.css",
+              "node_modules/@fontsource-variable/inter/index.css",
               "node_modules/material-icons/iconfont/material-icons.css",
               "src/styles.scss"
             ],
@@ -58,8 +60,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
                 }
               ],
               "outputHashing": "all"
@@ -76,7 +78,12 @@
           "builder": "@angular/build:dev-server",
           "options": {
             "host": "0.0.0.0",
-            "allowedHosts": ["localhost", "127.0.0.1", "0.0.0.0", "frontend"],
+            "allowedHosts": [
+              "localhost",
+              "127.0.0.1",
+              "0.0.0.0",
+              "frontend"
+            ],
             "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
