@@ -2,8 +2,8 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
 import { AuthService } from '@core/services/auth.service';
+import { APP_NAME } from '@core/tokens/app.tokens';
 
 interface Feature {
   icon: string;
@@ -13,7 +13,7 @@ interface Feature {
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatCardModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule],
   templateUrl: './home.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './home.component.scss',
@@ -21,8 +21,8 @@ interface Feature {
 export class HomeComponent {
   private authService = inject(AuthService);
 
-  /** Single place to rename the product. */
-  appName = 'Projects';
+  appName = APP_NAME;
+  currentYear = new Date().getFullYear();
 
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
@@ -38,18 +38,19 @@ export class HomeComponent {
       icon: 'groups',
       title: 'Built for teams',
       description:
-        'Role-based access keeps members and admins in their lanes, so everyone sees exactly what they should.',
+        'Admins manage, members build. Role-based access makes sure everyone sees exactly what they should.',
     },
     {
       icon: 'restore_from_trash',
       title: 'Nothing lost',
-      description: 'Deleted a project by mistake? Restore it from Trash — no panic, no data loss.',
+      description:
+        'Deleted a project by mistake? Bring it back from Trash with one click — no panic, no data loss.',
     },
     {
       icon: 'shield',
       title: 'Secure by design',
       description:
-        'JWT authentication and GDPR-friendly anonymization protect your account and your users.',
+        'JWT authentication and GDPR-compliant erasure keep your account — and your users — protected.',
     },
   ];
 }

@@ -1,21 +1,27 @@
 <div class="landing">
+  <div class="aurora" aria-hidden="true"></div>
+  <div class="grid-lines" aria-hidden="true"></div>
+
   <!-- Hero -->
   <section class="hero">
     <div class="hero-content">
-      <span class="eyebrow">Angular 21 &middot; .NET 10</span>
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Angular 22 &middot; .NET 10 &middot; PostgreSQL 17
+      </span>
       <h1>
         Manage your projects,<br />
         <span class="accent">without the busywork.</span>
       </h1>
       <p class="subtitle">
         {{ appName }} gives your team a clean, fast home for everything you're
-        building — with role-based access, soft-delete safety, and security
-        built in from day one.
+        building — with access control, safe deletion, and security designed
+        in from day one.
       </p>
 
       <div class="cta-row">
         @if (isAuthenticated()) {
-          <a mat-flat-button color="primary" routerLink="/projects" class="cta">
+          <a mat-flat-button routerLink="/projects" class="cta">
             <mat-icon>folder</mat-icon>
             Go to your projects
           </a>
@@ -23,7 +29,7 @@
             Welcome back, {{ currentUser()?.firstName }}.
           </span>
         } @else {
-          <a mat-flat-button color="primary" routerLink="/register" class="cta">
+          <a mat-flat-button routerLink="/register" class="cta">
             Get started — it's free
           </a>
           <a mat-stroked-button routerLink="/login" class="cta">
@@ -33,33 +39,73 @@
       </div>
     </div>
 
+    <!-- Stylized product preview, purely decorative -->
     <div class="hero-visual" aria-hidden="true">
-      <div class="glow"></div>
-      <mat-icon class="hero-icon">dashboard</mat-icon>
+      <div class="preview-card">
+        <div class="preview-topbar">
+          <span class="wdot"></span><span class="wdot"></span><span class="wdot"></span>
+          <span class="address">projects.app/dashboard</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-rail">
+            <span class="rail-item active"></span>
+            <span class="rail-item"></span>
+            <span class="rail-item"></span>
+            <span class="rail-item"></span>
+          </div>
+          <div class="preview-main">
+            <div class="preview-stats">
+              <div class="tile"><span class="num">128</span><span class="lbl">Projects</span></div>
+              <div class="tile"><span class="num">36</span><span class="lbl">Members</span></div>
+              <div class="tile"><span class="num">99.9%</span><span class="lbl">Uptime</span></div>
+            </div>
+            <div class="preview-rows">
+              <div class="row"><span class="cdot c1"></span><span class="bar" style="width: 58%"></span><span class="pchip ok">Active</span></div>
+              <div class="row"><span class="cdot c2"></span><span class="bar" style="width: 42%"></span><span class="pchip ok">Active</span></div>
+              <div class="row"><span class="cdot c3"></span><span class="bar" style="width: 66%"></span><span class="pchip warn">Review</span></div>
+              <div class="row"><span class="cdot c4"></span><span class="bar" style="width: 35%"></span><span class="pchip ok">Active</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="float-chip chip-a"><mat-icon>verified_user</mat-icon><span>JWT secured</span></div>
+      <div class="float-chip chip-b"><mat-icon>restore_from_trash</mat-icon><span>Project restored</span></div>
     </div>
   </section>
 
   <!-- Features -->
   <section class="features">
-    @for (feature of features; track feature.title) {
-      <mat-card class="feature-card" appearance="outlined">
-        <mat-card-content>
-          <mat-icon class="feature-icon">{{ feature.icon }}</mat-icon>
+    <div class="section-head">
+      <h2>Everything you need. Nothing you don't.</h2>
+      <p>Role-based access, audit history, and recovery — on a hardened, tested stack.</p>
+    </div>
+    <div class="feature-grid">
+      @for (feature of features; track feature.title) {
+        <div class="feature-card">
+          <span class="feature-icon"><mat-icon>{{ feature.icon }}</mat-icon></span>
           <h3>{{ feature.title }}</h3>
           <p>{{ feature.description }}</p>
-        </mat-card-content>
-      </mat-card>
-    }
+        </div>
+      }
+    </div>
   </section>
 
   <!-- Closing CTA -->
   @if (!isAuthenticated()) {
     <section class="closing">
-      <h2>Ready to get organized?</h2>
-      <p>Create an account in seconds and start your first project.</p>
-      <a mat-flat-button color="primary" routerLink="/register" class="cta">
-        Create your account
-      </a>
+      <div class="closing-panel">
+        <h2>Ready to get organized?</h2>
+        <p>Create a free account and have your first project up in seconds.</p>
+        <a mat-flat-button routerLink="/register" class="cta">
+          Create your account
+        </a>
+      </div>
     </section>
   }
+
+  <footer class="landing-footer">
+    <span class="footer-brand">{{ appName }}</span>
+    <span class="dot-sep">&middot;</span>
+    <span>&copy; {{ currentYear }} — All rights reserved.</span>
+  </footer>
 </div>
