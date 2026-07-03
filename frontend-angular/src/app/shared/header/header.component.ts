@@ -12,9 +12,6 @@ import { HealthStatus } from '@core/models/health-status';
 import { APP_NAME } from '@core/tokens/app.tokens';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-const THEME_ICONS = { system: 'brightness_auto', light: 'light_mode', dark: 'dark_mode' } as const;
-const THEME_LABELS = { system: 'System', light: 'Light', dark: 'Dark' } as const;
-
 @Component({
   selector: 'app-header',
   imports: [
@@ -49,11 +46,16 @@ export class HeaderComponent {
     return `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
   });
 
-  themeIcon = computed(() => THEME_ICONS[this.themeService.preference()]);
-  themeTooltip = computed(() => `Theme: ${THEME_LABELS[this.themeService.preference()]}`);
+  theme = this.themeService.theme;
+  themeTooltip = computed(() => `Switch to ${this.theme() === 'dark' ? 'light' : 'dark'} theme`);
 
-  cycleTheme(): void {
-    this.themeService.cycle();
+  /** Flips the theme, centering the reveal animation on the toggle. */
+  toggleTheme(event: MouseEvent): void {
+    const rect = (event.currentTarget as HTMLElement | null)?.getBoundingClientRect();
+    const origin = rect
+      ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+      : undefined;
+    this.themeService.toggle(origin);
   }
 
   logout(): void {

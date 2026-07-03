@@ -29,11 +29,16 @@
   <button
     mat-icon-button
     class="theme-toggle"
-    (click)="cycleTheme()"
+    [class.mode-light]="theme() === 'light'"
+    [class.mode-dark]="theme() === 'dark'"
+    (click)="toggleTheme($event)"
     [matTooltip]="themeTooltip()"
     matTooltipPosition="below"
-    aria-label="Switch color theme">
-    <mat-icon>{{ themeIcon() }}</mat-icon>
+    [attr.aria-label]="themeTooltip()">
+    @switch (theme()) {
+      @case ('dark') { <mat-icon class="theme-icon moon">dark_mode</mat-icon> }
+      @default { <mat-icon class="theme-icon sun">light_mode</mat-icon> }
+    }
   </button>
 
   <div class="auth-actions">
