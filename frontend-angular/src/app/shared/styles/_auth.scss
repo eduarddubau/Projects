@@ -1,0 +1,124 @@
+// Shared shell for the login / register pages: aurora backdrop, centered card.
+@mixin auth-page {
+  .auth-page {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - var(--app-header-height));
+    padding: 40px 16px;
+  }
+
+  // Eased multi-stop falloffs: no single alpha step is large enough to band,
+  // and the noise overlay dithers what little remains.
+  .aurora {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(640px 440px at 12% -6%,
+        color-mix(in srgb, var(--mat-sys-primary) 15%, transparent) 0%,
+        color-mix(in srgb, var(--mat-sys-primary) 11%, transparent) 28%,
+        color-mix(in srgb, var(--mat-sys-primary) 5%, transparent) 48%,
+        color-mix(in srgb, var(--mat-sys-primary) 2%, transparent) 64%,
+        transparent 82%),
+      radial-gradient(700px 480px at 94% 104%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent) 0%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 8%, transparent) 30%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 3%, transparent) 52%,
+        color-mix(in srgb, var(--mat-sys-tertiary) 1%, transparent) 68%,
+        transparent 84%);
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--app-noise);
+    }
+  }
+
+  .auth-card {
+    position: relative;
+    width: 100%;
+    max-width: 430px;
+    background: var(--mat-sys-surface-container-lowest);
+    border: var(--app-hairline);
+    border-radius: 24px;
+    box-shadow: var(--app-shadow-pop);
+    padding: 36px 32px 28px;
+    box-sizing: border-box;
+
+    @media (max-width: 480px) {
+      padding: 28px 20px 22px;
+    }
+  }
+
+  .auth-head {
+    text-align: center;
+    margin-bottom: 26px;
+
+    .auth-mark {
+      display: inline-grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: var(--app-gradient-brand);
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--mat-sys-primary) 40%, transparent);
+      margin-bottom: 16px;
+
+      mat-icon {
+        color: var(--mat-sys-on-primary);
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    h1 {
+      font: var(--mat-sys-headline-medium);
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--mat-sys-on-surface-variant);
+      font-size: 0.95rem;
+    }
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+
+    .full-width {
+      width: 100%;
+    }
+  }
+
+  .submit-button {
+    width: 100%;
+    height: 48px;
+    font-size: 1rem;
+    border-radius: 12px;
+    margin-top: 10px;
+  }
+
+  .auth-alt {
+    text-align: center;
+    margin: 22px 0 0;
+    font-size: 0.9rem;
+    color: var(--mat-sys-on-surface-variant);
+
+    a {
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}

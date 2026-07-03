@@ -1,48 +1,45 @@
-<div class="login-page-container">
-  <mat-card class="login-card" appearance="outlined">
+<div class="auth-page">
+  <div class="aurora" aria-hidden="true"></div>
 
-    <mat-card-header>
-      <mat-card-title>Welcome Back</mat-card-title>
-      <mat-card-subtitle>Please sign in to continue</mat-card-subtitle>
-    </mat-card-header>
+  <div class="auth-card">
+    <div class="auth-head">
+      <span class="auth-mark" aria-hidden="true"><mat-icon>layers</mat-icon></span>
+      <h1>Welcome back</h1>
+      <p>Sign in to continue to {{ appName }}</p>
+    </div>
 
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput formControlName="email" type="email" placeholder="name@example.com" autocomplete="username">
-          @if (loginForm.get('email')?.hasError('required')) {
-            <mat-error>Email is required</mat-error>
-          }
-          @if (loginForm.get('email')?.hasError('email')) {
-            <mat-error>Please enter a valid email address</mat-error>
-          }
-        </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" placeholder="name@example.com" autocomplete="username">
+        @if (loginForm.get('email')?.hasError('required')) {
+          <mat-error>Email is required</mat-error>
+        }
+        @if (loginForm.get('email')?.hasError('email')) {
+          <mat-error>Please enter a valid email address</mat-error>
+        }
+      </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input matInput formControlName="password" [type]="showPassword ? 'text' : 'password'" autocomplete="current-password">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input matInput formControlName="password" [type]="showPassword ? 'text' : 'password'" autocomplete="current-password">
 
-          <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button" aria-label="Toggle password visibility">
-            <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
-          </button>
-
-          @if (loginForm.get('password')?.hasError('required')) {
-            <mat-error>Password is required</mat-error>
-          }
-        </mat-form-field>
-
-        <button mat-raised-button color="primary" type="submit" [disabled]="loginForm.invalid" class="submit-button full-width">
-          Sign In
+        <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button" aria-label="Toggle password visibility">
+          <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
 
-      </form>
-    </mat-card-content>
+        @if (loginForm.get('password')?.hasError('required')) {
+          <mat-error>Password is required</mat-error>
+        }
+      </mat-form-field>
 
-    <mat-card-actions>  
-      <p class="register-link">Don't have an account? <a routerLink="/register">Sign up</a></p>
-    </mat-card-actions>
+      <button mat-flat-button type="submit" [disabled]="loginForm.invalid" class="submit-button">
+        Sign In
+      </button>
 
-  </mat-card>
+    </form>
+
+    <p class="auth-alt">Don't have an account? <a routerLink="/register">Sign up</a></p>
+  </div>
 </div>

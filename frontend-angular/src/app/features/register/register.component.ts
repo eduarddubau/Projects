@@ -1,12 +1,12 @@
 import { Component, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '@core/services/auth.service';
@@ -16,12 +16,12 @@ import { AuthService } from '@core/services/auth.service';
   imports: [
     ReactiveFormsModule,
     RouterLink,
-    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     MatIcon
   ],
   templateUrl: './register.component.html',
@@ -39,6 +39,10 @@ export class RegisterComponent {
   hideConfirmPassword = signal(true);
   isLoading = signal(false);
 
+  // Mirrors the API's Identity password policy.
+  passwordRequirements =
+    'At least 8 characters, including an uppercase letter, a lowercase letter, a digit and a special character.';
+
   registerForm = this.fb.nonNullable.group({
     firstName: ['', Validators.required],
     lastName:  ['', Validators.required],
@@ -46,7 +50,7 @@ export class RegisterComponent {
     password:  ['', [
       Validators.required,
       Validators.minLength(8),
-      Validators.pattern(/^(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}:"<>?]).+$/)
+      Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/)
     ]],
     confirmPassword: ['', Validators.required]
   }, { validators: passwordMatchValidator });
@@ -91,9 +95,9 @@ export class RegisterComponent {
     // Identity error codes that map to the email field
     const emailCodes = ['DuplicateUserName', 'DuplicateEmail', 'InvalidEmail'];
     // Identity error codes that map to the password field
-    const passwordCodes = ['PasswordTooShort', 'PasswordRequiresUpper', 
-                          'PasswordRequiresDigit', 'PasswordRequiresNonAlphanumeric',
-                          'PasswordRequiresUniqueChars'];
+    const passwordCodes = ['PasswordTooShort', 'PasswordRequiresUpper',
+                          'PasswordRequiresLower', 'PasswordRequiresDigit',
+                          'PasswordRequiresNonAlphanumeric', 'PasswordRequiresUniqueChars'];
 
     const firstMatch = (codes: string[]) =>
       codes.flatMap(code => errors[code] ?? []).at(0);

@@ -1,7 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '@core/services/auth.service';
 import { LoginCredentials } from '@core/models/login-credentials';
+import { APP_NAME } from '@core/tokens/app.tokens';
 
 @Component({
   selector: 'app-login',
@@ -17,7 +17,6 @@ import { LoginCredentials } from '@core/models/login-credentials';
   imports: [
     RouterModule,
     ReactiveFormsModule,
-    MatCardModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -27,6 +26,7 @@ import { LoginCredentials } from '@core/models/login-credentials';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent {
+  appName = APP_NAME;
   showPassword = false;
 
   private authService = inject(AuthService);
