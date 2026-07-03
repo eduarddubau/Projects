@@ -1,0 +1,76 @@
+# Fullstack App
+
+A full-stack project management application — ASP.NET Core 10 API, Angular 22 frontend, PostgreSQL — built as a portfolio project and engineered to production standards. (The product name is provisional.)
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | ASP.NET Core 10, EF Core + Npgsql, ASP.NET Identity, FluentValidation |
+| Frontend | Angular 22 (standalone components, signals, OnPush), Angular Material, hybrid SSR via `@angular/ssr` + Express |
+| Database | PostgreSQL 17 |
+| Testing | xUnit (backend), Playwright (e2e) |
+| Infrastructure | Docker / Podman Compose |
+
+## Architecture highlights
+
+- **Authentication** — JWT bearer access tokens plus rotating refresh tokens with reuse detection: tokens are stored hashed, every refresh rotates the token, and reuse of a revoked token revokes the user's whole token family. Role-based authorization policies (Admin / User) on top of ASP.NET Identity.
+- **Hybrid SSR** — public pages are server-rendered for first paint and SEO; authenticated routes are client-rendered. This keeps the API a client-agnostic, token-based JSON contract that a future mobile client can consume unchanged.
+- **GDPR-aware deletion model** — soft delete with a dedicated trash area. Projects can be hard-purged after a retention window; user erasure is implemented as anonymization (PII scrubbed, row retained) because audit foreign keys (`created_by`/`updated_by`) reference users with `Restrict` semantics.
+- **Ownership enforced at the query level** — services scope reads and writes by the authenticated user's id inside the SQL query, not after fetching.
+- **Cross-cutting hygiene** — automatic audit stamping in the DbContext, global exception handling with RFC 9457 ProblemDetails, request validation via FluentValidation, health checks (`/health`), OpenAPI with a Scalar reference UI in development.
+
+## Getting started
+
+Requires Docker (or Podman) with Compose. No local .NET or Node installation is needed to run the app.
+
+1. Create a `.env` file in the repo root:
+
+   ```env
+   POSTGRES_PASSWORD=<choose-a-password>
+   DB_CONNECTION_STRING=Host=db;Port=5432;Database=app_db;Username=admin;Password=<same-password>
+   Jwt__Key=<random string, 64+ characters (HS512)>
+   Jwt__Issuer=fullstack-app
+   Jwt__Audience=fullstack-app
+   Jwt__DurationInMinutes=15
+   ```
+
+2. Start the stack:
+
+   ```bash
+   docker compose up -d
+   ```
+
+   Migrations and seed data apply automatically on API startup.
+
+3. Open the app:
+
+   - Frontend: http://localhost:4200
+   - API health: http://localhost:8080/health
+   - API reference (dev only): http://localhost:8080/scalar
+
+   Development seed users: `dev1@example.com` (Admin) and `dev2@example.com` (User), both with password `Password123!`.
+
+## Testing
+
+```bash
+# Backend unit/integration tests (runs on the host)
+dotnet test
+
+# End-to-end tests (Playwright, runs in a container against the live stack)
+docker compose --profile e2e run --rm e2e npx playwright test
+```
+
+## Project structure
+
+```
+backend/            ASP.NET Core API (controllers, services, EF Core data layer, migrations)
+backend.Tests/      xUnit test suite
+frontend-angular/   Angular app — core/ (guards, interceptors, services), features/, shared/
+  e2e/              Playwright specs
+compose.yaml        Dev stack: api, db, frontend (+ e2e profile)
+```
+
+## Status
+
+Actively developed. Current focus is production hardening: rate limiting and account lockout, CI, a production deployment target with TLS, and the account lifecycle (email confirmation, password reset).

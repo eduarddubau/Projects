@@ -539,3 +539,6 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
+
+# Claude Code project config (unpublished for now)
+.claude/
