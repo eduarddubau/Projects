@@ -1,5 +1,10 @@
-<mat-toolbar color="primary" class="app-header">
-  <span routerLink="/" class="logo">Home</span>
+<header class="app-header">
+  <a routerLink="/" class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <mat-icon>layers</mat-icon>
+    </span>
+    <span class="brand-name">{{ appName }}</span>
+  </a>
 
   <span
     class="status-dot"
@@ -12,33 +17,39 @@
   <!-- Inline nav (desktop) -->
   <nav class="nav-inline">
     @if (isAuthenticated()) {
-      <a mat-button routerLink="/projects" routerLinkActive="active-link">
-        Projects
-      </a>
+      <a class="nav-link" routerLink="/projects" routerLinkActive="active-link">Projects</a>
     }
     @if (isAdmin()) {
-      <a mat-button routerLink="/admin" routerLinkActive="active-link">
-        Admin
-      </a>
+      <a class="nav-link" routerLink="/admin" routerLinkActive="active-link">Admin</a>
     }
   </nav>
 
   <span class="spacer"></span>
 
+  <button
+    mat-icon-button
+    class="theme-toggle"
+    (click)="cycleTheme()"
+    [matTooltip]="themeTooltip()"
+    matTooltipPosition="below"
+    aria-label="Switch color theme">
+    <mat-icon>{{ themeIcon() }}</mat-icon>
+  </button>
+
   <div class="auth-actions">
     @if (!isAuthenticated()) {
-      <a mat-button routerLink="/login">Login</a>
-      <a mat-raised-button color="accent" routerLink="/register">Register</a>
+      <a mat-button routerLink="/login">Sign in</a>
+      <a mat-flat-button routerLink="/register" class="header-cta">Get started</a>
     } @else {
       <button mat-button [matMenuTriggerFor]="profileMenu" class="profile-button">
-        <div class="profile-content-wrapper">
-          <mat-icon class="profile-icon">account_circle</mat-icon>
-          <div class="user-text-stack">
+        <span class="profile-content-wrapper">
+          <span class="avatar-circle" aria-hidden="true">{{ initials() }}</span>
+          <span class="user-text-stack">
             <span class="user-name">{{ currentUser()?.firstName }}</span>
             <span class="user-email">{{ currentUser()?.email }}</span>
-          </div>
+          </span>
           <mat-icon class="arrow-icon">expand_more</mat-icon>
-        </div>
+        </span>
       </button>
     }
   </div>
@@ -48,7 +59,7 @@
           aria-label="Open navigation menu">
     <mat-icon>menu</mat-icon>
   </button>
-</mat-toolbar>
+</header>
 
 <!-- Mobile navigation menu -->
 <mat-menu #mobileMenu="matMenu" xPosition="before">
@@ -87,8 +98,11 @@
 
 <mat-menu #profileMenu="matMenu" xPosition="before">
   <div class="menu-user-info" (click)="$event.stopPropagation()">
-    <strong>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</strong>
-    <small>{{ currentUser()?.email }}</small>
+    <span class="avatar-circle" aria-hidden="true">{{ initials() }}</span>
+    <span class="info-lines">
+      <strong>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</strong>
+      <small>{{ currentUser()?.email }}</small>
+    </span>
   </div>
   <mat-divider></mat-divider>
   <button mat-menu-item routerLink="/projects">

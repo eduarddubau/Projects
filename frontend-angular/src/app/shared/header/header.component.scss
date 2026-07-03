@@ -1,29 +1,83 @@
+:host {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: block;
+}
+
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  gap: 10px;
+  height: var(--app-header-height);
+  padding: 0 20px;
+  background: var(--app-noise) var(--mat-sys-surface);
+  border-bottom: var(--app-hairline);
 }
 
 .spacer { flex: 1 1 auto; }
 
-.logo {
-  cursor: pointer;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  font-size: 1.2rem;
-  transition: opacity 0.2s;
-  &:hover { opacity: 0.8; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--mat-sys-on-surface);
+
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--app-gradient-brand);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--mat-sys-primary) 35%, transparent);
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: var(--mat-sys-on-primary);
+    }
+  }
+
+  .brand-name {
+    font-family: 'Space Grotesk Variable', 'Inter Variable', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  &:hover .brand-mark {
+    box-shadow: 0 3px 14px color-mix(in srgb, var(--mat-sys-primary) 55%, transparent);
+  }
 }
 
 .nav-inline {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  margin-left: 12px;
 
-  .active-link {
-    font-weight: 600;
-    background-color: color-mix(in srgb, currentColor 16%, transparent);
+  .nav-link {
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--mat-sys-on-surface-variant);
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      color: var(--mat-sys-on-surface);
+      background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+    }
+
+    &.active-link {
+      color: var(--mat-sys-primary);
+      font-weight: 600;
+      background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+    }
   }
 }
 
@@ -41,44 +95,59 @@
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: var(--mat-app-on-surface-variant);
+  background-color: var(--mat-sys-outline);
   transition: all 0.3s ease;
 
   &.online {
-    background-color: #4caf50;
-    box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+    background-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
   }
 
   &.offline {
-    background-color: var(--mat-app-error);
+    background-color: var(--mat-sys-error);
     animation: pulse-red 2s infinite;
   }
 }
 
 @keyframes pulse-red {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-  70%  { transform: scale(1);    box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 70%, transparent); }
+  70%  { transform: scale(1);    box-shadow: 0 0 0 10px transparent; }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 transparent; }
+}
+
+.theme-toggle {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.auth-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-cta {
+  border-radius: 999px;
 }
 
 .profile-button {
-  height: auto;
-  padding: 6px 8px;
+  height: 46px;
+  --mdc-text-button-container-height: 46px;
+  padding: 0 12px 0 8px;
+  border-radius: 999px;
 
   .profile-content-wrapper {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
   }
 
-  .profile-icon {
-    margin: 0;
-    font-size: 28px;
-    width: 28px;
-    height: 28px;
+  .avatar-circle {
+    width: 30px;
+    height: 30px;
+    font-size: 0.72rem;
   }
 
   .user-text-stack {
@@ -97,7 +166,8 @@
 
   .user-email {
     font-size: 0.7rem;
-    opacity: 0.85;
+    font-weight: 400;
+    color: var(--mat-sys-on-surface-variant);
     line-height: 1.2;
   }
 
