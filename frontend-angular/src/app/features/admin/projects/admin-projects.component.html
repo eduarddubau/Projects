@@ -1,18 +1,18 @@
-<div class="admin-projects-container">
-  <div class="admin-projects-header">
-    <div class="admin-projects-heading">
-      <h1 class="admin-projects-title">Active Projects</h1>
-      <p class="admin-projects-subtitle">
-        Active projects across every user. Deleted projects live in Projects Trash.
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-heading">
+      <h1 class="page-title">Active Projects</h1>
+      <p class="page-subtitle">
+        Every user's active projects. Deleted ones move to the Projects Trash.
       </p>
     </div>
-    <button mat-raised-button routerLink="/admin/trash/projects">
+    <button mat-stroked-button routerLink="/admin/trash/projects">
       <mat-icon>delete_outline</mat-icon>
       Trash
     </button>
   </div>
 
-  <div class="mat-elevation-z2 table-card">
+  <div class="table-card">
 
     <div class="table-toolbar">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">

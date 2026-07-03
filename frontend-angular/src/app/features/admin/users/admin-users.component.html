@@ -1,18 +1,18 @@
-<div class="admin-users-container">
-  <div class="admin-users-header">
-    <div class="admin-users-heading">
-      <h1 class="admin-users-title">Active Users</h1>
-      <p class="admin-users-subtitle">
-        All registered users. Deleted users live in Users Trash.
+<div class="page-container">
+  <div class="page-header">
+    <div class="page-heading">
+      <h1 class="page-title">Active Users</h1>
+      <p class="page-subtitle">
+        Every registered account. Deleted users move to the Users Trash.
       </p>
     </div>
-    <button mat-raised-button routerLink="/admin/trash/users">
+    <button mat-stroked-button routerLink="/admin/trash/users">
       <mat-icon>delete_outline</mat-icon>
       Trash
     </button>
   </div>
 
-  <div class="mat-elevation-z2 table-card">
+  <div class="table-card">
 
     <div class="table-toolbar">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">

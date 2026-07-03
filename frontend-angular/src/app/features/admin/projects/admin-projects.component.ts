@@ -26,7 +26,6 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
 @Component({
   selector: 'app-admin-projects',
   templateUrl: './admin-projects.component.html',
-  styleUrl: './admin-projects.component.scss',
   imports: [
     MatTableModule,
     MatPaginatorModule,

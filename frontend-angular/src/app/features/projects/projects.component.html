@@ -1,19 +1,21 @@
-<div class="projects-container">
-  <div class="projects-header">
-    <h1 class="projects-title">My Projects</h1>
+<app-aurora></app-aurora>
+
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">My Projects</h1>
     <div class="header-actions">
-      <button mat-raised-button routerLink="/projects/trash">
+      <button mat-stroked-button routerLink="/projects/trash">
         <mat-icon>delete_outline</mat-icon>
         Trash
       </button>
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
+      <button mat-flat-button (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         New Project
       </button>
     </div>
   </div>
 
-  <div class="mat-elevation-z2 table-card">
+  <div class="table-card">
 
     <div class="table-toolbar">
       <mat-form-field appearance="outline" class="search-field">
@@ -93,7 +95,7 @@
       @if (dataSource.data.length === 0) {
         <div class="state-container">
           <mat-icon>folder_open</mat-icon>
-          <p>No projects yet.</p>
+          <p>No projects yet — create your first one.</p>
         </div>
       }
 

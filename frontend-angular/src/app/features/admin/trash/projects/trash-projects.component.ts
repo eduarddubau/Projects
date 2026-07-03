@@ -30,7 +30,6 @@ type AgeFilter = 'all' | '30' | '60' | '90';
 @Component({
   selector: 'app-trash-projects',
   templateUrl: './trash-projects.component.html',
-  styleUrl: './trash-projects.component.scss',
   imports: [
     MatTableModule,
     MatPaginatorModule,

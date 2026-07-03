@@ -1,53 +1,60 @@
 .dashboard-container {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-}
+  gap: 20px;
 
-.dashboard-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.dashboard-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
+  .page-header {
+    margin-bottom: 0;
+  }
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 16px;
 }
 
 .stat-card {
   cursor: pointer;
-  transition: box-shadow 0.15s ease;
+  background: var(--mat-sys-surface-container-lowest);
+  border: var(--app-hairline);
+  box-shadow: none;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
 
   &:hover {
-    box-shadow: var(--mat-sys-level2);
+    box-shadow: var(--app-shadow-card);
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 35%, var(--mat-sys-outline-variant));
   }
 
   .stat-content {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 8px 0;
+    padding: 6px 0;
   }
 
   .stat-icon {
-    font-size: 40px;
-    width: 40px;
-    height: 40px;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    font-size: 24px;
 
-    &.projects { color: var(--mat-sys-primary); }
-    &.users { color: var(--mat-sys-tertiary); }
-    &.deleted { color: var(--mat-sys-error); }
+    &.projects {
+      color: var(--mat-sys-primary);
+      background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+    }
+
+    &.users {
+      color: var(--mat-sys-tertiary);
+      background: color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent);
+    }
+
+    &.deleted {
+      color: var(--mat-sys-error);
+      background: color-mix(in srgb, var(--mat-sys-error) 9%, transparent);
+    }
   }
 
   .stat-text {
@@ -56,24 +63,36 @@
   }
 
   .stat-value {
-    font-size: 2rem;
+    font-family: 'Space Grotesk Variable', 'Inter Variable', sans-serif;
+    font-size: 1.9rem;
     font-weight: 700;
-    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
   }
 
   .stat-label {
-    font-size: 0.85rem;
+    font-size: 0.83rem;
     color: var(--mat-sys-on-surface-variant);
-    margin-top: 4px;
+    margin-top: 2px;
   }
 }
 
 .section-card {
+  background: var(--mat-sys-surface-container-lowest);
+  border: var(--app-hairline);
+  box-shadow: var(--app-shadow-card);
+
   mat-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+  }
+
+  mat-card-title {
+    font: var(--mat-sys-title-medium);
+    letter-spacing: -0.01em;
   }
 
   .card-header-actions {
@@ -83,25 +102,4 @@
 
 .full-width-table {
   width: 100%;
-}
-
-.state-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 48px;
-  gap: 12px;
-  color: var(--mat-sys-on-surface-variant);
-
-  mat-icon {
-    font-size: 48px;
-    width: 48px;
-    height: 48px;
-  }
-
-  p {
-    margin: 0;
-    font-size: 1rem;
-  }
 }

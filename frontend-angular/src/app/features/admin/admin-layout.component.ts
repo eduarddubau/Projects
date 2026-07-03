@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
+import { AuroraComponent } from '@shared/aurora/aurora.component';
 
 @Component({
   selector: 'app-admin-layout',
@@ -20,6 +21,7 @@ import { map } from 'rxjs';
     MatIconModule,
     MatButtonModule,
     MatDividerModule,
+    AuroraComponent,
   ],
   templateUrl: './admin-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

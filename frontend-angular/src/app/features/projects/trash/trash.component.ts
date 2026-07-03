@@ -19,6 +19,7 @@ import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProjectsDataSource } from '../projects-datasource';
 import { ProjectService } from '@core/services/project.service';
+import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { Project } from '@core/models/project';
 
 @Component({
@@ -36,7 +37,8 @@ import { Project } from '@core/models/project';
     MatButtonModule,
     RouterLink,
     ReactiveFormsModule,
-    DatePipe
+    DatePipe,
+    AuroraComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

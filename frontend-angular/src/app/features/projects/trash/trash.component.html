@@ -1,14 +1,16 @@
-<div class="trash-container">
-  <div class="trash-header">
-    <button mat-button routerLink="/projects">
+<app-aurora></app-aurora>
+
+<div class="page-container">
+  <div class="page-header-stack">
+    <button mat-button routerLink="/projects" class="back-button">
       <mat-icon>arrow_back</mat-icon>
       Back to My Projects
     </button>
-    <h1 class="trash-title">Trash</h1>
-    <p class="trash-subtitle">Deleted projects are kept here for a limited time before they're no longer recoverable.</p>
+    <h1 class="page-title">Trash</h1>
+    <p class="page-subtitle">Deleted projects can be restored from here until their retention window runs out.</p>
   </div>
 
-  <div class="mat-elevation-z2 table-card">
+  <div class="table-card">
 
     <div class="table-toolbar">
       <mat-form-field appearance="outline" class="search-field">

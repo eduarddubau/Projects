@@ -3,8 +3,8 @@
 <mat-dialog-actions align="end">
   <button mat-button (click)="cancel()">{{ data.cancelLabel ?? 'Cancel' }}</button>
   <button
-    mat-raised-button
-    [color]="data.warn ? 'warn' : 'primary'"
+    mat-flat-button
+    [class.button-danger-filled]="data.warn"
     (click)="confirm()">
     {{ data.confirmLabel ?? 'Confirm' }}
   </button>

@@ -24,7 +24,6 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
 @Component({
   selector: 'app-trash-users',
   templateUrl: './trash-users.component.html',
-  styleUrl: './trash-users.component.scss',
   imports: [
     MatTableModule,
     MatPaginatorModule,

@@ -1,26 +1,47 @@
 .admin-container {
-  height: 100%;
+  min-height: calc(100vh - var(--app-header-height));
+  background: transparent;
 }
 
 .admin-sidenav {
-  width: 240px;
-  border-right: 1px solid var(--mat-sys-outline-variant);
+  width: 250px;
+  border-right: var(--app-hairline);
+  // Same color + noise as the body canvas so the drawer (a separate
+  // compositing layer in Chromium) can't render as a different gray.
+  background: var(--app-noise) var(--mat-sys-surface-container-low);
+  padding: 12px 10px;
+
+  &.mat-drawer-side {
+    transform: none;
+    will-change: auto;
+  }
+
+  a[mat-list-item] {
+    border-radius: 10px;
+    margin-bottom: 2px;
+  }
 
   .active {
-    background-color: var(--mat-sys-secondary-container);
+    background-color: color-mix(in srgb, var(--mat-sys-primary) 11%, transparent);
 
-    --mat-list-list-item-label-text-color: var(--mat-sys-on-secondary-container);
-    --mat-list-list-item-leading-icon-color: var(--mat-sys-on-secondary-container);
+    --mat-list-list-item-label-text-color: var(--mat-sys-primary);
+    --mat-list-list-item-leading-icon-color: var(--mat-sys-primary);
+    --mat-list-list-item-label-text-weight: 600;
   }
 
   h3[matSubheader] {
     color: var(--mat-sys-on-surface-variant);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 }
 
 .admin-content {
   display: flex;
   flex-direction: column;
+  background: transparent;
 }
 
 .drawer-toggle {

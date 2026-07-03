@@ -24,11 +24,11 @@ import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
 import { ProjectFormDialogComponent, ProjectFormResult } from './project-form-dialog/project-form-dialog.component';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
+import { AuroraComponent } from '@shared/aurora/aurora.component';
 
 @Component({
   selector: 'app-projects',
   templateUrl: './projects.component.html',
-  styleUrl: './projects.component.scss',
   imports: [
     MatTableModule,
     MatPaginatorModule,
@@ -41,7 +41,8 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
     MatTooltipModule,
     RouterLink,
     ReactiveFormsModule,
-    DatePipe
+    DatePipe,
+    AuroraComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

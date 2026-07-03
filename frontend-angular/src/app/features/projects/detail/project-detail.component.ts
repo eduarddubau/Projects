@@ -17,7 +17,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
-import { BreadcrumbService } from '@shared/breadcrumb/breadcrumb.service';
+import { AuroraComponent } from '@shared/aurora/aurora.component';
 
 @Component({
   selector: 'app-project-detail',
@@ -32,7 +32,8 @@ import { BreadcrumbService } from '@shared/breadcrumb/breadcrumb.service';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    DatePipe
+    DatePipe,
+    AuroraComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -45,7 +46,6 @@ export class ProjectDetailComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
-  private breadcrumb = inject(BreadcrumbService);
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -59,9 +59,6 @@ export class ProjectDetailComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Clear the breadcrumb override on leave so it doesn't carry to the next page.
-    this.destroyRef.onDestroy(() => this.breadcrumb.setLeafLabel(null));
-
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.hasError.set(true);
@@ -74,7 +71,6 @@ export class ProjectDetailComponent implements OnInit {
       .subscribe({
         next: (project) => {
           this.project.set(project);
-          this.breadcrumb.setLeafLabel(project.name);
           this.isLoading.set(false);
           this.cdr.markForCheck();
         },
@@ -135,7 +131,6 @@ export class ProjectDetailComponent implements OnInit {
       .subscribe({
         next: (updated) => {
           this.project.set(updated);
-          this.breadcrumb.setLeafLabel(updated.name);
           this.isEditing.set(false);
           this.isSaving.set(false);
           this.cdr.markForCheck();
