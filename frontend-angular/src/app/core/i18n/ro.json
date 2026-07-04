@@ -1,0 +1,354 @@
+{
+  "app": {
+    "title": "Projects — organizează-ți munca",
+    "description": "Projects oferă echipei tale un spațiu curat și rapid pentru tot ce construiți."
+  },
+  "common": {
+    "actions": {
+      "save": "Salvează",
+      "saveChanges": "Salvează modificările",
+      "cancel": "Anulează",
+      "close": "Închide",
+      "confirm": "Confirmă",
+      "delete": "Șterge",
+      "edit": "Editează",
+      "create": "Creează",
+      "restore": "Restaurează",
+      "erase": "Șterge definitiv",
+      "purge": "Elimină definitiv"
+    },
+    "errors": {
+      "unexpected": "A apărut o eroare neașteptată."
+    }
+  },
+  "language": {
+    "label": "Schimbă limba",
+    "en": "English",
+    "ro": "Română"
+  },
+  "header": {
+    "nav": {
+      "projects": "Proiecte",
+      "admin": "Administrare"
+    },
+    "health": {
+      "online": "API-ul este online",
+      "offline": "API-ul este offline",
+      "initializing": "Se inițializează...",
+      "networkError": "Eroare de rețea: verifică CORS sau starea backend-ului",
+      "apiError": "Eroare API: {{status}} ({{statusText}})"
+    },
+    "theme": {
+      "switchToLight": "Comută la tema luminoasă",
+      "switchToDark": "Comută la tema întunecată"
+    },
+    "signIn": "Conectează-te",
+    "getStarted": "Începe acum",
+    "openNav": "Deschide meniul de navigare",
+    "menu": {
+      "projects": "Proiecte",
+      "myProjects": "Proiectele mele",
+      "trash": "Coș de gunoi",
+      "adminPanel": "Panou de administrare",
+      "signOut": "Deconectare",
+      "login": "Autentificare",
+      "register": "Înregistrare"
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "Gestionează-ți proiectele,",
+      "titleAccent": "fără muncă de prisos.",
+      "subtitle": "{{app}} oferă echipei tale un spațiu curat și rapid pentru tot ce construiți — cu control al accesului, ștergere sigură și securitate gândită din prima zi.",
+      "goToProjects": "Mergi la proiectele tale",
+      "welcomeBack": "Bine ai revenit, {{name}}.",
+      "getStartedFree": "Începe acum — e gratuit",
+      "signIn": "Conectează-te"
+    },
+    "preview": {
+      "projects": "Proiecte",
+      "members": "Membri",
+      "uptime": "Disponibilitate",
+      "active": "Activ",
+      "review": "Revizuire",
+      "jwtSecured": "Securizat cu JWT",
+      "projectRestored": "Proiect restaurat"
+    },
+    "features": {
+      "title": "Tot ce ai nevoie. Nimic în plus.",
+      "subtitle": "Acces pe roluri, istoric de audit și recuperare — pe un stack călit și testat.",
+      "cards": {
+        "organize": {
+          "title": "Organizează-ți munca",
+          "description": "Creează și gestionează proiecte într-un singur loc, cu drept de proprietate și istoric de audit incluse din start."
+        },
+        "teams": {
+          "title": "Creat pentru echipe",
+          "description": "Administratorii gestionează, membrii construiesc. Accesul pe roluri se asigură că fiecare vede exact ce trebuie."
+        },
+        "nothingLost": {
+          "title": "Nimic pierdut",
+          "description": "Ai șters un proiect din greșeală? Adu-l înapoi din Coșul de gunoi cu un singur clic — fără panică, fără date pierdute."
+        },
+        "secure": {
+          "title": "Securizat din proiectare",
+          "description": "Autentificarea JWT și ștergerea conformă GDPR îți protejează contul — și utilizatorii."
+        }
+      }
+    },
+    "closing": {
+      "title": "Gata să te organizezi?",
+      "subtitle": "Creează-ți un cont gratuit și ai primul proiect gata în câteva secunde.",
+      "cta": "Creează-ți contul"
+    },
+    "footer": {
+      "rights": "© {{year}} — Toate drepturile rezervate."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Bine ai revenit",
+      "subtitle": "Conectează-te pentru a continua în {{app}}",
+      "email": "Email",
+      "emailPlaceholder": "nume@exemplu.com",
+      "password": "Parolă",
+      "togglePassword": "Comută vizibilitatea parolei",
+      "signIn": "Conectare",
+      "noAccount": "Nu ai cont?",
+      "signUp": "Înregistrează-te",
+      "invalidCredentials": "Email sau parolă incorecte.",
+      "validation": {
+        "emailRequired": "Emailul este obligatoriu",
+        "emailInvalid": "Introdu o adresă de email validă",
+        "passwordRequired": "Parola este obligatorie"
+      }
+    },
+    "register": {
+      "title": "Creează-ți contul",
+      "subtitle": "Vei fi gata în mai puțin de un minut",
+      "firstName": "Prenume",
+      "firstNamePlaceholder": "Ion",
+      "lastName": "Nume",
+      "lastNamePlaceholder": "Popescu",
+      "email": "Email",
+      "emailPlaceholder": "tu@exemplu.com",
+      "password": "Parolă",
+      "confirmPassword": "Confirmă parola",
+      "passwordRequirements": "Cel puțin 8 caractere, incluzând o literă mare, o literă mică, o cifră și un caracter special.",
+      "passwordRequirementsAria": "Cerințe pentru parolă",
+      "createAccount": "Creează contul",
+      "haveAccount": "Ai deja cont?",
+      "signIn": "Conectează-te",
+      "success": "Înregistrare reușită! Bine ai venit.",
+      "validation": {
+        "firstNameRequired": "Prenumele este obligatoriu",
+        "lastNameRequired": "Numele este obligatoriu",
+        "emailRequired": "Emailul este obligatoriu",
+        "emailInvalid": "Introdu o adresă de email validă",
+        "passwordRequired": "Parola este obligatorie",
+        "passwordMinLength": "Parola trebuie să aibă cel puțin 8 caractere",
+        "passwordPattern": "Necesită o literă mare, una mică, o cifră și un caracter special",
+        "passwordMismatch": "Parolele nu coincid"
+      },
+      "serverErrors": {
+        "duplicateEmail": "Există deja un cont cu acest email.",
+        "invalidEmail": "Introdu o adresă de email validă.",
+        "passwordTooShort": "Parola trebuie să aibă cel puțin 8 caractere.",
+        "passwordRequiresUpper": "Parola trebuie să conțină cel puțin o literă mare.",
+        "passwordRequiresLower": "Parola trebuie să conțină cel puțin o literă mică.",
+        "passwordRequiresDigit": "Parola trebuie să conțină cel puțin o cifră.",
+        "passwordRequiresNonAlphanumeric": "Parola trebuie să conțină cel puțin un caracter special.",
+        "passwordRequiresUniqueChars": "Parola trebuie să folosească mai multe caractere diferite."
+      }
+    }
+  },
+  "projects": {
+    "list": {
+      "title": "Proiectele mele",
+      "trash": "Coș de gunoi",
+      "newProject": "Proiect nou",
+      "searchLabel": "Caută proiecte",
+      "searchPlaceholder": "Caută după nume...",
+      "loading": "Se încarcă proiectele...",
+      "loadFailed": "Proiectele nu au putut fi încărcate. Încearcă din nou.",
+      "tableAria": "Proiecte",
+      "noSearchResults": "Niciun proiect nu corespunde căutării.",
+      "empty": "Niciun proiect încă — creează-l pe primul."
+    },
+    "detail": {
+      "loading": "Se încarcă proiectul…",
+      "notFound": "Nu am găsit acest proiect. Este posibil să fi fost șters.",
+      "backToProjects": "Înapoi la Proiecte",
+      "description": "Descriere",
+      "createdBy": "Creat de",
+      "createdAt": "Creat la",
+      "updatedBy": "Ultima actualizare de",
+      "updatedAt": "Ultima actualizare",
+      "projectId": "ID proiect"
+    },
+    "form": {
+      "editTitle": "Editează proiectul",
+      "newTitle": "Proiect nou",
+      "name": "Nume",
+      "description": "Descriere",
+      "nameRequired": "Numele este obligatoriu.",
+      "nameMaxLength": "Numele trebuie să aibă cel mult 100 de caractere.",
+      "descriptionMaxLength": "Descrierea trebuie să aibă cel mult 500 de caractere."
+    },
+    "table": {
+      "name": "Nume",
+      "description": "Descriere",
+      "createdBy": "Creat de",
+      "createdAt": "Creat la",
+      "deletedAt": "Șters la",
+      "actions": "Acțiuni",
+      "selectPage": "Selectează pagina"
+    },
+    "trash": {
+      "back": "Înapoi la Proiectele mele",
+      "title": "Coș de gunoi",
+      "subtitle": "Proiectele șterse pot fi restaurate de aici până la expirarea perioadei de retenție.",
+      "searchLabel": "Caută proiecte șterse",
+      "searchPlaceholder": "Caută după nume...",
+      "loading": "Se încarcă coșul de gunoi...",
+      "loadFailed": "Coșul de gunoi nu a putut fi încărcat. Încearcă din nou.",
+      "tableAria": "Proiecte șterse",
+      "noSearchResults": "Niciun proiect șters nu corespunde căutării.",
+      "empty": "Coșul de gunoi este gol."
+    },
+    "notifications": {
+      "created": "Proiectul a fost creat.",
+      "createFailed": "Proiectul nu a putut fi creat.",
+      "updated": "Proiectul a fost actualizat.",
+      "updateFailed": "Proiectul nu a putut fi actualizat.",
+      "deleted": "Proiectul a fost șters.",
+      "deleteFailed": "Proiectul nu a putut fi șters.",
+      "restored": "Proiectul a fost restaurat.",
+      "restoreFailed": "Proiectul nu a putut fi restaurat."
+    },
+    "confirmDelete": {
+      "title": "Șterge proiectul",
+      "message": "Sigur vrei să ștergi „{{name}}”? Îl poți restaura ulterior din Coșul de gunoi."
+    }
+  },
+  "admin": {
+    "layout": {
+      "dashboard": "Tablou de bord",
+      "projects": "Proiecte",
+      "users": "Utilizatori",
+      "trash": "Coș de gunoi",
+      "menu": "Meniu administrare"
+    },
+    "dashboard": {
+      "title": "Panou de administrare",
+      "loading": "Se încarcă tabloul de bord...",
+      "loadFailed": "Datele tabloului de bord nu au putut fi încărcate.",
+      "activeProjects": "Proiecte active",
+      "activeUsers": "Utilizatori activi",
+      "deletedProjects": "Proiecte șterse",
+      "deletedUsers": "Utilizatori șterși",
+      "recentProjects": "Proiecte recente",
+      "recentUsers": "Utilizatori recenți",
+      "viewAll": "Vezi tot",
+      "name": "Nume",
+      "email": "Email",
+      "createdBy": "Creat de",
+      "createdAt": "Creat la"
+    },
+    "projects": {
+      "title": "Proiecte active",
+      "subtitle": "Proiectele active ale tuturor utilizatorilor. Cele șterse ajung în Coșul de proiecte.",
+      "trash": "Coș de gunoi",
+      "searchPlaceholder": "Caută după nume...",
+      "searchAria": "Caută",
+      "loading": "Se încarcă...",
+      "loadFailed": "Proiectele nu au putut fi încărcate. Încearcă din nou.",
+      "tableAria": "Proiecte",
+      "noSearchResults": "Niciun proiect nu corespunde căutării.",
+      "empty": "Niciun proiect de afișat.",
+      "confirmDelete": {
+        "title": "Șterge proiectul",
+        "message": "„{{name}}” va fi mutat în coșul de gunoi. Poate fi restaurat ulterior din Coșul de proiecte."
+      },
+      "deletedNamed": "„{{name}}” a fost șters.",
+      "deleteFailed": "Proiectul nu a putut fi șters."
+    },
+    "users": {
+      "title": "Utilizatori activi",
+      "subtitle": "Toate conturile înregistrate. Utilizatorii șterși ajung în Coșul de utilizatori.",
+      "trash": "Coș de gunoi",
+      "searchPlaceholder": "Caută după nume sau email...",
+      "searchAria": "Caută",
+      "loading": "Se încarcă...",
+      "loadFailed": "Utilizatorii nu au putut fi încărcați. Încearcă din nou.",
+      "tableAria": "Utilizatori",
+      "you": "Tu",
+      "selfDeleteTooltip": "Nu îți poți șterge propriul cont",
+      "noSearchResults": "Niciun utilizator nu corespunde căutării.",
+      "empty": "Niciun utilizator de afișat.",
+      "confirmDelete": {
+        "title": "Șterge utilizatorul",
+        "message": "„{{name}}” va fi mutat în coșul de gunoi. Poate fi restaurat ulterior din Coșul de utilizatori."
+      },
+      "deletedNamed": "„{{name}}” a fost șters.",
+      "deleteFailed": "Utilizatorul nu a putut fi șters."
+    },
+    "trashProjects": {
+      "title": "Proiecte șterse",
+      "subtitle": "Proiectele șterse ale tuturor utilizatorilor. Tot ce a depășit perioada de retenție poate fi eliminat definitiv.",
+      "searchPlaceholder": "Caută după nume...",
+      "searchAria": "Caută",
+      "ageFilterAria": "Filtrează după vechime",
+      "ageAll": "Toate",
+      "age30": ">30 de zile",
+      "age60": ">60 de zile",
+      "age90": ">90 de zile",
+      "restoreSelected": "Restaurează selecția ({{count}})",
+      "purgeSelected": "Elimină selecția ({{count}})",
+      "selectAllAria": "Selectează toate rândurile de pe această pagină",
+      "selectRowAria": "Selectează {{name}}",
+      "loading": "Se încarcă...",
+      "loadFailed": "Coșul de gunoi nu a putut fi încărcat. Încearcă din nou.",
+      "tableAria": "Proiecte șterse",
+      "noSearchResults": "Niciun proiect șters nu corespunde căutării.",
+      "empty": "Coșul de gunoi este gol.",
+      "restoredOne": "{{count}} proiect restaurat.",
+      "restoredMany": "{{count}} proiecte restaurate.",
+      "restoreFailed": "Proiectele nu au putut fi restaurate.",
+      "purgeTitleOne": "Elimină definitiv proiectul",
+      "purgeTitleMany": "Elimină definitiv proiectele",
+      "purgeMessageNamed": "„{{name}}” va fi eliminat definitiv și nu va putea fi recuperat. Această acțiune nu poate fi anulată.",
+      "purgeMessageOne": "{{count}} proiect va fi eliminat definitiv și nu va putea fi recuperat. Această acțiune nu poate fi anulată.",
+      "purgeMessageMany": "{{count}} proiecte vor fi eliminate definitiv și nu vor putea fi recuperate. Această acțiune nu poate fi anulată.",
+      "purgedOne": "{{count}} proiect eliminat definitiv.",
+      "purgedMany": "{{count}} proiecte eliminate definitiv.",
+      "purgeFailed": "Proiectele nu au putut fi eliminate."
+    },
+    "trashUsers": {
+      "title": "Utilizatori șterși",
+      "subtitle": "Utilizatorii șterși pot fi restaurați — sau șterși definitiv pentru a onora o cerere GDPR de ștergere a datelor.",
+      "searchPlaceholder": "Caută după nume sau email...",
+      "searchAria": "Caută",
+      "loading": "Se încarcă...",
+      "loadFailed": "Coșul de gunoi nu a putut fi încărcat. Încearcă din nou.",
+      "tableAria": "Utilizatori șterși",
+      "noSearchResults": "Niciun utilizator șters nu corespunde căutării.",
+      "empty": "Coșul de gunoi este gol.",
+      "restoredNamed": "„{{name}}” a fost restaurat.",
+      "restoreFailed": "Utilizatorul nu a putut fi restaurat.",
+      "eraseTitle": "Șterge definitiv utilizatorul",
+      "eraseMessage": "„{{name}}” ({{email}}) va fi șters definitiv. Datele personale sunt eliminate, iar utilizatorul nu mai poate fi restaurat. Acțiunea este ireversibilă și este destinată cererilor GDPR de ștergere a datelor.",
+      "erased": "Utilizatorul a fost șters definitiv.",
+      "eraseFailed": "Utilizatorul nu a putut fi șters definitiv."
+    }
+  },
+  "paginator": {
+    "itemsPerPage": "Elemente pe pagină:",
+    "nextPage": "Pagina următoare",
+    "previousPage": "Pagina anterioară",
+    "firstPage": "Prima pagină",
+    "lastPage": "Ultima pagină",
+    "rangeOf": "{{start}} – {{end}} din {{length}}",
+    "rangeEmpty": "0 din {{length}}"
+  }
+}

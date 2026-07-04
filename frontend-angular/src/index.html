@@ -12,11 +12,13 @@
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f6f8" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#18181c" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <!-- Applies the stored theme before first paint so a dark-mode reload never flashes light. -->
+    <!-- Applies the stored theme and language before first paint so reloads never flash. -->
     <script>
       try {
         var t = localStorage.getItem('theme');
         if (t === 'light' || t === 'dark') document.documentElement.dataset['theme'] = t;
+        var l = document.cookie.match(/(?:^|;\s*)lang=(en|ro)/);
+        if (l) document.documentElement.lang = l[1];
       } catch (e) {}
     </script>
   </head>

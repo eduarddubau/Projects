@@ -10,6 +10,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 import { API_URL, HEALTH_URL } from '@core/tokens/app.tokens';
 import { env } from '@env/env';
 import { authInterceptor } from '@core/interceptors/auth.interceptor';
+import { provideI18n } from '@core/i18n/i18n.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,6 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideClientHydration(withEventReplay(), withNoIncrementalHydration()),
+    provideI18n(),
     { provide: API_URL, useValue: env.apiUrl },
     { provide: HEALTH_URL, useValue: env.healthUrl },
   ],

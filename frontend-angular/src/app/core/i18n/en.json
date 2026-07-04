@@ -1,0 +1,354 @@
+{
+  "app": {
+    "title": "Projects — organize your work",
+    "description": "Projects gives your team a clean, fast home for everything you're building."
+  },
+  "common": {
+    "actions": {
+      "save": "Save",
+      "saveChanges": "Save changes",
+      "cancel": "Cancel",
+      "close": "Close",
+      "confirm": "Confirm",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "restore": "Restore",
+      "erase": "Erase",
+      "purge": "Purge"
+    },
+    "errors": {
+      "unexpected": "An unexpected error occurred."
+    }
+  },
+  "language": {
+    "label": "Change language",
+    "en": "English",
+    "ro": "Română"
+  },
+  "header": {
+    "nav": {
+      "projects": "Projects",
+      "admin": "Admin"
+    },
+    "health": {
+      "online": "API is Online",
+      "offline": "API is offline",
+      "initializing": "Initializing...",
+      "networkError": "Network Error: Check CORS or Backend Status",
+      "apiError": "API Error: {{status}} ({{statusText}})"
+    },
+    "theme": {
+      "switchToLight": "Switch to light theme",
+      "switchToDark": "Switch to dark theme"
+    },
+    "signIn": "Sign in",
+    "getStarted": "Get started",
+    "openNav": "Open navigation menu",
+    "menu": {
+      "projects": "Projects",
+      "myProjects": "My Projects",
+      "trash": "Trash",
+      "adminPanel": "Admin Panel",
+      "signOut": "Sign Out",
+      "login": "Login",
+      "register": "Register"
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "Manage your projects,",
+      "titleAccent": "without the busywork.",
+      "subtitle": "{{app}} gives your team a clean, fast home for everything you're building — with access control, safe deletion, and security designed in from day one.",
+      "goToProjects": "Go to your projects",
+      "welcomeBack": "Welcome back, {{name}}.",
+      "getStartedFree": "Get started — it's free",
+      "signIn": "Sign in"
+    },
+    "preview": {
+      "projects": "Projects",
+      "members": "Members",
+      "uptime": "Uptime",
+      "active": "Active",
+      "review": "Review",
+      "jwtSecured": "JWT secured",
+      "projectRestored": "Project restored"
+    },
+    "features": {
+      "title": "Everything you need. Nothing you don't.",
+      "subtitle": "Role-based access, audit history, and recovery — on a hardened, tested stack.",
+      "cards": {
+        "organize": {
+          "title": "Organize your work",
+          "description": "Create and manage projects in one place, with full ownership and audit history baked in."
+        },
+        "teams": {
+          "title": "Built for teams",
+          "description": "Admins manage, members build. Role-based access makes sure everyone sees exactly what they should."
+        },
+        "nothingLost": {
+          "title": "Nothing lost",
+          "description": "Deleted a project by mistake? Bring it back from Trash with one click — no panic, no data loss."
+        },
+        "secure": {
+          "title": "Secure by design",
+          "description": "JWT authentication and GDPR-compliant erasure keep your account — and your users — protected."
+        }
+      }
+    },
+    "closing": {
+      "title": "Ready to get organized?",
+      "subtitle": "Create a free account and have your first project up in seconds.",
+      "cta": "Create your account"
+    },
+    "footer": {
+      "rights": "© {{year}} — All rights reserved."
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue to {{app}}",
+      "email": "Email",
+      "emailPlaceholder": "name@example.com",
+      "password": "Password",
+      "togglePassword": "Toggle password visibility",
+      "signIn": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "invalidCredentials": "Invalid email or password.",
+      "validation": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required"
+      }
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "You'll be up and running in under a minute",
+      "firstName": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "passwordRequirements": "At least 8 characters, including an uppercase letter, a lowercase letter, a digit and a special character.",
+      "passwordRequirementsAria": "Password requirements",
+      "createAccount": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "success": "Registration successful! Welcome.",
+      "validation": {
+        "firstNameRequired": "First name is required",
+        "lastNameRequired": "Last name is required",
+        "emailRequired": "Email is required",
+        "emailInvalid": "Please enter a valid email address",
+        "passwordRequired": "Password is required",
+        "passwordMinLength": "Password must be at least 8 characters",
+        "passwordPattern": "Needs an uppercase, a lowercase, a digit and a special character",
+        "passwordMismatch": "Passwords do not match"
+      },
+      "serverErrors": {
+        "duplicateEmail": "An account with this email already exists.",
+        "invalidEmail": "Please enter a valid email address.",
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordRequiresUpper": "Password must contain at least one uppercase letter.",
+        "passwordRequiresLower": "Password must contain at least one lowercase letter.",
+        "passwordRequiresDigit": "Password must contain at least one digit.",
+        "passwordRequiresNonAlphanumeric": "Password must contain at least one special character.",
+        "passwordRequiresUniqueChars": "Password must use more unique characters."
+      }
+    }
+  },
+  "projects": {
+    "list": {
+      "title": "My Projects",
+      "trash": "Trash",
+      "newProject": "New Project",
+      "searchLabel": "Search projects",
+      "searchPlaceholder": "Search by name...",
+      "loading": "Loading projects...",
+      "loadFailed": "Failed to load projects. Please try again.",
+      "tableAria": "Projects",
+      "noSearchResults": "No projects found matching your search.",
+      "empty": "No projects yet — create your first one."
+    },
+    "detail": {
+      "loading": "Loading project…",
+      "notFound": "We couldn't find that project. It may have been deleted.",
+      "backToProjects": "Back to Projects",
+      "description": "Description",
+      "createdBy": "Created by",
+      "createdAt": "Created at",
+      "updatedBy": "Last updated by",
+      "updatedAt": "Last updated",
+      "projectId": "Project ID"
+    },
+    "form": {
+      "editTitle": "Edit Project",
+      "newTitle": "New Project",
+      "name": "Name",
+      "description": "Description",
+      "nameRequired": "Name is required.",
+      "nameMaxLength": "Name must be 100 characters or fewer.",
+      "descriptionMaxLength": "Description must be 500 characters or fewer."
+    },
+    "table": {
+      "name": "Name",
+      "description": "Description",
+      "createdBy": "Created By",
+      "createdAt": "Created At",
+      "deletedAt": "Deleted At",
+      "actions": "Actions",
+      "selectPage": "Select page"
+    },
+    "trash": {
+      "back": "Back to My Projects",
+      "title": "Trash",
+      "subtitle": "Deleted projects can be restored from here until their retention window runs out.",
+      "searchLabel": "Search deleted projects",
+      "searchPlaceholder": "Search by name...",
+      "loading": "Loading trash...",
+      "loadFailed": "Failed to load trash. Please try again.",
+      "tableAria": "Deleted Projects",
+      "noSearchResults": "No deleted projects found matching your search.",
+      "empty": "Trash is empty."
+    },
+    "notifications": {
+      "created": "Project created.",
+      "createFailed": "Failed to create project.",
+      "updated": "Project updated.",
+      "updateFailed": "Failed to update project.",
+      "deleted": "Project deleted.",
+      "deleteFailed": "Failed to delete project.",
+      "restored": "Project restored.",
+      "restoreFailed": "Failed to restore project."
+    },
+    "confirmDelete": {
+      "title": "Delete Project",
+      "message": "Are you sure you want to delete \"{{name}}\"? You can restore it from Trash later."
+    }
+  },
+  "admin": {
+    "layout": {
+      "dashboard": "Dashboard",
+      "projects": "Projects",
+      "users": "Users",
+      "trash": "Trash",
+      "menu": "Admin menu"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "loading": "Loading dashboard...",
+      "loadFailed": "Failed to load dashboard data.",
+      "activeProjects": "Active Projects",
+      "activeUsers": "Active Users",
+      "deletedProjects": "Deleted Projects",
+      "deletedUsers": "Deleted Users",
+      "recentProjects": "Recent Projects",
+      "recentUsers": "Recent Users",
+      "viewAll": "View all",
+      "name": "Name",
+      "email": "Email",
+      "createdBy": "Created By",
+      "createdAt": "Created At"
+    },
+    "projects": {
+      "title": "Active Projects",
+      "subtitle": "Every user's active projects. Deleted ones move to the Projects Trash.",
+      "trash": "Trash",
+      "searchPlaceholder": "Search by name...",
+      "searchAria": "Search",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load projects. Please try again.",
+      "tableAria": "Projects",
+      "noSearchResults": "No projects found matching your search.",
+      "empty": "No projects to show.",
+      "confirmDelete": {
+        "title": "Delete Project",
+        "message": "\"{{name}}\" will be moved to trash. It can be restored later from Projects Trash."
+      },
+      "deletedNamed": "\"{{name}}\" deleted.",
+      "deleteFailed": "Failed to delete project."
+    },
+    "users": {
+      "title": "Active Users",
+      "subtitle": "Every registered account. Deleted users move to the Users Trash.",
+      "trash": "Trash",
+      "searchPlaceholder": "Search by name or email...",
+      "searchAria": "Search",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load users. Please try again.",
+      "tableAria": "Users",
+      "you": "You",
+      "selfDeleteTooltip": "You cannot delete your own account",
+      "noSearchResults": "No users found matching your search.",
+      "empty": "No users to show.",
+      "confirmDelete": {
+        "title": "Delete User",
+        "message": "\"{{name}}\" will be moved to trash. They can be restored later from Users Trash."
+      },
+      "deletedNamed": "\"{{name}}\" deleted.",
+      "deleteFailed": "Failed to delete user."
+    },
+    "trashProjects": {
+      "title": "Deleted Projects",
+      "subtitle": "Deleted projects from every user. Anything past the retention window can be purged for good.",
+      "searchPlaceholder": "Search by name...",
+      "searchAria": "Search",
+      "ageFilterAria": "Filter by age",
+      "ageAll": "All",
+      "age30": ">30 days",
+      "age60": ">60 days",
+      "age90": ">90 days",
+      "restoreSelected": "Restore Selected ({{count}})",
+      "purgeSelected": "Purge Selected ({{count}})",
+      "selectAllAria": "Select all rows on this page",
+      "selectRowAria": "Select {{name}}",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load trash. Please try again.",
+      "tableAria": "Deleted Projects",
+      "noSearchResults": "No deleted projects found matching your search.",
+      "empty": "Trash is empty.",
+      "restoredOne": "{{count}} project restored.",
+      "restoredMany": "{{count}} projects restored.",
+      "restoreFailed": "Failed to restore project(s).",
+      "purgeTitleOne": "Permanently Purge Project",
+      "purgeTitleMany": "Permanently Purge Projects",
+      "purgeMessageNamed": "\"{{name}}\" will be permanently purged and cannot be recovered. This action cannot be undone.",
+      "purgeMessageOne": "{{count}} project will be permanently purged and cannot be recovered. This action cannot be undone.",
+      "purgeMessageMany": "{{count}} projects will be permanently purged and cannot be recovered. This action cannot be undone.",
+      "purgedOne": "{{count}} project permanently purged.",
+      "purgedMany": "{{count}} projects permanently purged.",
+      "purgeFailed": "Failed to purge project(s)."
+    },
+    "trashUsers": {
+      "title": "Deleted Users",
+      "subtitle": "Deleted users can be restored — or permanently erased to honor a GDPR data-erasure request.",
+      "searchPlaceholder": "Search by name or email...",
+      "searchAria": "Search",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load trash. Please try again.",
+      "tableAria": "Deleted Users",
+      "noSearchResults": "No deleted users found matching your search.",
+      "empty": "Trash is empty.",
+      "restoredNamed": "\"{{name}}\" restored.",
+      "restoreFailed": "Failed to restore user.",
+      "eraseTitle": "Permanently Erase User",
+      "eraseMessage": "\"{{name}}\" ({{email}}) will be permanently erased. Their personal data is scrubbed and they can no longer be restored. This is irreversible and is intended for data-erasure (GDPR) requests.",
+      "erased": "User permanently erased.",
+      "eraseFailed": "Failed to erase user."
+    }
+  },
+  "paginator": {
+    "itemsPerPage": "Items per page:",
+    "nextPage": "Next page",
+    "previousPage": "Previous page",
+    "firstPage": "First page",
+    "lastPage": "Last page",
+    "rangeOf": "{{start}} – {{end}} of {{length}}",
+    "rangeEmpty": "0 of {{length}}"
+  }
+}
