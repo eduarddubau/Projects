@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '@core/services/auth.service';
 import { HealthService } from '@core/services/health.service';
 import { ThemeService } from '@core/services/theme.service';
@@ -25,6 +25,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     MatMenuModule,
     MatDividerModule,
     TranslocoDirective,
+    TranslocoPipe,
     LanguageSwitcherComponent,
   ],
   templateUrl: './header.component.html',

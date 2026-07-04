@@ -7,10 +7,11 @@
     <span class="brand-name">{{ appName }}</span>
   </a>
 
+  <!-- errorKey is a full translation path, so it bypasses the 'header' prefix. -->
   <span
     class="status-dot"
     [matTooltip]="health().state === 'offline'
-      ? t(health().errorKey ?? 'health.offline', health().errorParams ?? {})
+      ? ((health().errorKey ?? 'header.health.offline') | transloco : health().errorParams)
       : t('health.online')"
     matTooltipPosition="below"
     [class.online]="health().state === 'online'"
