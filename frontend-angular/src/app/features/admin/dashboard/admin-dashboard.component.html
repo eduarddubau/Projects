@@ -21,7 +21,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon projects">folder</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.activeProjects }}</span>
+              <span class="stat-value">{{ stats()!.activeProjectCount }}</span>
               <span class="stat-label">{{ t('activeProjects') }}</span>
             </div>
           </div>
@@ -33,7 +33,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon users">people</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.activeUsers }}</span>
+              <span class="stat-value">{{ stats()!.activeUserCount }}</span>
               <span class="stat-label">{{ t('activeUsers') }}</span>
             </div>
           </div>
@@ -45,7 +45,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon deleted">delete</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.deletedProjects }}</span>
+              <span class="stat-value">{{ stats()!.deletedProjectCount }}</span>
               <span class="stat-label">{{ t('deletedProjects') }}</span>
             </div>
           </div>
@@ -57,7 +57,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon deleted">person_off</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.deletedUsers }}</span>
+              <span class="stat-value">{{ stats()!.deletedUserCount }}</span>
               <span class="stat-label">{{ t('deletedUsers') }}</span>
             </div>
           </div>

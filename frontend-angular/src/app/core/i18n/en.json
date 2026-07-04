@@ -28,6 +28,7 @@
   },
   "header": {
     "nav": {
+      "dashboard": "Dashboard",
       "projects": "Projects",
       "admin": "Admin"
     },
@@ -46,6 +47,7 @@
     "getStarted": "Get started",
     "openNav": "Open navigation menu",
     "menu": {
+      "dashboard": "Dashboard",
       "profile": "My Profile",
       "projects": "Projects",
       "myProjects": "My Projects",
@@ -161,6 +163,28 @@
         "passwordRequiresNonAlphanumeric": "Password must contain at least one special character.",
         "passwordRequiresUniqueChars": "Password must use more unique characters."
       }
+    }
+  },
+  "userDashboard": {
+    "title": "Dashboard",
+    "subtitle": "Your projects at a glance.",
+    "loading": "Loading dashboard...",
+    "loadFailed": "Failed to load dashboard data.",
+    "stats": {
+      "activeProjects": "Active Projects",
+      "inTrash": "In Trash",
+      "lastActivity": "Last activity"
+    },
+    "recent": {
+      "title": "Recent Projects",
+      "viewAll": "View all",
+      "name": "Name",
+      "lastActivity": "Last activity",
+      "empty": "No projects yet — create your first one."
+    },
+    "account": {
+      "title": "Account",
+      "viewProfile": "View profile"
     }
   },
   "profile": {

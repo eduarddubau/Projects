@@ -28,6 +28,7 @@
   },
   "header": {
     "nav": {
+      "dashboard": "Tablou de bord",
       "projects": "Proiecte",
       "admin": "Administrare"
     },
@@ -46,6 +47,7 @@
     "getStarted": "Începe acum",
     "openNav": "Deschide meniul de navigare",
     "menu": {
+      "dashboard": "Tablou de bord",
       "profile": "Profilul meu",
       "projects": "Proiecte",
       "myProjects": "Proiectele mele",
@@ -161,6 +163,28 @@
         "passwordRequiresNonAlphanumeric": "Parola trebuie să conțină cel puțin un caracter special.",
         "passwordRequiresUniqueChars": "Parola trebuie să folosească mai multe caractere diferite."
       }
+    }
+  },
+  "userDashboard": {
+    "title": "Tablou de bord",
+    "subtitle": "Proiectele tale dintr-o privire.",
+    "loading": "Se încarcă tabloul de bord...",
+    "loadFailed": "Datele tabloului de bord nu au putut fi încărcate.",
+    "stats": {
+      "activeProjects": "Proiecte active",
+      "inTrash": "În coșul de gunoi",
+      "lastActivity": "Ultima activitate"
+    },
+    "recent": {
+      "title": "Proiecte recente",
+      "viewAll": "Vezi tot",
+      "name": "Nume",
+      "lastActivity": "Ultima activitate",
+      "empty": "Niciun proiect încă — creează-l pe primul."
+    },
+    "account": {
+      "title": "Cont",
+      "viewProfile": "Vezi profilul"
     }
   },
   "profile": {

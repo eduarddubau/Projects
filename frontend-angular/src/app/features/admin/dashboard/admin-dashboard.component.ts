@@ -8,7 +8,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { AdminService, DashboardStats } from '@core/services/admin.service';
+import { DashboardService } from '@core/services/dashboard.service';
+import { AdminDashboard } from '@core/models/admin-dashboard';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -28,18 +29,18 @@ import { AdminService, DashboardStats } from '@core/services/admin.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdminDashboardComponent implements OnInit {
-  private adminService = inject(AdminService);
+  private dashboardService = inject(DashboardService);
   private cdr = inject(ChangeDetectorRef);
 
   isLoading = signal(true);
   hasError = signal(false);
-  stats = signal<DashboardStats | null>(null);
+  stats = signal<AdminDashboard | null>(null);
 
   recentProjectColumns = ['name', 'createdBy', 'createdAt'];
   recentUserColumns = ['name', 'email', 'createdAt'];
 
   ngOnInit() {
-    this.adminService.getDashboardStats().subscribe({
+    this.dashboardService.getAdminDashboard().subscribe({
       next: (data) => {
         this.stats.set(data);
         this.isLoading.set(false);

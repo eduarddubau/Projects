@@ -1,0 +1,66 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .page-header-stack {
+    margin-bottom: 0;
+  }
+}
+
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.clickable-row {
+  cursor: pointer;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 5%, transparent);
+  }
+}
+
+.empty-hint {
+  color: var(--mat-sys-on-surface-variant);
+  margin: 8px 0 4px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .account-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.05rem;
+  }
+
+  .account-lines {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    small {
+      color: var(--mat-sys-on-surface-variant);
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.account-card {
+  .role-chip {
+    margin-top: 14px;
+  }
+
+  mat-card-actions {
+    padding: 8px 16px 16px;
+  }
+}

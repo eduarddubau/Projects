@@ -1,0 +1,118 @@
+<app-aurora></app-aurora>
+
+<div class="page-container dashboard-container" *transloco="let t">
+  <header class="page-header-stack">
+    <h1 class="page-title">{{ t('userDashboard.title') }}</h1>
+    <p class="page-subtitle">{{ t('userDashboard.subtitle') }}</p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ t('userDashboard.loading') }}</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ t('userDashboard.loadFailed') }}</p>
+    </div>
+  } @else if (dashboard(); as d) {
+    <div class="stats-grid">
+      <mat-card class="stat-card" routerLink="/projects">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon projects">folder</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value">{{ d.activeProjectCount }}</span>
+              <span class="stat-label">{{ t('userDashboard.stats.activeProjects') }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card" routerLink="/projects/trash">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon deleted">delete_outline</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value">{{ d.deletedProjectCount }}</span>
+              <span class="stat-label">{{ t('userDashboard.stats.inTrash') }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card static">
+        <mat-card-content>
+          <div class="stat-content">
+            <mat-icon class="stat-icon activity">history</mat-icon>
+            <div class="stat-text">
+              <span class="stat-value compact">
+                {{ d.lastActivityAt ? (d.lastActivityAt | date:'mediumDate':undefined:dateLocale()) : '—' }}
+              </span>
+              <span class="stat-label">{{ t('userDashboard.stats.lastActivity') }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <div class="dashboard-columns">
+      <mat-card class="section-card recent-card">
+        <mat-card-header>
+          <mat-card-title>{{ t('userDashboard.recent.title') }}</mat-card-title>
+          <div class="card-header-actions">
+            <a mat-button routerLink="/projects">{{ t('userDashboard.recent.viewAll') }}</a>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          @if (d.recentProjects.length > 0) {
+            <table mat-table [dataSource]="d.recentProjects" class="full-width-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>{{ t('userDashboard.recent.name') }}</th>
+                <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+              </ng-container>
+              <ng-container matColumnDef="lastActivity">
+                <th mat-header-cell *matHeaderCellDef>{{ t('userDashboard.recent.lastActivity') }}</th>
+                <td mat-cell *matCellDef="let row">
+                  {{ lastActivity(row) | date:'mediumDate':undefined:dateLocale() }}
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
+              <tr mat-row class="clickable-row" *matRowDef="let row; columns: recentColumns"
+                  (click)="openProject(row)"></tr>
+            </table>
+          } @else {
+            <p class="empty-hint">{{ t('userDashboard.recent.empty') }}</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      @if (currentUser(); as user) {
+        <mat-card class="section-card account-card">
+          <mat-card-header>
+            <mat-card-title>{{ t('userDashboard.account.title') }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="account-row">
+              <span class="avatar-circle account-avatar" aria-hidden="true">{{ initials() }}</span>
+              <div class="account-lines">
+                <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+                <small>{{ user.email }}</small>
+              </div>
+            </div>
+            <span class="role-chip" [class.admin]="isAdmin()">
+              {{ t(isAdmin() ? 'profile.roleAdmin' : 'profile.roleUser') }}
+            </span>
+          </mat-card-content>
+          <mat-card-actions>
+            <a mat-stroked-button routerLink="/profile">
+              <mat-icon>person</mat-icon>
+              {{ t('userDashboard.account.viewProfile') }}
+            </a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

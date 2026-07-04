@@ -21,6 +21,7 @@
   <!-- Inline nav (desktop) -->
   <nav class="nav-inline">
     @if (isAuthenticated()) {
+      <a class="nav-link" routerLink="/dashboard" routerLinkActive="active-link">{{ t('nav.dashboard') }}</a>
       <a class="nav-link" routerLink="/projects" routerLinkActive="active-link">{{ t('nav.projects') }}</a>
     }
     @if (isAdmin()) {
@@ -75,6 +76,10 @@
 <!-- Mobile navigation menu -->
 <mat-menu #mobileMenu="matMenu" xPosition="before">
   @if (isAuthenticated()) {
+    <button mat-menu-item routerLink="/dashboard">
+      <mat-icon>space_dashboard</mat-icon>
+      <span>{{ t('menu.dashboard') }}</span>
+    </button>
     <button mat-menu-item routerLink="/profile">
       <mat-icon>person</mat-icon>
       <span>{{ t('menu.profile') }}</span>
@@ -120,6 +125,10 @@
     </span>
   </div>
   <mat-divider></mat-divider>
+  <button mat-menu-item routerLink="/dashboard">
+    <mat-icon>space_dashboard</mat-icon>
+    <span>{{ t('menu.dashboard') }}</span>
+  </button>
   <button mat-menu-item routerLink="/profile">
     <mat-icon>person</mat-icon>
     <span>{{ t('menu.profile') }}</span>
