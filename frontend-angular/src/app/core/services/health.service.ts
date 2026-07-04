@@ -15,11 +15,15 @@ export class HealthService {
       this.http.get(this.healthUrl, { responseType: 'text' }).pipe(
         map(() => ({ state: 'online' } as HealthStatus)),
         catchError((err: HttpErrorResponse) => {
-          const errorMessage = err.status === 0
-            ? 'Network Error: Check CORS or Backend Status'
-            : `API Error: ${err.status} (${this.getFriendlyStatus(err.status)})`;
+          const status: HealthStatus = err.status === 0
+            ? { state: 'offline', errorKey: 'header.health.networkError' }
+            : {
+                state: 'offline',
+                errorKey: 'header.health.apiError',
+                errorParams: { status: err.status, statusText: this.getFriendlyStatus(err.status) },
+              };
 
-          return of({ state: 'offline', error: errorMessage } as HealthStatus);
+          return of(status);
         })
       )
     ),

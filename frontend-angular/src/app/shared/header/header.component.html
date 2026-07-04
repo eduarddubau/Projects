@@ -1,3 +1,4 @@
+<ng-container *transloco="let t; prefix: 'header'">
 <header class="app-header">
   <a routerLink="/" class="brand">
     <span class="brand-mark" aria-hidden="true">
@@ -8,7 +9,9 @@
 
   <span
     class="status-dot"
-    [matTooltip]="health().state === 'offline' ? (health().error ?? 'API is offline') : 'API is Online'"
+    [matTooltip]="health().state === 'offline'
+      ? t(health().errorKey ?? 'health.offline', health().errorParams ?? {})
+      : t('health.online')"
     matTooltipPosition="below"
     [class.online]="health().state === 'online'"
     [class.offline]="health().state === 'offline'">
@@ -17,10 +20,10 @@
   <!-- Inline nav (desktop) -->
   <nav class="nav-inline">
     @if (isAuthenticated()) {
-      <a class="nav-link" routerLink="/projects" routerLinkActive="active-link">Projects</a>
+      <a class="nav-link" routerLink="/projects" routerLinkActive="active-link">{{ t('nav.projects') }}</a>
     }
     @if (isAdmin()) {
-      <a class="nav-link" routerLink="/admin" routerLinkActive="active-link">Admin</a>
+      <a class="nav-link" routerLink="/admin" routerLinkActive="active-link">{{ t('nav.admin') }}</a>
     }
   </nav>
 
@@ -32,19 +35,21 @@
     [class.mode-light]="theme() === 'light'"
     [class.mode-dark]="theme() === 'dark'"
     (click)="toggleTheme($event)"
-    [matTooltip]="themeTooltip()"
+    [matTooltip]="t(theme() === 'dark' ? 'theme.switchToLight' : 'theme.switchToDark')"
     matTooltipPosition="below"
-    [attr.aria-label]="themeTooltip()">
+    [attr.aria-label]="t(theme() === 'dark' ? 'theme.switchToLight' : 'theme.switchToDark')">
     @switch (theme()) {
       @case ('dark') { <mat-icon class="theme-icon moon">dark_mode</mat-icon> }
       @default { <mat-icon class="theme-icon sun">light_mode</mat-icon> }
     }
   </button>
 
+  <app-language-switcher />
+
   <div class="auth-actions">
     @if (!isAuthenticated()) {
-      <a mat-button routerLink="/login">Sign in</a>
-      <a mat-flat-button routerLink="/register" class="header-cta">Get started</a>
+      <a mat-button routerLink="/login">{{ t('signIn') }}</a>
+      <a mat-flat-button routerLink="/register" class="header-cta">{{ t('getStarted') }}</a>
     } @else {
       <button mat-button [matMenuTriggerFor]="profileMenu" class="profile-button">
         <span class="profile-content-wrapper">
@@ -61,7 +66,7 @@
 
   <!-- Hamburger (mobile) -->
   <button mat-icon-button class="nav-hamburger" [matMenuTriggerFor]="mobileMenu"
-          aria-label="Open navigation menu">
+          [attr.aria-label]="t('openNav')">
     <mat-icon>menu</mat-icon>
   </button>
 </header>
@@ -71,32 +76,32 @@
   @if (isAuthenticated()) {
     <button mat-menu-item routerLink="/projects">
       <mat-icon>folder</mat-icon>
-      <span>Projects</span>
+      <span>{{ t('menu.projects') }}</span>
     </button>
     <button mat-menu-item routerLink="/projects/trash">
       <mat-icon>delete_outline</mat-icon>
-      <span>Trash</span>
+      <span>{{ t('menu.trash') }}</span>
     </button>
     @if (isAdmin()) {
       <mat-divider></mat-divider>
       <button mat-menu-item routerLink="/admin">
         <mat-icon>admin_panel_settings</mat-icon>
-        <span>Admin Panel</span>
+        <span>{{ t('menu.adminPanel') }}</span>
       </button>
     }
     <mat-divider></mat-divider>
     <button mat-menu-item (click)="logout()">
       <mat-icon>logout</mat-icon>
-      <span>Sign Out</span>
+      <span>{{ t('menu.signOut') }}</span>
     </button>
   } @else {
     <button mat-menu-item routerLink="/login">
       <mat-icon>login</mat-icon>
-      <span>Login</span>
+      <span>{{ t('menu.login') }}</span>
     </button>
     <button mat-menu-item routerLink="/register">
       <mat-icon>person_add</mat-icon>
-      <span>Register</span>
+      <span>{{ t('menu.register') }}</span>
     </button>
   }
 </mat-menu>
@@ -112,22 +117,23 @@
   <mat-divider></mat-divider>
   <button mat-menu-item routerLink="/projects">
     <mat-icon>folder</mat-icon>
-    <span>My Projects</span>
+    <span>{{ t('menu.myProjects') }}</span>
   </button>
   <button mat-menu-item routerLink="/projects/trash">
     <mat-icon>delete_outline</mat-icon>
-    <span>Trash</span>
+    <span>{{ t('menu.trash') }}</span>
   </button>
   @if (isAdmin()) {
     <mat-divider></mat-divider>
     <button mat-menu-item routerLink="/admin">
       <mat-icon>admin_panel_settings</mat-icon>
-      <span>Admin Panel</span>
+      <span>{{ t('menu.adminPanel') }}</span>
     </button>
   }
   <mat-divider></mat-divider>
   <button mat-menu-item (click)="logout()">
     <mat-icon>logout</mat-icon>
-    <span>Sign Out</span>
+    <span>{{ t('menu.signOut') }}</span>
   </button>
 </mat-menu>
+</ng-container>

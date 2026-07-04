@@ -117,6 +117,38 @@ a { color: var(--mat-sys-primary); }
   background: color-mix(in srgb, var(--mat-sys-scrim) 40%, transparent);
 }
 
+// Language switcher menu (overlay content, so styled globally).
+.mat-mdc-menu-panel.lang-menu {
+  min-width: 200px !important;
+
+  .lang-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .flag {
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-outline) 40%, transparent);
+  }
+
+  .lang-label {
+    flex: 1;
+  }
+
+  .lang-check {
+    margin: 0;
+    color: var(--mat-sys-primary);
+  }
+
+  .lang-item.lang-active {
+    background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  }
+}
+
 .mat-mdc-menu-panel .menu-user-info {
   display: flex;
   align-items: center;
