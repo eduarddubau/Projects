@@ -1,0 +1,127 @@
+.profile-container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px 56px;
+}
+
+.profile-card {
+  background: var(--mat-sys-surface-container-lowest);
+  box-shadow: var(--app-shadow-card);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 4px;
+
+  .profile-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.4rem;
+  }
+
+  .identity {
+    min-width: 0;
+  }
+
+  .profile-name {
+    font: var(--mat-sys-headline-small);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .profile-email {
+    margin: 2px 0 0;
+    color: var(--mat-sys-on-surface-variant);
+    overflow-wrap: anywhere;
+  }
+
+  .header-actions {
+    margin-left: auto;
+    flex: 0 0 auto;
+  }
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .header-actions {
+      margin-left: 0;
+    }
+  }
+}
+
+.role-chip {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--app-hairline);
+  color: var(--mat-sys-on-surface-variant);
+
+  &.admin {
+    color: var(--mat-sys-primary);
+    border-color: currentColor;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 12px 24px;
+  margin: 24px 0 0;
+
+  dt {
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .mono {
+    font-family: monospace;
+    font-size: 0.85rem;
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+
+    dd {
+      margin-bottom: 12px;
+    }
+  }
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.name-fields {
+  display: flex;
+  gap: 12px;
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

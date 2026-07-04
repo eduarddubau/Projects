@@ -23,6 +23,40 @@ public class UserService : BaseService<User>, IUserService
         _userManager = userManager;
     }
 
+    public async Task<UserResponseDto?> GetMyProfileAsync(CancellationToken ct = default)
+    {
+        var userId = _currentUser.UserGuid;
+        if (userId is null) return null;
+
+        var user = await _context.Users
+            .Include(u => u.Creator)
+            .Include(u => u.Updater)
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        return user?.MapToDto();
+    }
+
+    public async Task<UserResponseDto?> UpdateMyProfileAsync(UpdateProfileRequest dto, CancellationToken ct = default)
+    {
+        var userId = _currentUser.UserGuid;
+        if (userId is null) return null;
+
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+
+        if (user is null) return null;
+
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+
+        await _context.SaveChangesAsync(ct);
+
+        await _context.Entry(user).Reference(u => u.Creator).LoadAsync(ct);
+        await _context.Entry(user).Reference(u => u.Updater).LoadAsync(ct);
+
+        return user.MapToDto();
+    }
+
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(CancellationToken ct = default)
     {
         return await _context.Users

@@ -1,0 +1,140 @@
+import {
+  Component, computed, inject, signal, OnInit,
+  ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef
+} from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { ProfileService } from '@core/services/profile.service';
+import { AuthService } from '@core/services/auth.service';
+import { LanguageService } from '@core/services/language.service';
+import { Profile } from '@core/models/profile';
+import { AuroraComponent } from '@shared/aurora/aurora.component';
+
+@Component({
+  selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrl: './profile.component.scss',
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    DatePipe,
+    AuroraComponent,
+    TranslocoDirective
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class ProfileComponent implements OnInit {
+  private profileService = inject(ProfileService);
+  private authService = inject(AuthService);
+  private fb = inject(FormBuilder);
+  private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
+  private destroyRef = inject(DestroyRef);
+  private transloco = inject(TranslocoService);
+  private languageService = inject(LanguageService);
+
+  /** Locale for the date pipes; 'ro' locale data is registered in provideI18n. */
+  dateLocale = computed(() => this.languageService.lang() === 'ro' ? 'ro' : 'en-US');
+
+  isLoading = signal(true);
+  hasError = signal(false);
+  isEditing = signal(false);
+  isSaving = signal(false);
+  profile = signal<Profile | null>(null);
+
+  isAdmin = this.authService.isAdmin;
+
+  fullName = computed(() => {
+    const profile = this.profile();
+    return profile ? `${profile.firstName} ${profile.lastName}`.trim() : '';
+  });
+
+  initials = computed(() => {
+    const profile = this.profile();
+    if (!profile) return '';
+    return `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase();
+  });
+
+  form = this.fb.nonNullable.group({
+    firstName: ['', [Validators.required, Validators.maxLength(50)]],
+    lastName: ['', [Validators.required, Validators.maxLength(50)]]
+  });
+
+  ngOnInit(): void {
+    this.profileService.getProfile()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (profile) => {
+          this.profile.set(profile);
+          this.isLoading.set(false);
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.hasError.set(true);
+          this.isLoading.set(false);
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  startEdit(): void {
+    const profile = this.profile();
+    if (!profile) return;
+
+    this.form.reset({ firstName: profile.firstName, lastName: profile.lastName });
+    this.isEditing.set(true);
+  }
+
+  cancelEdit(): void {
+    this.isEditing.set(false);
+  }
+
+  save(): void {
+    if (this.form.invalid) return;
+
+    this.isSaving.set(true);
+    const { firstName, lastName } = this.form.getRawValue();
+
+    this.profileService.updateProfile({ firstName, lastName })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (updated) => {
+          this.profile.set(updated);
+          this.isEditing.set(false);
+          this.isSaving.set(false);
+          this.cdr.markForCheck();
+          this.snackBar.open(
+            this.transloco.translate('profile.notifications.updated'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 3000 },
+          );
+          // The header reads the name from the JWT claims; a refresh re-issues
+          // the token so the new name survives reloads too.
+          this.authService.refresh().subscribe({ error: () => {} });
+        },
+        error: () => {
+          this.isSaving.set(false);
+          this.cdr.markForCheck();
+          this.snackBar.open(
+            this.transloco.translate('profile.notifications.updateFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          );
+        }
+      });
+  }
+}

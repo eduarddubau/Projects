@@ -41,6 +41,83 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task GetMyProfileAsync_WhenAuthenticated_ReturnsOwnProfile()
+    {
+        var user = AddUser("me@example.com");
+        AddUser("other@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+
+        var result = await _service.GetMyProfileAsync();
+
+        Assert.NotNull(result);
+        Assert.Equal("me@example.com", result!.Email);
+    }
+
+    [Fact]
+    public async Task GetMyProfileAsync_WhenNotAuthenticated_ReturnsNull()
+    {
+        AddUser("me@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns((Guid?)null);
+
+        var result = await _service.GetMyProfileAsync();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetMyProfileAsync_WhenUserIsDeleted_ReturnsNull()
+    {
+        var user = AddUser("me@example.com", isDeleted: true);
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+
+        var result = await _service.GetMyProfileAsync();
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_UpdatesOwnNames()
+    {
+        var user = AddUser("me@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+
+        Assert.NotNull(result);
+        Assert.Equal("Grace", result!.FirstName);
+        Assert.Equal("Hopper", result.LastName);
+
+        var stored = await _context.Users.FirstAsync(u => u.Id == user.Id);
+        Assert.Equal("Grace", stored.FirstName);
+        Assert.Equal("Hopper", stored.LastName);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_WhenNotAuthenticated_ReturnsNull()
+    {
+        AddUser("me@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns((Guid?)null);
+
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_WhenUserIsDeleted_ReturnsNull()
+    {
+        var user = AddUser("me@example.com", isDeleted: true);
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+
+        Assert.Null(result);
+    }
+
+    [Fact]
     public async Task GetAllUsersAsync_ReturnsAllUsersIncludingDeleted()
     {
         AddUser("active@example.com");

@@ -46,6 +46,7 @@
     "getStarted": "Get started",
     "openNav": "Open navigation menu",
     "menu": {
+      "profile": "My Profile",
       "projects": "Projects",
       "myProjects": "My Projects",
       "trash": "Trash",
@@ -160,6 +161,29 @@
         "passwordRequiresNonAlphanumeric": "Password must contain at least one special character.",
         "passwordRequiresUniqueChars": "Password must use more unique characters."
       }
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Your account details and how your name appears across the app.",
+    "loading": "Loading profile...",
+    "loadFailed": "Failed to load your profile. Please try again.",
+    "roleAdmin": "Administrator",
+    "roleUser": "Member",
+    "memberSince": "Member since",
+    "lastUpdated": "Last updated",
+    "accountId": "Account ID",
+    "form": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "firstNameMaxLength": "First name must be 50 characters or fewer",
+      "lastNameMaxLength": "Last name must be 50 characters or fewer"
+    },
+    "notifications": {
+      "updated": "Profile updated.",
+      "updateFailed": "Failed to update profile."
     }
   },
   "projects": {

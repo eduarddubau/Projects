@@ -75,6 +75,10 @@
 <!-- Mobile navigation menu -->
 <mat-menu #mobileMenu="matMenu" xPosition="before">
   @if (isAuthenticated()) {
+    <button mat-menu-item routerLink="/profile">
+      <mat-icon>person</mat-icon>
+      <span>{{ t('menu.profile') }}</span>
+    </button>
     <button mat-menu-item routerLink="/projects">
       <mat-icon>folder</mat-icon>
       <span>{{ t('menu.projects') }}</span>
@@ -116,6 +120,10 @@
     </span>
   </div>
   <mat-divider></mat-divider>
+  <button mat-menu-item routerLink="/profile">
+    <mat-icon>person</mat-icon>
+    <span>{{ t('menu.profile') }}</span>
+  </button>
   <button mat-menu-item routerLink="/projects">
     <mat-icon>folder</mat-icon>
     <span>{{ t('menu.myProjects') }}</span>

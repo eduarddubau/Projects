@@ -46,6 +46,7 @@
     "getStarted": "Începe acum",
     "openNav": "Deschide meniul de navigare",
     "menu": {
+      "profile": "Profilul meu",
       "projects": "Proiecte",
       "myProjects": "Proiectele mele",
       "trash": "Coș de gunoi",
@@ -160,6 +161,29 @@
         "passwordRequiresNonAlphanumeric": "Parola trebuie să conțină cel puțin un caracter special.",
         "passwordRequiresUniqueChars": "Parola trebuie să folosească mai multe caractere diferite."
       }
+    }
+  },
+  "profile": {
+    "title": "Profilul meu",
+    "subtitle": "Detaliile contului tău și numele afișat în aplicație.",
+    "loading": "Se încarcă profilul...",
+    "loadFailed": "Profilul nu a putut fi încărcat. Încearcă din nou.",
+    "roleAdmin": "Administrator",
+    "roleUser": "Membru",
+    "memberSince": "Membru din",
+    "lastUpdated": "Ultima actualizare",
+    "accountId": "ID cont",
+    "form": {
+      "firstName": "Prenume",
+      "lastName": "Nume",
+      "firstNameRequired": "Prenumele este obligatoriu",
+      "lastNameRequired": "Numele este obligatoriu",
+      "firstNameMaxLength": "Prenumele trebuie să aibă cel mult 50 de caractere",
+      "lastNameMaxLength": "Numele trebuie să aibă cel mult 50 de caractere"
+    },
+    "notifications": {
+      "updated": "Profilul a fost actualizat.",
+      "updateFailed": "Profilul nu a putut fi actualizat."
     }
   },
   "projects": {
