@@ -1,70 +1,70 @@
-<div class="auth-page">
+<div class="auth-page" *transloco="let t; prefix: 'auth.register'">
   <div class="aurora" aria-hidden="true"></div>
 
   <div class="auth-card">
     <div class="auth-head">
       <span class="auth-mark" aria-hidden="true"><mat-icon>layers</mat-icon></span>
-      <h1>Create your account</h1>
-      <p>You'll be up and running in under a minute</p>
+      <h1>{{ t('title') }}</h1>
+      <p>{{ t('subtitle') }}</p>
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
 
       <div class="row">
         <mat-form-field appearance="outline">
-          <mat-label>First Name</mat-label>
-          <input matInput formControlName="firstName" placeholder="John" autocomplete="given-name">
+          <mat-label>{{ t('firstName') }}</mat-label>
+          <input matInput formControlName="firstName" [placeholder]="t('firstNamePlaceholder')" autocomplete="given-name">
           <mat-icon matSuffix>person</mat-icon>
-          <mat-error>First name is required</mat-error>
+          <mat-error>{{ t('validation.firstNameRequired') }}</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Last Name</mat-label>
-          <input matInput formControlName="lastName" placeholder="Doe" autocomplete="family-name">
-          <mat-error>Last name is required</mat-error>
+          <mat-label>{{ t('lastName') }}</mat-label>
+          <input matInput formControlName="lastName" [placeholder]="t('lastNamePlaceholder')" autocomplete="family-name">
+          <mat-error>{{ t('validation.lastNameRequired') }}</mat-error>
         </mat-form-field>
       </div>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" formControlName="email" placeholder="you@example.com" autocomplete="email">
+        <mat-label>{{ t('email') }}</mat-label>
+        <input matInput type="email" formControlName="email" [placeholder]="t('emailPlaceholder')" autocomplete="email">
         <mat-icon matSuffix>email</mat-icon>
         @if (registerForm.get('email')?.hasError('required')) {
-          <mat-error>Email is required</mat-error>
+          <mat-error>{{ t('validation.emailRequired') }}</mat-error>
         } @else if (registerForm.get('email')?.hasError('email')) {
-          <mat-error>Please enter a valid email address</mat-error>
-        } @else if (registerForm.get('email')?.hasError('serverError')) {
-          <mat-error>{{ registerForm.get('email')?.getError('serverError') }}</mat-error>
+          <mat-error>{{ t('validation.emailInvalid') }}</mat-error>
+        } @else if (serverError('email'); as err) {
+          <mat-error>{{ err.key ? t(err.key) : err.text }}</mat-error>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Password</mat-label>
+        <mat-label>{{ t('password') }}</mat-label>
         <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
-        <mat-icon matSuffix class="requirements-hint" [matTooltip]="passwordRequirements"
-                  tabindex="0" aria-label="Password requirements">info_outline</mat-icon>
+        <mat-icon matSuffix class="requirements-hint" [matTooltip]="t('passwordRequirements')"
+                  tabindex="0" [attr.aria-label]="t('passwordRequirementsAria')">info_outline</mat-icon>
         <button mat-icon-button matSuffix type="button" (click)="togglePassword($event)">
           <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
         @if (registerForm.get('password')?.hasError('required')) {
-          <mat-error>Password is required</mat-error>
+          <mat-error>{{ t('validation.passwordRequired') }}</mat-error>
         } @else if (registerForm.get('password')?.hasError('minlength')) {
-          <mat-error>Password must be at least 8 characters</mat-error>
+          <mat-error>{{ t('validation.passwordMinLength') }}</mat-error>
         } @else if (registerForm.get('password')?.hasError('pattern')) {
-          <mat-error>Needs an uppercase, a lowercase, a digit and a special character</mat-error>
-        } @else if (registerForm.get('password')?.hasError('serverError')) {
-          <mat-error>{{ registerForm.get('password')?.getError('serverError') }}</mat-error>
+          <mat-error>{{ t('validation.passwordPattern') }}</mat-error>
+        } @else if (serverError('password'); as err) {
+          <mat-error>{{ err.key ? t(err.key) : err.text }}</mat-error>
         }
       </mat-form-field>
 
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Confirm Password</mat-label>
+        <mat-label>{{ t('confirmPassword') }}</mat-label>
         <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword" autocomplete="new-password">
         <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPassword($event)">
           <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
         @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
-          <mat-error>Passwords do not match</mat-error>
+          <mat-error>{{ t('validation.passwordMismatch') }}</mat-error>
         }
       </mat-form-field>
 
@@ -73,12 +73,12 @@
         @if (isLoading()) {
           <mat-spinner diameter="20"></mat-spinner>
         } @else {
-          <span>Create account</span>
+          <span>{{ t('createAccount') }}</span>
         }
       </button>
 
     </form>
 
-    <p class="auth-alt">Already have an account? <a routerLink="/login">Sign in</a></p>
+    <p class="auth-alt">{{ t('haveAccount') }} <a routerLink="/login">{{ t('signIn') }}</a></p>
   </div>
 </div>

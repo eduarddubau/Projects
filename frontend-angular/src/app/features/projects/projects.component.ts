@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef, signal
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -19,6 +19,8 @@ import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectsDataSource } from './projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
@@ -42,9 +44,11 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     RouterLink,
     ReactiveFormsModule,
     DatePipe,
-    AuroraComponent
+    AuroraComponent,
+    TranslocoDirective
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
 })
 export class ProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -56,6 +60,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private transloco = inject(TranslocoService);
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -114,9 +119,17 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
             this.dataSource.data = [project, ...this.dataSource.data];
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();
-            this.snackBar.open('Project created.', 'Close', { duration: 3000 });
+            this.snackBar.open(
+              this.transloco.translate('projects.notifications.created'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 3000 },
+            );
           },
-          error: () => this.snackBar.open('Failed to create project.', 'Close', { duration: 5000 })
+          error: () => this.snackBar.open(
+            this.transloco.translate('projects.notifications.createFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          )
         });
       });
   }
@@ -129,9 +142,9 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
     this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Delete Project',
-        message: `Are you sure you want to delete "${project.name}"? You can restore it from Trash later.`,
-        confirmLabel: 'Delete',
+        title: this.transloco.translate('projects.confirmDelete.title'),
+        message: this.transloco.translate('projects.confirmDelete.message', { name: project.name }),
+        confirmLabel: this.transloco.translate('common.actions.delete'),
         warn: true
       }
     })
@@ -145,9 +158,17 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
             this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();
-            this.snackBar.open('Project deleted.', 'Close', { duration: 3000 });
+            this.snackBar.open(
+              this.transloco.translate('projects.notifications.deleted'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 3000 },
+            );
           },
-          error: () => this.snackBar.open('Failed to delete project.', 'Close', { duration: 5000 })
+          error: () => this.snackBar.open(
+            this.transloco.translate('projects.notifications.deleteFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          )
         });
       });
   }

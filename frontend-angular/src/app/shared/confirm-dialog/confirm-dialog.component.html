@@ -1,11 +1,13 @@
+<ng-container *transloco="let t">
 <h2 mat-dialog-title>{{ data.title }}</h2>
 <mat-dialog-content>{{ data.message }}</mat-dialog-content>
 <mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">{{ data.cancelLabel ?? 'Cancel' }}</button>
+  <button mat-button (click)="cancel()">{{ data.cancelLabel ?? t('common.actions.cancel') }}</button>
   <button
     mat-flat-button
     [class.button-danger-filled]="data.warn"
     (click)="confirm()">
-    {{ data.confirmLabel ?? 'Confirm' }}
+    {{ data.confirmLabel ?? t('common.actions.confirm') }}
   </button>
 </mat-dialog-actions>
+</ng-container>

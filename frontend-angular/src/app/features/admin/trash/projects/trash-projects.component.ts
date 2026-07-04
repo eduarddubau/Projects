@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -20,6 +20,8 @@ import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectsDataSource } from '@features/projects/projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
@@ -42,9 +44,11 @@ type AgeFilter = 'all' | '30' | '60' | '90';
     MatIconModule,
     MatButtonModule,
     ReactiveFormsModule,
-    DatePipe
+    DatePipe,
+    TranslocoDirective
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
 })
 export class TrashProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -55,6 +59,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private transloco = inject(TranslocoService);
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -168,17 +173,24 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
         this.dataSource.triggerUpdate();
         this.cdr.markForCheck();
         this.snackBar.open(
-          `${restoredCount} project${restoredCount === 1 ? '' : 's'} restored.`,
-          'Close',
+          this.transloco.translate(
+            restoredCount === 1 ? 'admin.trashProjects.restoredOne' : 'admin.trashProjects.restoredMany',
+            { count: restoredCount },
+          ),
+          this.transloco.translate('common.actions.close'),
           { duration: 3000 }
         );
       },
-      error: () => this.snackBar.open('Failed to restore project(s).', 'Close', { duration: 5000 })
+      error: () => this.snackBar.open(
+        this.transloco.translate('admin.trashProjects.restoreFailed'),
+        this.transloco.translate('common.actions.close'),
+        { duration: 5000 },
+      )
     });
   }
 
   confirmPurge(project: Project): void {
-    this.purge([project], `"${project.name}" will be permanently purged and cannot be recovered. This action cannot be undone.`);
+    this.purge([project], this.transloco.translate('admin.trashProjects.purgeMessageNamed', { name: project.name }));
   }
 
   confirmPurgeSelected(): void {
@@ -187,7 +199,10 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
 
     this.purge(
       purgeable,
-      `${purgeable.length} project${purgeable.length === 1 ? '' : 's'} will be permanently purged and cannot be recovered. This action cannot be undone.`
+      this.transloco.translate(
+        purgeable.length === 1 ? 'admin.trashProjects.purgeMessageOne' : 'admin.trashProjects.purgeMessageMany',
+        { count: purgeable.length },
+      )
     );
   }
 
@@ -195,9 +210,11 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
     this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
       data: {
-        title: 'Permanently Purge Project' + (projects.length > 1 ? 's' : ''),
+        title: this.transloco.translate(
+          projects.length > 1 ? 'admin.trashProjects.purgeTitleMany' : 'admin.trashProjects.purgeTitleOne',
+        ),
         message,
-        confirmLabel: 'Purge',
+        confirmLabel: this.transloco.translate('common.actions.purge'),
         warn: true
       }
     })
@@ -214,12 +231,19 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();
             this.snackBar.open(
-              `${purgedCount} project${purgedCount === 1 ? '' : 's'} permanently purged.`,
-              'Close',
+              this.transloco.translate(
+                purgedCount === 1 ? 'admin.trashProjects.purgedOne' : 'admin.trashProjects.purgedMany',
+                { count: purgedCount },
+              ),
+              this.transloco.translate('common.actions.close'),
               { duration: 3000 }
             );
           },
-          error: () => this.snackBar.open('Failed to purge project(s).', 'Close', { duration: 5000 })
+          error: () => this.snackBar.open(
+            this.transloco.translate('admin.trashProjects.purgeFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          )
         });
       });
   }

@@ -1,40 +1,40 @@
 <app-aurora></app-aurora>
 
-<div class="page-container">
+<div class="page-container" *transloco="let t">
   <div class="page-header-stack">
     <button mat-button routerLink="/projects" class="back-button">
       <mat-icon>arrow_back</mat-icon>
-      Back to My Projects
+      {{ t('projects.trash.back') }}
     </button>
-    <h1 class="page-title">Trash</h1>
-    <p class="page-subtitle">Deleted projects can be restored from here until their retention window runs out.</p>
+    <h1 class="page-title">{{ t('projects.trash.title') }}</h1>
+    <p class="page-subtitle">{{ t('projects.trash.subtitle') }}</p>
   </div>
 
   <div class="table-card">
 
     <div class="table-toolbar">
       <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Search deleted projects</mat-label>
+        <mat-label>{{ t('projects.trash.searchLabel') }}</mat-label>
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControl]="searchControl" placeholder="Search by name...">
+        <input matInput [formControl]="searchControl" [placeholder]="t('projects.trash.searchPlaceholder')">
       </mat-form-field>
     </div>
 
     @if (isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Loading trash...</p>
+        <p>{{ t('projects.trash.loading') }}</p>
       </div>
     } @else if (hasError()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
-        <p>Failed to load trash. Please try again.</p>
+        <p>{{ t('projects.trash.loadFailed') }}</p>
       </div>
     }
 
     <div [hidden]="isLoading() || hasError()">
 
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Deleted Projects">
+      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('projects.trash.tableAria')">
 
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef>#</th>
@@ -44,28 +44,28 @@
         </ng-container>
 
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.name') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.name }}</td>
         </ng-container>
 
         <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <th mat-header-cell *matHeaderCellDef>{{ t('projects.table.description') }}</th>
           <td mat-cell *matCellDef="let row" class="description-cell">
             {{ row.description ?? '—' }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="deletedAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Deleted At</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.deletedAt') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.deletedAt | date:'yyyy-MM-dd' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ t('projects.table.actions') }}</th>
           <td mat-cell *matCellDef="let row">
             <button mat-stroked-button (click)="restoreProject(row)">
               <mat-icon>restore</mat-icon>
-              Restore
+              {{ t('common.actions.restore') }}
             </button>
           </td>
         </ng-container>
@@ -77,21 +77,21 @@
       @if (dataSource.data.length > 0 && paginator?.length === 0) {
         <div class="state-container">
           <mat-icon>search_off</mat-icon>
-          <p>No deleted projects found matching your search.</p>
+          <p>{{ t('projects.trash.noSearchResults') }}</p>
         </div>
       }
 
       @if (dataSource.data.length === 0) {
         <div class="state-container">
           <mat-icon>delete_outline</mat-icon>
-          <p>Trash is empty.</p>
+          <p>{{ t('projects.trash.empty') }}</p>
         </div>
       }
 
       <mat-paginator
         #paginator
         [pageSizeOptions]="[5, 10, 20]"
-        aria-label="Select page">
+        [attr.aria-label]="t('projects.table.selectPage')">
       </mat-paginator>
 
     </div>

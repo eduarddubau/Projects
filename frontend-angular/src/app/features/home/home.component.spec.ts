@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 
 import { HomeComponent } from './home.component';
 import { API_URL } from '@core/tokens/app.tokens';
+import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -15,6 +16,7 @@ describe('HomeComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
+        provideTranslocoTesting(),
         { provide: API_URL, useValue: 'http://localhost/api' },
       ],
     }).compileComponents();

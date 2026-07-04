@@ -1,5 +1,5 @@
 import {
-  Component, inject, signal, OnInit,
+  Component, computed, inject, signal, OnInit,
   ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -14,7 +14,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ProjectService } from '@core/services/project.service';
+import { LanguageService } from '@core/services/language.service';
 import { Project } from '@core/models/project';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
@@ -33,7 +35,8 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatInputModule,
     MatProgressSpinnerModule,
     DatePipe,
-    AuroraComponent
+    AuroraComponent,
+    TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -46,6 +49,11 @@ export class ProjectDetailComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
+  private transloco = inject(TranslocoService);
+  private languageService = inject(LanguageService);
+
+  /** Locale for the date:'medium' pipes; 'ro' locale data is registered in provideI18n. */
+  dateLocale = computed(() => this.languageService.lang() === 'ro' ? 'ro' : 'en-US');
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -98,9 +106,9 @@ export class ProjectDetailComponent implements OnInit {
     this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Delete Project',
-        message: `Are you sure you want to delete "${project.name}"? You can restore it from Trash later.`,
-        confirmLabel: 'Delete',
+        title: this.transloco.translate('projects.confirmDelete.title'),
+        message: this.transloco.translate('projects.confirmDelete.message', { name: project.name }),
+        confirmLabel: this.transloco.translate('common.actions.delete'),
         warn: true
       }
     })
@@ -111,10 +119,18 @@ export class ProjectDetailComponent implements OnInit {
 
         this.projectService.deleteMyProject(project.id).subscribe({
           next: () => {
-            this.snackBar.open('Project deleted.', 'Close', { duration: 3000 });
+            this.snackBar.open(
+              this.transloco.translate('projects.notifications.deleted'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 3000 },
+            );
             this.router.navigate(['/projects']);
           },
-          error: () => this.snackBar.open('Failed to delete project.', 'Close', { duration: 5000 })
+          error: () => this.snackBar.open(
+            this.transloco.translate('projects.notifications.deleteFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          )
         });
       });
   }
@@ -134,12 +150,20 @@ export class ProjectDetailComponent implements OnInit {
           this.isEditing.set(false);
           this.isSaving.set(false);
           this.cdr.markForCheck();
-          this.snackBar.open('Project updated.', 'Close', { duration: 3000 });
+          this.snackBar.open(
+            this.transloco.translate('projects.notifications.updated'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 3000 },
+          );
         },
         error: () => {
           this.isSaving.set(false);
           this.cdr.markForCheck();
-          this.snackBar.open('Failed to update project.', 'Close', { duration: 5000 });
+          this.snackBar.open(
+            this.transloco.translate('projects.notifications.updateFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          );
         }
       });
   }

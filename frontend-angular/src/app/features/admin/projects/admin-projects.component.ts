@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef, signal
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -18,6 +18,8 @@ import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectsDataSource } from '@features/projects/projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
@@ -37,9 +39,11 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
     MatButtonModule,
     RouterLink,
     ReactiveFormsModule,
-    DatePipe
+    DatePipe,
+    TranslocoDirective
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
 })
 export class AdminProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -50,6 +54,7 @@ export class AdminProjectsComponent implements OnInit, AfterViewInit {
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private transloco = inject(TranslocoService);
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -105,9 +110,9 @@ export class AdminProjectsComponent implements OnInit, AfterViewInit {
     this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
       data: {
-        title: 'Delete Project',
-        message: `"${project.name}" will be moved to trash. It can be restored later from Projects Trash.`,
-        confirmLabel: 'Delete',
+        title: this.transloco.translate('admin.projects.confirmDelete.title'),
+        message: this.transloco.translate('admin.projects.confirmDelete.message', { name: project.name }),
+        confirmLabel: this.transloco.translate('common.actions.delete'),
         warn: true
       }
     })
@@ -121,9 +126,17 @@ export class AdminProjectsComponent implements OnInit, AfterViewInit {
             this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();
-            this.snackBar.open(`"${project.name}" deleted.`, 'Close', { duration: 3000 });
+            this.snackBar.open(
+              this.transloco.translate('admin.projects.deletedNamed', { name: project.name }),
+              this.transloco.translate('common.actions.close'),
+              { duration: 3000 },
+            );
           },
-          error: () => this.snackBar.open('Failed to delete project.', 'Close', { duration: 5000 })
+          error: () => this.snackBar.open(
+            this.transloco.translate('admin.projects.deleteFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          )
         });
       });
   }

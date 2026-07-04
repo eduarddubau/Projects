@@ -1,4 +1,4 @@
-<div class="landing">
+<div class="landing" *transloco="let t; prefix: 'home'">
   <div class="aurora" aria-hidden="true"></div>
   <div class="grid-lines" aria-hidden="true"></div>
 
@@ -10,30 +10,28 @@
         Angular 22 &middot; .NET 10 &middot; PostgreSQL 17
       </span>
       <h1>
-        Manage your projects,<br />
-        <span class="accent">without the busywork.</span>
+        {{ t('hero.title') }}<br />
+        <span class="accent">{{ t('hero.titleAccent') }}</span>
       </h1>
       <p class="subtitle">
-        {{ appName }} gives your team a clean, fast home for everything you're
-        building — with access control, safe deletion, and security designed
-        in from day one.
+        {{ t('hero.subtitle', { app: appName }) }}
       </p>
 
       <div class="cta-row">
         @if (isAuthenticated()) {
           <a mat-flat-button routerLink="/projects" class="cta">
             <mat-icon>folder</mat-icon>
-            Go to your projects
+            {{ t('hero.goToProjects') }}
           </a>
           <span class="welcome-back">
-            Welcome back, {{ currentUser()?.firstName }}.
+            {{ t('hero.welcomeBack', { name: currentUser()?.firstName }) }}
           </span>
         } @else {
           <a mat-flat-button routerLink="/register" class="cta">
-            Get started — it's free
+            {{ t('hero.getStartedFree') }}
           </a>
           <a mat-stroked-button routerLink="/login" class="cta">
-            Sign in
+            {{ t('hero.signIn') }}
           </a>
         }
       </div>
@@ -55,36 +53,36 @@
           </div>
           <div class="preview-main">
             <div class="preview-stats">
-              <div class="tile"><span class="num">128</span><span class="lbl">Projects</span></div>
-              <div class="tile"><span class="num">36</span><span class="lbl">Members</span></div>
-              <div class="tile"><span class="num">99.9%</span><span class="lbl">Uptime</span></div>
+              <div class="tile"><span class="num">128</span><span class="lbl">{{ t('preview.projects') }}</span></div>
+              <div class="tile"><span class="num">36</span><span class="lbl">{{ t('preview.members') }}</span></div>
+              <div class="tile"><span class="num">99.9%</span><span class="lbl">{{ t('preview.uptime') }}</span></div>
             </div>
             <div class="preview-rows">
-              <div class="row"><span class="cdot c1"></span><span class="bar" style="width: 58%"></span><span class="pchip ok">Active</span></div>
-              <div class="row"><span class="cdot c2"></span><span class="bar" style="width: 42%"></span><span class="pchip ok">Active</span></div>
-              <div class="row"><span class="cdot c3"></span><span class="bar" style="width: 66%"></span><span class="pchip warn">Review</span></div>
-              <div class="row"><span class="cdot c4"></span><span class="bar" style="width: 35%"></span><span class="pchip ok">Active</span></div>
+              <div class="row"><span class="cdot c1"></span><span class="bar" style="width: 58%"></span><span class="pchip ok">{{ t('preview.active') }}</span></div>
+              <div class="row"><span class="cdot c2"></span><span class="bar" style="width: 42%"></span><span class="pchip ok">{{ t('preview.active') }}</span></div>
+              <div class="row"><span class="cdot c3"></span><span class="bar" style="width: 66%"></span><span class="pchip warn">{{ t('preview.review') }}</span></div>
+              <div class="row"><span class="cdot c4"></span><span class="bar" style="width: 35%"></span><span class="pchip ok">{{ t('preview.active') }}</span></div>
             </div>
           </div>
         </div>
       </div>
-      <div class="float-chip chip-a"><mat-icon>verified_user</mat-icon><span>JWT secured</span></div>
-      <div class="float-chip chip-b"><mat-icon>restore_from_trash</mat-icon><span>Project restored</span></div>
+      <div class="float-chip chip-a"><mat-icon>verified_user</mat-icon><span>{{ t('preview.jwtSecured') }}</span></div>
+      <div class="float-chip chip-b"><mat-icon>restore_from_trash</mat-icon><span>{{ t('preview.projectRestored') }}</span></div>
     </div>
   </section>
 
   <!-- Features -->
   <section class="features">
     <div class="section-head">
-      <h2>Everything you need. Nothing you don't.</h2>
-      <p>Role-based access, audit history, and recovery — on a hardened, tested stack.</p>
+      <h2>{{ t('features.title') }}</h2>
+      <p>{{ t('features.subtitle') }}</p>
     </div>
     <div class="feature-grid">
-      @for (feature of features; track feature.title) {
+      @for (feature of features; track feature.key) {
         <div class="feature-card">
           <span class="feature-icon"><mat-icon>{{ feature.icon }}</mat-icon></span>
-          <h3>{{ feature.title }}</h3>
-          <p>{{ feature.description }}</p>
+          <h3>{{ t('features.cards.' + feature.key + '.title') }}</h3>
+          <p>{{ t('features.cards.' + feature.key + '.description') }}</p>
         </div>
       }
     </div>
@@ -94,10 +92,10 @@
   @if (!isAuthenticated()) {
     <section class="closing">
       <div class="closing-panel">
-        <h2>Ready to get organized?</h2>
-        <p>Create a free account and have your first project up in seconds.</p>
+        <h2>{{ t('closing.title') }}</h2>
+        <p>{{ t('closing.subtitle') }}</p>
         <a mat-flat-button routerLink="/register" class="cta">
-          Create your account
+          {{ t('closing.cta') }}
         </a>
       </div>
     </section>
@@ -106,6 +104,6 @@
   <footer class="landing-footer">
     <span class="footer-brand">{{ appName }}</span>
     <span class="dot-sep">&middot;</span>
-    <span>&copy; {{ currentYear }} — All rights reserved.</span>
+    <span>{{ t('footer.rights', { year: currentYear }) }}</span>
   </footer>
 </div>

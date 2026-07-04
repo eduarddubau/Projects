@@ -1,7 +1,7 @@
-<div class="page-container">
+<div class="page-container" *transloco="let t">
   <div class="page-header-stack">
-    <h1 class="page-title">Deleted Users</h1>
-    <p class="page-subtitle">Deleted users can be restored — or permanently erased to honor a GDPR data-erasure request.</p>
+    <h1 class="page-title">{{ t('admin.trashUsers.title') }}</h1>
+    <p class="page-subtitle">{{ t('admin.trashUsers.subtitle') }}</p>
   </div>
 
   <div class="table-card">
@@ -9,25 +9,25 @@
     <div class="table-toolbar">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControl]="searchControl" placeholder="Search by name or email..." aria-label="Search">
+        <input matInput [formControl]="searchControl" [placeholder]="t('admin.trashUsers.searchPlaceholder')" [attr.aria-label]="t('admin.trashUsers.searchAria')">
       </mat-form-field>
     </div>
 
     @if (isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Loading...</p>
+        <p>{{ t('admin.trashUsers.loading') }}</p>
       </div>
     } @else if (hasError()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
-        <p>Failed to load trash. Please try again.</p>
+        <p>{{ t('admin.trashUsers.loadFailed') }}</p>
       </div>
     }
 
     <div [hidden]="isLoading() || hasError()">
 
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Deleted Users">
+      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('admin.trashUsers.tableAria')">
 
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef>#</th>
@@ -37,31 +37,31 @@
         </ng-container>
 
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.name') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
         </ng-container>
 
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('admin.dashboard.email') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.email }}</td>
         </ng-container>
 
         <ng-container matColumnDef="deletedAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Deleted At</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.deletedAt') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.deletedAt | date:'yyyy-MM-dd' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ t('projects.table.actions') }}</th>
           <td mat-cell *matCellDef="let row">
             <div class="actions-cell">
               <button mat-stroked-button (click)="restoreUser(row)">
                 <mat-icon>restore</mat-icon>
-                Restore
+                {{ t('common.actions.restore') }}
               </button>
               <button mat-stroked-button class="button-danger" (click)="confirmErase(row)">
                 <mat-icon>delete_forever</mat-icon>
-                Erase
+                {{ t('common.actions.erase') }}
               </button>
             </div>
           </td>
@@ -74,21 +74,21 @@
       @if (dataSource.data.length > 0 && dataSource.filteredData.length === 0) {
         <div class="state-container">
           <mat-icon>search_off</mat-icon>
-          <p>No deleted users found matching your search.</p>
+          <p>{{ t('admin.trashUsers.noSearchResults') }}</p>
         </div>
       }
 
       @if (dataSource.data.length === 0) {
         <div class="state-container">
           <mat-icon>delete_outline</mat-icon>
-          <p>Trash is empty.</p>
+          <p>{{ t('admin.trashUsers.empty') }}</p>
         </div>
       }
 
       <mat-paginator
         #paginator
         [pageSizeOptions]="[5, 10, 20]"
-        aria-label="Select page">
+        [attr.aria-label]="t('projects.table.selectPage')">
       </mat-paginator>
 
     </div>

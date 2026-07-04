@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '@core/services/auth.service';
 import { LoginCredentials } from '@core/models/login-credentials';
 import { APP_NAME } from '@core/tokens/app.tokens';
@@ -21,7 +22,8 @@ import { APP_NAME } from '@core/tokens/app.tokens';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -33,6 +35,7 @@ export class LoginComponent {
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private transloco = inject(TranslocoService);
 
   loginForm = new FormGroup({
     email: new FormControl('', {
@@ -56,7 +59,11 @@ export class LoginComponent {
         },
         error: (err) => {
           console.error('Login failed', err);
-          this.snackBar.open('Invalid email or password.', 'Close', { duration: 3000 });
+          this.snackBar.open(
+            this.transloco.translate('auth.login.invalidCredentials'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 3000 },
+          );
         }
       });
     } else {

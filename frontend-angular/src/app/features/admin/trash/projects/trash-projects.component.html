@@ -1,8 +1,8 @@
-<div class="page-container">
+<div class="page-container" *transloco="let t">
   <div class="page-header-stack">
-    <h1 class="page-title">Deleted Projects</h1>
+    <h1 class="page-title">{{ t('admin.trashProjects.title') }}</h1>
     <p class="page-subtitle">
-      Deleted projects from every user. Anything past the retention window can be purged for good.
+      {{ t('admin.trashProjects.subtitle') }}
     </p>
   </div>
 
@@ -11,25 +11,25 @@
     <div class="table-toolbar">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControl]="searchControl" placeholder="Search by name..." aria-label="Search">
+        <input matInput [formControl]="searchControl" [placeholder]="t('admin.trashProjects.searchPlaceholder')" [attr.aria-label]="t('admin.trashProjects.searchAria')">
       </mat-form-field>
 
-      <mat-button-toggle-group [formControl]="ageFilterControl" aria-label="Filter by age">
-        <mat-button-toggle value="all">All</mat-button-toggle>
-        <mat-button-toggle value="30">&gt;30 days</mat-button-toggle>
-        <mat-button-toggle value="60">&gt;60 days</mat-button-toggle>
-        <mat-button-toggle value="90">&gt;90 days</mat-button-toggle>
+      <mat-button-toggle-group [formControl]="ageFilterControl" [attr.aria-label]="t('admin.trashProjects.ageFilterAria')">
+        <mat-button-toggle value="all">{{ t('admin.trashProjects.ageAll') }}</mat-button-toggle>
+        <mat-button-toggle value="30">{{ t('admin.trashProjects.age30') }}</mat-button-toggle>
+        <mat-button-toggle value="60">{{ t('admin.trashProjects.age60') }}</mat-button-toggle>
+        <mat-button-toggle value="90">{{ t('admin.trashProjects.age90') }}</mat-button-toggle>
       </mat-button-toggle-group>
 
       <div class="toolbar-actions">
         <button mat-stroked-button [disabled]="selection.isEmpty()" (click)="confirmRestoreSelected()">
           <mat-icon>restore</mat-icon>
-          Restore Selected ({{ selection.selected.length }})
+          {{ t('admin.trashProjects.restoreSelected', { count: selection.selected.length }) }}
         </button>
 
         <button mat-stroked-button class="button-danger" [disabled]="!canPurgeSelected()" (click)="confirmPurgeSelected()">
           <mat-icon>delete_forever</mat-icon>
-          Purge Selected ({{ selection.selected.length }})
+          {{ t('admin.trashProjects.purgeSelected', { count: selection.selected.length }) }}
         </button>
       </div>
     </div>
@@ -37,18 +37,18 @@
     @if (isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Loading...</p>
+        <p>{{ t('admin.trashProjects.loading') }}</p>
       </div>
     } @else if (hasError()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
-        <p>Failed to load trash. Please try again.</p>
+        <p>{{ t('admin.trashProjects.loadFailed') }}</p>
       </div>
     }
 
     <div [hidden]="isLoading() || hasError()">
 
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Deleted Projects">
+      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('admin.trashProjects.tableAria')">
 
         <ng-container matColumnDef="select">
           <th mat-header-cell *matHeaderCellDef>
@@ -56,14 +56,14 @@
               [checked]="isAllSelected()"
               [indeterminate]="selection.hasValue() && !isAllSelected()"
               (change)="toggleSelectAll()"
-              aria-label="Select all rows on this page">
+              [aria-label]="t('admin.trashProjects.selectAllAria')">
             </mat-checkbox>
           </th>
           <td mat-cell *matCellDef="let row">
             <mat-checkbox
               [checked]="selection.isSelected(row)"
               (change)="toggleSelection(row)"
-              [attr.aria-label]="'Select ' + row.name">
+              [aria-label]="t('admin.trashProjects.selectRowAria', { name: row.name })">
             </mat-checkbox>
           </td>
         </ng-container>
@@ -76,32 +76,32 @@
         </ng-container>
 
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.name') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.name }}</td>
         </ng-container>
 
         <ng-container matColumnDef="createdBy">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created By</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.createdBy') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.createdByDisplayName ?? '—' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="deletedAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Deleted At</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.deletedAt') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.deletedAt | date:'yyyy-MM-dd' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ t('projects.table.actions') }}</th>
           <td mat-cell *matCellDef="let row">
             <div class="actions-cell">
               <button mat-stroked-button (click)="restoreProject(row)">
                 <mat-icon>restore</mat-icon>
-                Restore
+                {{ t('common.actions.restore') }}
               </button>
               @if (row.isPurgeable) {
                 <button mat-stroked-button class="button-danger" (click)="confirmPurge(row)">
                   <mat-icon>delete_forever</mat-icon>
-                  Purge
+                  {{ t('common.actions.purge') }}
                 </button>
               }
             </div>
@@ -115,21 +115,21 @@
       @if (dataSource.data.length > 0 && paginator?.length === 0) {
         <div class="state-container">
           <mat-icon>search_off</mat-icon>
-          <p>No deleted projects found matching your search.</p>
+          <p>{{ t('admin.trashProjects.noSearchResults') }}</p>
         </div>
       }
 
       @if (dataSource.data.length === 0) {
         <div class="state-container">
           <mat-icon>delete_outline</mat-icon>
-          <p>Trash is empty.</p>
+          <p>{{ t('admin.trashProjects.empty') }}</p>
         </div>
       }
 
       <mat-paginator
         #paginator
         [pageSizeOptions]="[5, 10, 20]"
-        aria-label="Select page">
+        [attr.aria-label]="t('projects.table.selectPage')">
       </mat-paginator>
 
     </div>

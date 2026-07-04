@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef, signal
 } from '@angular/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -19,6 +19,8 @@ import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { UserService } from '@core/services/user.service';
 import { AuthService } from '@core/services/auth.service';
 import { AdminUser } from '@core/models/admin-user';
@@ -39,9 +41,11 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
     MatTooltipModule,
     RouterLink,
     ReactiveFormsModule,
-    DatePipe
+    DatePipe,
+    TranslocoDirective
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
 })
 export class AdminUsersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -53,6 +57,7 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private transloco = inject(TranslocoService);
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -118,9 +123,11 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
     this.dialog.open(ConfirmDialogComponent, {
       width: '420px',
       data: {
-        title: 'Delete User',
-        message: `"${user.firstName} ${user.lastName}" will be moved to trash. They can be restored later from Users Trash.`,
-        confirmLabel: 'Delete',
+        title: this.transloco.translate('admin.users.confirmDelete.title'),
+        message: this.transloco.translate('admin.users.confirmDelete.message', {
+          name: `${user.firstName} ${user.lastName}`,
+        }),
+        confirmLabel: this.transloco.translate('common.actions.delete'),
         warn: true
       }
     })
@@ -133,9 +140,19 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
           next: () => {
             this.dataSource.data = this.dataSource.data.filter(u => u.id !== user.id);
             this.cdr.markForCheck();
-            this.snackBar.open(`"${user.firstName} ${user.lastName}" deleted.`, 'Close', { duration: 3000 });
+            this.snackBar.open(
+              this.transloco.translate('admin.users.deletedNamed', {
+                name: `${user.firstName} ${user.lastName}`,
+              }),
+              this.transloco.translate('common.actions.close'),
+              { duration: 3000 },
+            );
           },
-          error: () => this.snackBar.open('Failed to delete user.', 'Close', { duration: 5000 })
+          error: () => this.snackBar.open(
+            this.transloco.translate('admin.users.deleteFailed'),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          )
         });
       });
   }

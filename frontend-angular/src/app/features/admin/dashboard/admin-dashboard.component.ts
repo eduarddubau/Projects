@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { AdminService, DashboardStats } from '@core/services/admin.service';
 
 @Component({
@@ -21,7 +22,8 @@ import { AdminService, DashboardStats } from '@core/services/admin.service';
     MatIconModule,
     MatProgressSpinnerModule,
     MatTableModule,
-    MatDividerModule
+    MatDividerModule,
+    TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

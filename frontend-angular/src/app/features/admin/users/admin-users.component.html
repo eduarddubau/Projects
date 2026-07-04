@@ -1,14 +1,14 @@
-<div class="page-container">
+<div class="page-container" *transloco="let t">
   <div class="page-header">
     <div class="page-heading">
-      <h1 class="page-title">Active Users</h1>
+      <h1 class="page-title">{{ t('admin.users.title') }}</h1>
       <p class="page-subtitle">
-        Every registered account. Deleted users move to the Users Trash.
+        {{ t('admin.users.subtitle') }}
       </p>
     </div>
     <button mat-stroked-button routerLink="/admin/trash/users">
       <mat-icon>delete_outline</mat-icon>
-      Trash
+      {{ t('admin.users.trash') }}
     </button>
   </div>
 
@@ -17,25 +17,25 @@
     <div class="table-toolbar">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControl]="searchControl" placeholder="Search by name or email..." aria-label="Search">
+        <input matInput [formControl]="searchControl" [placeholder]="t('admin.users.searchPlaceholder')" [attr.aria-label]="t('admin.users.searchAria')">
       </mat-form-field>
     </div>
 
     @if (isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Loading...</p>
+        <p>{{ t('admin.users.loading') }}</p>
       </div>
     } @else if (hasError()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
-        <p>Failed to load users. Please try again.</p>
+        <p>{{ t('admin.users.loadFailed') }}</p>
       </div>
     }
 
     <div [hidden]="isLoading() || hasError()">
 
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" aria-label="Users">
+      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('admin.users.tableAria')">
 
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef>#</th>
@@ -45,35 +45,35 @@
         </ng-container>
 
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.name') }}</th>
           <td mat-cell *matCellDef="let row">
             {{ row.firstName }} {{ row.lastName }}
             @if (isSelf(row)) {
-              <span class="self-badge">You</span>
+              <span class="self-badge">{{ t('admin.users.you') }}</span>
             }
           </td>
         </ng-container>
 
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('admin.dashboard.email') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.email }}</td>
         </ng-container>
 
         <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created At</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.createdAt') }}</th>
           <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ t('projects.table.actions') }}</th>
           <td mat-cell *matCellDef="let row">
             <div class="actions-cell">
               <button mat-stroked-button class="button-danger"
                       [disabled]="isSelf(row)"
-                      [matTooltip]="isSelf(row) ? 'You cannot delete your own account' : ''"
+                      [matTooltip]="isSelf(row) ? t('admin.users.selfDeleteTooltip') : ''"
                       (click)="confirmDelete(row)">
                 <mat-icon>delete</mat-icon>
-                Delete
+                {{ t('common.actions.delete') }}
               </button>
             </div>
           </td>
@@ -86,21 +86,21 @@
       @if (dataSource.data.length > 0 && dataSource.filteredData.length === 0) {
         <div class="state-container">
           <mat-icon>search_off</mat-icon>
-          <p>No users found matching your search.</p>
+          <p>{{ t('admin.users.noSearchResults') }}</p>
         </div>
       }
 
       @if (dataSource.data.length === 0) {
         <div class="state-container">
           <mat-icon>group_off</mat-icon>
-          <p>No users to show.</p>
+          <p>{{ t('admin.users.empty') }}</p>
         </div>
       }
 
       <mat-paginator
         #paginator
         [pageSizeOptions]="[5, 10, 20]"
-        aria-label="Select page">
+        [attr.aria-label]="t('projects.table.selectPage')">
       </mat-paginator>
 
     </div>

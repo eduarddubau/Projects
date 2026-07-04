@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 
 @Component({
@@ -22,6 +23,7 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatButtonModule,
     MatDividerModule,
     AuroraComponent,
+    TranslocoDirective,
   ],
   templateUrl: './admin-layout.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

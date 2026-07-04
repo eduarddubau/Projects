@@ -1,4 +1,4 @@
-<mat-sidenav-container class="admin-container">
+<mat-sidenav-container class="admin-container" *transloco="let t; prefix: 'admin.layout'">
   <mat-sidenav
     #drawer
     class="admin-sidenav"
@@ -12,7 +12,7 @@
         [routerLinkActiveOptions]="{ exact: true }"
         (click)="closeIfHandset(drawer)">
         <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
+        <span matListItemTitle>{{ t('dashboard') }}</span>
       </a>
       <a
         mat-list-item
@@ -20,7 +20,7 @@
         routerLinkActive="active"
         (click)="closeIfHandset(drawer)">
         <mat-icon matListItemIcon>folder</mat-icon>
-        <span matListItemTitle>Projects</span>
+        <span matListItemTitle>{{ t('projects') }}</span>
       </a>
       <a
         mat-list-item
@@ -28,11 +28,11 @@
         routerLinkActive="active"
         (click)="closeIfHandset(drawer)">
         <mat-icon matListItemIcon>people</mat-icon>
-        <span matListItemTitle>Users</span>
+        <span matListItemTitle>{{ t('users') }}</span>
       </a>
 
       <mat-divider></mat-divider>
-      <h3 matSubheader>Trash</h3>
+      <h3 matSubheader>{{ t('trash') }}</h3>
 
       <a
         mat-list-item
@@ -40,7 +40,7 @@
         routerLinkActive="active"
         (click)="closeIfHandset(drawer)">
         <mat-icon matListItemIcon>delete</mat-icon>
-        <span matListItemTitle>Projects</span>
+        <span matListItemTitle>{{ t('projects') }}</span>
       </a>
       <a
         mat-list-item
@@ -48,7 +48,7 @@
         routerLinkActive="active"
         (click)="closeIfHandset(drawer)">
         <mat-icon matListItemIcon>person_off</mat-icon>
-        <span matListItemTitle>Users</span>
+        <span matListItemTitle>{{ t('users') }}</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>
@@ -58,7 +58,7 @@
     @if (isHandset()) {
       <button mat-button class="drawer-toggle" (click)="drawer.toggle()">
         <mat-icon>menu</mat-icon>
-        Admin menu
+        {{ t('menu') }}
       </button>
     }
     <router-outlet></router-outlet>

@@ -1,16 +1,16 @@
 <app-aurora></app-aurora>
 
-<div class="detail-container">
+<div class="detail-container" *transloco="let t">
   @if (isLoading()) {
     <div class="state-container">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>Loading project…</p>
+      <p>{{ t('projects.detail.loading') }}</p>
     </div>
   } @else if (hasError()) {
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
-      <p>We couldn't find that project. It may have been deleted.</p>
-      <a mat-stroked-button routerLink="/projects">Back to Projects</a>
+      <p>{{ t('projects.detail.notFound') }}</p>
+      <a mat-stroked-button routerLink="/projects">{{ t('projects.detail.backToProjects') }}</a>
     </div>
   } @else if (project(); as p) {
     <mat-card class="detail-card" appearance="outlined">
@@ -20,11 +20,11 @@
           <div class="header-actions">
             <button mat-stroked-button (click)="startEdit()">
               <mat-icon>edit</mat-icon>
-              Edit
+              {{ t('common.actions.edit') }}
             </button>
             <button mat-stroked-button class="button-danger" (click)="confirmDelete(p)">
               <mat-icon>delete</mat-icon>
-              Delete
+              {{ t('common.actions.delete') }}
             </button>
           </div>
         }
@@ -34,51 +34,51 @@
         @if (isEditing()) {
           <form [formGroup]="form" class="edit-form" (ngSubmit)="save()">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Name</mat-label>
+              <mat-label>{{ t('projects.form.name') }}</mat-label>
               <input matInput formControlName="name" maxlength="100" required>
               @if (form.controls.name.hasError('required')) {
-                <mat-error>Name is required.</mat-error>
+                <mat-error>{{ t('projects.form.nameRequired') }}</mat-error>
               }
               @if (form.controls.name.hasError('maxlength')) {
-                <mat-error>Name must be 100 characters or fewer.</mat-error>
+                <mat-error>{{ t('projects.form.nameMaxLength') }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Description</mat-label>
+              <mat-label>{{ t('projects.form.description') }}</mat-label>
               <textarea matInput formControlName="description" rows="4" maxlength="500"></textarea>
               @if (form.controls.description.hasError('maxlength')) {
-                <mat-error>Description must be 500 characters or fewer.</mat-error>
+                <mat-error>{{ t('projects.form.descriptionMaxLength') }}</mat-error>
               }
             </mat-form-field>
 
             <div class="form-actions">
               <button mat-button type="button" (click)="cancelEdit()" [disabled]="isSaving()">
-                Cancel
+                {{ t('common.actions.cancel') }}
               </button>
               <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSaving()">
-                Save changes
+                {{ t('common.actions.saveChanges') }}
               </button>
             </div>
           </form>
         } @else {
           <dl class="detail-grid">
-            <dt>Description</dt>
+            <dt>{{ t('projects.detail.description') }}</dt>
             <dd>{{ p.description || '—' }}</dd>
 
-            <dt>Created by</dt>
+            <dt>{{ t('projects.detail.createdBy') }}</dt>
             <dd>{{ p.createdByDisplayName || '—' }}</dd>
 
-            <dt>Created at</dt>
-            <dd>{{ p.createdAt | date:'medium' }}</dd>
+            <dt>{{ t('projects.detail.createdAt') }}</dt>
+            <dd>{{ p.createdAt | date:'medium':undefined:dateLocale() }}</dd>
 
-            <dt>Last updated by</dt>
+            <dt>{{ t('projects.detail.updatedBy') }}</dt>
             <dd>{{ p.updatedByDisplayName || '—' }}</dd>
 
-            <dt>Last updated</dt>
-            <dd>{{ p.updatedAt ? (p.updatedAt | date:'medium') : '—' }}</dd>
+            <dt>{{ t('projects.detail.updatedAt') }}</dt>
+            <dd>{{ p.updatedAt ? (p.updatedAt | date:'medium':undefined:dateLocale()) : '—' }}</dd>
 
-            <dt>Project ID</dt>
+            <dt>{{ t('projects.detail.projectId') }}</dt>
             <dd class="mono">{{ p.id }}</dd>
           </dl>
         }

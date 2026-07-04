@@ -1,17 +1,17 @@
-<div class="page-container dashboard-container">
+<div class="page-container dashboard-container" *transloco="let t; prefix: 'admin.dashboard'">
   <div class="page-header">
-    <h1 class="page-title">Admin Dashboard</h1>
+    <h1 class="page-title">{{ t('title') }}</h1>
   </div>
 
   @if (isLoading()) {
     <div class="state-container">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>Loading dashboard...</p>
+      <p>{{ t('loading') }}</p>
     </div>
   } @else if (hasError()) {
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
-      <p>Failed to load dashboard data.</p>
+      <p>{{ t('loadFailed') }}</p>
     </div>
   } @else if (stats()) {
     <!-- Stats Cards -->
@@ -22,7 +22,7 @@
             <mat-icon class="stat-icon projects">folder</mat-icon>
             <div class="stat-text">
               <span class="stat-value">{{ stats()!.activeProjects }}</span>
-              <span class="stat-label">Active Projects</span>
+              <span class="stat-label">{{ t('activeProjects') }}</span>
             </div>
           </div>
         </mat-card-content>
@@ -34,7 +34,7 @@
             <mat-icon class="stat-icon users">people</mat-icon>
             <div class="stat-text">
               <span class="stat-value">{{ stats()!.activeUsers }}</span>
-              <span class="stat-label">Active Users</span>
+              <span class="stat-label">{{ t('activeUsers') }}</span>
             </div>
           </div>
         </mat-card-content>
@@ -46,7 +46,7 @@
             <mat-icon class="stat-icon deleted">delete</mat-icon>
             <div class="stat-text">
               <span class="stat-value">{{ stats()!.deletedProjects }}</span>
-              <span class="stat-label">Deleted Projects</span>
+              <span class="stat-label">{{ t('deletedProjects') }}</span>
             </div>
           </div>
         </mat-card-content>
@@ -58,7 +58,7 @@
             <mat-icon class="stat-icon deleted">person_off</mat-icon>
             <div class="stat-text">
               <span class="stat-value">{{ stats()!.deletedUsers }}</span>
-              <span class="stat-label">Deleted Users</span>
+              <span class="stat-label">{{ t('deletedUsers') }}</span>
             </div>
           </div>
         </mat-card-content>
@@ -68,23 +68,23 @@
     <!-- Recent Projects -->
     <mat-card class="section-card">
       <mat-card-header>
-        <mat-card-title>Recent Projects</mat-card-title>
+        <mat-card-title>{{ t('recentProjects') }}</mat-card-title>
         <div class="card-header-actions">
-          <a mat-button routerLink="/admin/projects">View all</a>
+          <a mat-button routerLink="/admin/projects">{{ t('viewAll') }}</a>
         </div>
       </mat-card-header>
       <mat-card-content>
         <table mat-table [dataSource]="stats()!.recentProjects" class="full-width-table">
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <th mat-header-cell *matHeaderCellDef>{{ t('name') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.name }}</td>
           </ng-container>
           <ng-container matColumnDef="createdBy">
-            <th mat-header-cell *matHeaderCellDef>Created By</th>
+            <th mat-header-cell *matHeaderCellDef>{{ t('createdBy') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.createdByDisplayName ?? '—' }}</td>
           </ng-container>
           <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef>Created At</th>
+            <th mat-header-cell *matHeaderCellDef>{{ t('createdAt') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="recentProjectColumns"></tr>
@@ -96,23 +96,23 @@
     <!-- Recent Users -->
     <mat-card class="section-card">
       <mat-card-header>
-        <mat-card-title>Recent Users</mat-card-title>
+        <mat-card-title>{{ t('recentUsers') }}</mat-card-title>
         <div class="card-header-actions">
-          <a mat-button routerLink="/admin/users">View all</a>
+          <a mat-button routerLink="/admin/users">{{ t('viewAll') }}</a>
         </div>
       </mat-card-header>
       <mat-card-content>
         <table mat-table [dataSource]="stats()!.recentUsers" class="full-width-table">
           <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <th mat-header-cell *matHeaderCellDef>{{ t('name') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
           </ng-container>
           <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <th mat-header-cell *matHeaderCellDef>{{ t('email') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.email }}</td>
           </ng-container>
           <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef>Created At</th>
+            <th mat-header-cell *matHeaderCellDef>{{ t('createdAt') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="recentUserColumns"></tr>

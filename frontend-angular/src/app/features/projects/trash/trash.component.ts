@@ -4,7 +4,7 @@ import {
   ChangeDetectorRef, signal
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,6 +17,8 @@ import { RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectsDataSource } from '../projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
@@ -38,9 +40,11 @@ import { Project } from '@core/models/project';
     RouterLink,
     ReactiveFormsModule,
     DatePipe,
-    AuroraComponent
+    AuroraComponent,
+    TranslocoDirective
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
 })
 export class TrashComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -50,6 +54,7 @@ export class TrashComponent implements OnInit, AfterViewInit {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
+  private transloco = inject(TranslocoService);
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -102,9 +107,17 @@ export class TrashComponent implements OnInit, AfterViewInit {
         this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
         this.dataSource.triggerUpdate();
         this.cdr.markForCheck();
-        this.snackBar.open('Project restored.', 'Close', { duration: 3000 });
+        this.snackBar.open(
+          this.transloco.translate('projects.notifications.restored'),
+          this.transloco.translate('common.actions.close'),
+          { duration: 3000 },
+        );
       },
-      error: () => this.snackBar.open('Failed to restore project.', 'Close', { duration: 5000 })
+      error: () => this.snackBar.open(
+        this.transloco.translate('projects.notifications.restoreFailed'),
+        this.transloco.translate('common.actions.close'),
+        { duration: 5000 },
+      )
     });
   }
 }
