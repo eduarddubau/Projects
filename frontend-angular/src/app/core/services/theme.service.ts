@@ -1,5 +1,6 @@
 import { DOCUMENT, Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { prefersReducedMotion, startViewTransition } from '@core/utils/view-transition';
 
 export type Theme = 'light' | 'dark';
 
@@ -39,15 +40,13 @@ export class ThemeService {
       return;
     }
 
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const doc = this.document as Document & {
-      startViewTransition?: (update: () => void) => { ready: Promise<void> };
-    };
-
-    if (theme === this.theme() || reduceMotion) {
+    if (theme === this.theme() || prefersReducedMotion()) {
       this.apply(theme);
-    } else if (doc.startViewTransition) {
-      const transition = doc.startViewTransition(() => this.apply(theme));
+      return;
+    }
+
+    const transition = startViewTransition(this.document, () => this.apply(theme));
+    if (transition) {
       if (origin) {
         transition.ready.then(() => this.animateReveal(origin));
       }
