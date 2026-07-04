@@ -7,6 +7,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 import { prefersReducedMotion, startViewTransition } from '@core/utils/view-transition';
+import { ThemeService } from '@core/services/theme.service';
 
 export type Lang = 'en' | 'ro';
 
@@ -29,6 +30,7 @@ export class LanguageService {
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private request = inject(REQUEST, { optional: true });
   private transloco = inject(TranslocoService);
+  private themeService = inject(ThemeService);
   private appRef = inject(ApplicationRef);
   private title = inject(Title);
   private meta = inject(Meta);
@@ -58,19 +60,54 @@ export class LanguageService {
     // Warm the dictionary so the transition's update callback never waits on IO.
     await firstValueFrom(this.transloco.load(lang));
 
+    if (prefersReducedMotion()) {
+      this.apply(lang);
+      return;
+    }
+
     // The callback must not resolve until the re-render lands, so the "new"
-    // snapshot the browser animates to already shows the translated DOM.
+    // snapshot the browser animates to already shows the translated DOM. The
+    // flag bloom runs inside it: the new snapshot is live, so the overlay's
+    // animation shows through the crossfade.
     const update = async () => {
       this.apply(lang);
+      this.flashFlag(lang);
       await this.appRef.whenStable();
     };
 
-    const transition = !prefersReducedMotion() && startViewTransition(this.document, update);
+    const transition = startViewTransition(this.document, update);
     if (transition) {
       transition.ready.then(() => this.animateCrossfade());
     } else {
       await update();
     }
+  }
+
+  // Blooms the destination flag over the page while the crossfade runs,
+  // then dissolves it as the new language settles.
+  private flashFlag(lang: Lang): void {
+    const flag = LANGUAGES.find((l) => l.id === lang)?.flag;
+    if (!flag) return;
+
+    const img = this.document.createElement('img');
+    img.src = flag;
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    img.className = 'lang-flag-flash';
+    this.document.body.appendChild(img);
+
+    // Dark surfaces swallow low-alpha overlays, so the peak is theme-aware.
+    const peak = this.themeService.theme() === 'dark' ? 0.3 : 0.15;
+    const animation = img.animate(
+      [
+        { opacity: 0, transform: 'scale(1.08)' },
+        { opacity: peak, transform: 'scale(1.03)', offset: 0.25 },
+        { opacity: peak, transform: 'scale(1.01)', offset: 0.55 },
+        { opacity: 0, transform: 'scale(1)' },
+      ],
+      { duration: 1100, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    );
+    animation.onfinish = animation.oncancel = () => img.remove();
   }
 
   private apply(lang: Lang): void {

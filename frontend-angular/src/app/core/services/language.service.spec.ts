@@ -1,7 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { PLATFORM_ID, REQUEST } from '@angular/core';
+import { PLATFORM_ID, REQUEST, signal } from '@angular/core';
 import { LanguageService } from './language.service';
+import { ThemeService } from './theme.service';
 import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
+
+// The real ThemeService touches window.matchMedia, which jsdom lacks.
+const themeStub = { provide: ThemeService, useValue: { theme: signal('light') } };
 
 function clearLangCookie(): void {
   document.cookie = 'lang=; path=/; max-age=0';
@@ -17,7 +21,7 @@ describe('LanguageService', () => {
 
   describe('in the browser', () => {
     function create(): LanguageService {
-      TestBed.configureTestingModule({ providers: [provideTranslocoTesting()] });
+      TestBed.configureTestingModule({ providers: [provideTranslocoTesting(), themeStub] });
       return TestBed.inject(LanguageService);
     }
 
@@ -52,6 +56,7 @@ describe('LanguageService', () => {
       TestBed.configureTestingModule({
         providers: [
           provideTranslocoTesting(),
+          themeStub,
           { provide: PLATFORM_ID, useValue: 'server' },
           { provide: REQUEST, useValue: serverRequest(headers) },
         ],

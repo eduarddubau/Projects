@@ -396,6 +396,19 @@ table.mat-mdc-table {
   mix-blend-mode: normal;
 }
 
+// Destination-language flag bloom during a language switch (created and
+// animated by LanguageService; crisp on purpose — soft edges would band).
+.lang-flag-flash {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+}
+
 // Fallback for browsers without the View Transitions API: colors blend
 // briefly instead of snapping. The class lives on <html> only mid-switch.
 html.theme-transition *,
