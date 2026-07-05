@@ -29,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           next(req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } }))
         ),
         catchError(refreshError => {
-          authService.logout();
+          authService.logout('/login');
           return throwError(() => refreshError);
         })
       );

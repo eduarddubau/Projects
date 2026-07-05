@@ -23,7 +23,7 @@ test.describe('Auth token lifecycle', () => {
     await page.getByRole('button', { name: 'Dev dev2@example.com' }).click();
     await page.getByRole('menuitem', { name: 'Sign Out' }).click();
     await revoke;
-    await page.waitForURL((url) => url.pathname.startsWith('/login'));
+    await page.waitForURL((url) => url.pathname === '/');
 
     const cleared = await page.evaluate(() => ({
       access: localStorage.getItem('authToken'),
