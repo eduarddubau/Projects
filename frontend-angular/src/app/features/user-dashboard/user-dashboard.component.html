@@ -5,8 +5,11 @@
     <span class="avatar-circle dash-avatar" aria-hidden="true">{{ initials() }}</span>
     <div class="dash-heading">
       <h1 class="page-title">{{ t(greetingKey(), { name: currentUser()?.firstName ?? '' }) }}</h1>
-      <p class="page-subtitle">{{ t('userDashboard.subtitle') }}</p>
+      <p class="page-subtitle">{{ t(taglineKey()) }}</p>
     </div>
+
+    <app-weather-widget (loaded)="onWeatherLoaded($event)"></app-weather-widget>
+
     <div class="dash-actions">
       <span class="role-chip" [class.admin]="isAdmin()">
         {{ t(isAdmin() ? 'profile.roleAdmin' : 'profile.roleUser') }}

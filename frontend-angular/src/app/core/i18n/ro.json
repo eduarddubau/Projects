@@ -180,11 +180,24 @@
     }
   },
   "userDashboard": {
-    "subtitle": "Proiectele tale dintr-o privire.",
     "greeting": {
       "morning": "Bună dimineața, {{name}}",
       "afternoon": "Bună ziua, {{name}}",
       "evening": "Bună seara, {{name}}"
+    },
+    "taglines": {
+      "morning": "Profită de zi",
+      "afternoon": "Menține ritmul",
+      "evening": "Relaxează-te, ai meritat-o",
+      "weather": {
+        "clear": "Bucură-te de soare",
+        "clearNight": "Cer senin la noapte",
+        "cloudy": "Cer înnorat, minte limpede",
+        "fog": "Străbate ceața cu calm",
+        "rain": "Fă-te comod, plouă",
+        "snow": "Îmbracă-te gros, ninge",
+        "storm": "Vine o furtună"
+      }
     },
     "loading": "Se încarcă tabloul de bord...",
     "loadFailed": "Datele tabloului de bord nu au putut fi încărcate.",
@@ -225,6 +238,25 @@
     "notifications": {
       "updated": "Profilul a fost actualizat.",
       "updateFailed": "Profilul nu a putut fi actualizat."
+    }
+  },
+  "weather": {
+    "conditions": {
+      "clear": "Cer senin",
+      "mostlyClear": "Predominant senin",
+      "partlyCloudy": "Parțial înnorat",
+      "overcast": "Înnorat",
+      "fog": "Ceață",
+      "drizzle": "Burniță",
+      "freezingDrizzle": "Burniță înghețată",
+      "rain": "Ploaie",
+      "freezingRain": "Ploaie înghețată",
+      "showers": "Averse de ploaie",
+      "snow": "Ninsoare",
+      "snowShowers": "Averse de ninsoare",
+      "thunderstorm": "Furtună",
+      "thunderstormHail": "Furtună cu grindină",
+      "unknown": "Necunoscut"
     }
   },
   "projects": {

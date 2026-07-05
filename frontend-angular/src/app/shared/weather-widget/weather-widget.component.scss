@@ -1,0 +1,51 @@
+// A flex item in the dashboard header; collapses to nothing when empty.
+:host {
+  display: flex;
+  align-items: center;
+}
+
+.weather {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.weather-icon {
+  flex: 0 0 auto;
+  // The white cloud bodies vanish on the light header; a thin dark halo plus a
+  // soft drop give them an edge without any card chrome. Harmless on dark.
+  filter: drop-shadow(0 0 1px rgba(2, 6, 23, 0.45))
+          drop-shadow(0 1px 2px rgba(2, 6, 23, 0.22));
+}
+
+.weather-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.weather-line {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.weather-temp {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--mat-sys-on-surface);
+}
+
+.weather-condition {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+  white-space: nowrap;
+}
+
+.weather-location {
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+}

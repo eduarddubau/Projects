@@ -53,6 +53,10 @@ describe('UserDashboardComponent', () => {
     fixture = TestBed.createComponent(UserDashboardComponent);
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
+    // The embedded weather widget self-fetches on init; fail it fast so it
+    // leaves no open request for verify(). It's covered by its own spec.
+    httpMock.match('https://ipwho.is/').forEach((r) => r.error(new ProgressEvent('offline')));
   });
 
   afterEach(() => httpMock.verify());

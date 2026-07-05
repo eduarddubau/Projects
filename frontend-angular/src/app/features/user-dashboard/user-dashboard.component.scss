@@ -27,6 +27,12 @@
     }
   }
 
+  app-weather-widget {
+    // Centred in the gap between the greeting and the actions: this auto margin
+    // and the one on .dash-actions split the free space evenly between them.
+    margin-left: auto;
+  }
+
   .dash-actions {
     margin-left: auto;
     flex: 0 0 auto;
@@ -36,6 +42,13 @@
 
     .role-chip {
       margin-top: 0;
+    }
+  }
+
+  @media (max-width: 860px) {
+    // Not enough room to sit three groups across; drop the ornament.
+    app-weather-widget {
+      display: none;
     }
   }
 

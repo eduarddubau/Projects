@@ -180,11 +180,24 @@
     }
   },
   "userDashboard": {
-    "subtitle": "Your projects at a glance.",
     "greeting": {
       "morning": "Good morning, {{name}}",
       "afternoon": "Good afternoon, {{name}}",
       "evening": "Good evening, {{name}}"
+    },
+    "taglines": {
+      "morning": "Seize the day",
+      "afternoon": "Keep the momentum going",
+      "evening": "Wind down, you've earned it",
+      "weather": {
+        "clear": "Soak up the sunshine",
+        "clearNight": "Clear skies tonight",
+        "cloudy": "Grey skies, clear focus",
+        "fog": "Ease through the haze",
+        "rain": "Cosy up, it's raining",
+        "snow": "Bundle up, it's snowing",
+        "storm": "A storm's rolling in"
+      }
     },
     "loading": "Loading dashboard...",
     "loadFailed": "Failed to load dashboard data.",
@@ -225,6 +238,25 @@
     "notifications": {
       "updated": "Profile updated.",
       "updateFailed": "Failed to update profile."
+    }
+  },
+  "weather": {
+    "conditions": {
+      "clear": "Clear sky",
+      "mostlyClear": "Mainly clear",
+      "partlyCloudy": "Partly cloudy",
+      "overcast": "Overcast",
+      "fog": "Fog",
+      "drizzle": "Drizzle",
+      "freezingDrizzle": "Freezing drizzle",
+      "rain": "Rain",
+      "freezingRain": "Freezing rain",
+      "showers": "Rain showers",
+      "snow": "Snow",
+      "snowShowers": "Snow showers",
+      "thunderstorm": "Thunderstorm",
+      "thunderstormHail": "Thunderstorm with hail",
+      "unknown": "Unknown"
     }
   },
   "projects": {

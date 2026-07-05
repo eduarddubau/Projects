@@ -15,8 +15,10 @@ import { DashboardService } from '@core/services/dashboard.service';
 import { AuthService } from '@core/services/auth.service';
 import { LanguageService } from '@core/services/language.service';
 import { UserDashboard } from '@core/models/user-dashboard';
+import { CurrentWeather } from '@core/models/weather';
 import { Project } from '@core/models/project';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
+import { WeatherWidgetComponent } from '@shared/weather-widget/weather-widget.component';
 
 @Component({
   selector: 'app-user-dashboard',
@@ -31,6 +33,7 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatProgressSpinnerModule,
     MatTableModule,
     AuroraComponent,
+    WeatherWidgetComponent,
     TranslocoDirective
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -59,12 +62,25 @@ export class UserDashboardComponent implements OnInit {
     return `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
   });
 
-  // Greeting keyed to local time of day; resolved once per page load.
-  greetingKey = computed(() => {
+  weather = signal<CurrentWeather | null>(null);
+
+  // Local part of day; drives the greeting and the fallback tagline. No signal
+  // deps, so it resolves once per page load.
+  private partOfDay = computed(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'userDashboard.greeting.morning';
-    if (hour < 18) return 'userDashboard.greeting.afternoon';
-    return 'userDashboard.greeting.evening';
+    if (hour < 12) return 'morning';
+    if (hour < 18) return 'afternoon';
+    return 'evening';
+  });
+
+  greetingKey = computed(() => `userDashboard.greeting.${this.partOfDay()}`);
+
+  // A weather-mood line once the widget reports in, else a time-of-day one.
+  taglineKey = computed(() => {
+    const weather = this.weather();
+    return weather && weather.conditionKey !== 'unknown'
+      ? `userDashboard.taglines.weather.${weatherMood(weather)}`
+      : `userDashboard.taglines.${this.partOfDay()}`;
   });
 
   recentColumns = ['name', 'lastActivity'];
@@ -86,11 +102,41 @@ export class UserDashboardComponent implements OnInit {
       });
   }
 
+  onWeatherLoaded(weather: CurrentWeather): void {
+    this.weather.set(weather);
+    this.cdr.markForCheck();
+  }
+
   openProject(project: Project): void {
     this.router.navigate(['/projects', project.id]);
   }
 
   lastActivity(project: Project): string {
     return project.updatedAt ?? project.createdAt;
+  }
+}
+
+// Coarse mood bucket the tagline copy keys off; clear splits by day/night.
+function weatherMood(weather: CurrentWeather): string {
+  switch (weather.conditionKey) {
+    case 'clear':
+    case 'mostlyClear':
+      return weather.isDay ? 'clear' : 'clearNight';
+    case 'fog':
+      return 'fog';
+    case 'drizzle':
+    case 'freezingDrizzle':
+    case 'rain':
+    case 'freezingRain':
+    case 'showers':
+      return 'rain';
+    case 'snow':
+    case 'snowShowers':
+      return 'snow';
+    case 'thunderstorm':
+    case 'thunderstormHail':
+      return 'storm';
+    default:
+      return 'cloudy';
   }
 }
