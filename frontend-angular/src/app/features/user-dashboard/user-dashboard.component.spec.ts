@@ -68,7 +68,7 @@ describe('UserDashboardComponent', () => {
     expect(text).toContain('Rocket Plans');
   });
 
-  it('shows the account card for the signed-in user', () => {
+  it('greets the signed-in user in the header with role and profile link', () => {
     TestBed.inject(AuthService).currentUser.set({
       id: '1',
       email: 'dev@example.com',
@@ -79,8 +79,10 @@ describe('UserDashboardComponent', () => {
     httpMock.expectOne(`${apiUrl}/dashboard`).flush(sampleDashboard);
     fixture.detectChanges();
 
+    const title = (fixture.nativeElement as HTMLElement).querySelector('.page-title');
+    expect(title?.textContent).toContain('Dev');
+
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('dev@example.com');
     expect(text).toContain('Member');
     expect(text).toContain('View profile');
   });

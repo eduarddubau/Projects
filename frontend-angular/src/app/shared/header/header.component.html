@@ -1,6 +1,6 @@
 <ng-container *transloco="let t; prefix: 'header'">
 <header class="app-header">
-  <a routerLink="/" class="brand">
+  <a [routerLink]="isAuthenticated() ? '/dashboard' : '/'" class="brand">
     <span class="brand-mark" aria-hidden="true">
       <mat-icon>layers</mat-icon>
     </span>

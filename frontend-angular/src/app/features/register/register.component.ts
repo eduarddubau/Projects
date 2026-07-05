@@ -107,7 +107,7 @@ export class RegisterComponent {
           this.transloco.translate('common.actions.close'),
           { duration: 3000 },
         );
-        this.router.navigate(['/projects']);
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.isLoading.set(false);

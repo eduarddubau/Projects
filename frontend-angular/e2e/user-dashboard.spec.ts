@@ -11,17 +11,18 @@ test.describe('User dashboard', () => {
     await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 
     await page.getByRole('link', { name: 'Dashboard' }).click();
-    await expect(page.getByRole('heading', { name: 'Dashboard', exact: true })).toBeVisible();
+    await page.waitForURL(/\/dashboard$/);
+    // The H1 is a time-of-day greeting that includes the user's first name.
+    await expect(page.locator('.page-title')).toContainText('Dev');
   });
 
-  test('shows stat tiles and the account card', async ({ page }) => {
+  test('shows the personalized header and stat tiles', async ({ page }) => {
+    await expect(page.locator('.role-chip', { hasText: 'Member' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'View profile' })).toBeVisible();
+
     await expect(page.locator('.stat-card', { hasText: 'Active Projects' })).toBeVisible();
     await expect(page.locator('.stat-card', { hasText: 'In Trash' })).toBeVisible();
     await expect(page.locator('.stat-card', { hasText: 'Last activity' })).toBeVisible();
-
-    const accountCard = page.locator('.account-card');
-    await expect(accountCard.getByText('dev3@example.com')).toBeVisible();
-    await expect(accountCard.getByText('Member')).toBeVisible();
   });
 
   test('opens a recent project from the list', async ({ page }) => {
@@ -38,5 +39,14 @@ test.describe('User dashboard', () => {
     await page.getByRole('link', { name: 'View profile' }).click();
 
     await expect(page.getByRole('heading', { name: 'My Profile' })).toBeVisible();
+  });
+
+  test('New Project button opens the create dialog on the projects page', async ({ page }) => {
+    await page.getByRole('link', { name: 'New Project' }).click();
+
+    await expect(page).toHaveURL(/\/projects/);
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByLabel('Name')).toBeVisible();
   });
 });

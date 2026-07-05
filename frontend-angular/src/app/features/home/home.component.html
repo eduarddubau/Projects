@@ -18,22 +18,12 @@
       </p>
 
       <div class="cta-row">
-        @if (isAuthenticated()) {
-          <a mat-flat-button routerLink="/projects" class="cta">
-            <mat-icon>folder</mat-icon>
-            {{ t('hero.goToProjects') }}
-          </a>
-          <span class="welcome-back">
-            {{ t('hero.welcomeBack', { name: currentUser()?.firstName }) }}
-          </span>
-        } @else {
-          <a mat-flat-button routerLink="/register" class="cta">
-            {{ t('hero.getStartedFree') }}
-          </a>
-          <a mat-stroked-button routerLink="/login" class="cta">
-            {{ t('hero.signIn') }}
-          </a>
-        }
+        <a mat-flat-button routerLink="/register" class="cta">
+          {{ t('hero.getStartedFree') }}
+        </a>
+        <a mat-stroked-button routerLink="/login" class="cta">
+          {{ t('hero.signIn') }}
+        </a>
       </div>
     </div>
 
@@ -89,17 +79,15 @@
   </section>
 
   <!-- Closing CTA -->
-  @if (!isAuthenticated()) {
-    <section class="closing">
-      <div class="closing-panel">
-        <h2>{{ t('closing.title') }}</h2>
-        <p>{{ t('closing.subtitle') }}</p>
-        <a mat-flat-button routerLink="/register" class="cta">
-          {{ t('closing.cta') }}
-        </a>
-      </div>
-    </section>
-  }
+  <section class="closing">
+    <div class="closing-panel">
+      <h2>{{ t('closing.title') }}</h2>
+      <p>{{ t('closing.subtitle') }}</p>
+      <a mat-flat-button routerLink="/register" class="cta">
+        {{ t('closing.cta') }}
+      </a>
+    </div>
+  </section>
 
   <footer class="landing-footer">
     <span class="footer-brand">{{ appName }}</span>

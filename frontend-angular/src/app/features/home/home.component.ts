@@ -1,5 +1,6 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, OnInit, PLATFORM_ID, ChangeDetectionStrategy } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -18,14 +19,13 @@ interface Feature {
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './home.component.scss',
 })
-export class HomeComponent {
+export class HomeComponent implements OnInit {
   private authService = inject(AuthService);
+  private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   appName = APP_NAME;
   currentYear = new Date().getFullYear();
-
-  isAuthenticated = this.authService.isAuthenticated;
-  currentUser = this.authService.currentUser;
 
   features: Feature[] = [
     { icon: 'folder_open', key: 'organize' },
@@ -33,4 +33,12 @@ export class HomeComponent {
     { icon: 'restore_from_trash', key: 'nothingLost' },
     { icon: 'shield', key: 'secure' },
   ];
+
+  ngOnInit(): void {
+    // The landing is for visitors; signed-in users get the app home. Auth state
+    // isn't known during SSR, so this resolves client-side after hydration.
+    if (isPlatformBrowser(this.platformId) && this.authService.isAuthenticated()) {
+      this.router.navigateByUrl('/dashboard');
+    }
+  }
 }

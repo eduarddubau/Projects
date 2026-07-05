@@ -63,8 +63,6 @@
       "title": "Gestionează-ți proiectele,",
       "titleAccent": "fără muncă de prisos.",
       "subtitle": "{{app}} oferă echipei tale un spațiu curat și rapid pentru tot ce construiți — cu control al accesului, ștergere sigură și securitate gândită din prima zi.",
-      "goToProjects": "Mergi la proiectele tale",
-      "welcomeBack": "Bine ai revenit, {{name}}.",
       "getStartedFree": "Începe acum — e gratuit",
       "signIn": "Conectează-te"
     },
@@ -166,8 +164,12 @@
     }
   },
   "userDashboard": {
-    "title": "Tablou de bord",
     "subtitle": "Proiectele tale dintr-o privire.",
+    "greeting": {
+      "morning": "Bună dimineața, {{name}}",
+      "afternoon": "Bună ziua, {{name}}",
+      "evening": "Bună seara, {{name}}"
+    },
     "loading": "Se încarcă tabloul de bord...",
     "loadFailed": "Datele tabloului de bord nu au putut fi încărcate.",
     "stats": {
@@ -183,7 +185,6 @@
       "empty": "Niciun proiect încă — creează-l pe primul."
     },
     "account": {
-      "title": "Cont",
       "viewProfile": "Vezi profilul"
     }
   },

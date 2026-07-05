@@ -1,9 +1,21 @@
 <app-aurora></app-aurora>
 
 <div class="page-container dashboard-container" *transloco="let t">
-  <header class="page-header-stack">
-    <h1 class="page-title">{{ t('userDashboard.title') }}</h1>
-    <p class="page-subtitle">{{ t('userDashboard.subtitle') }}</p>
+  <header class="dash-header">
+    <span class="avatar-circle dash-avatar" aria-hidden="true">{{ initials() }}</span>
+    <div class="dash-heading">
+      <h1 class="page-title">{{ t(greetingKey(), { name: currentUser()?.firstName ?? '' }) }}</h1>
+      <p class="page-subtitle">{{ t('userDashboard.subtitle') }}</p>
+    </div>
+    <div class="dash-actions">
+      <span class="role-chip" [class.admin]="isAdmin()">
+        {{ t(isAdmin() ? 'profile.roleAdmin' : 'profile.roleUser') }}
+      </span>
+      <a mat-stroked-button routerLink="/profile">
+        <mat-icon>person</mat-icon>
+        {{ t('userDashboard.account.viewProfile') }}
+      </a>
+    </div>
   </header>
 
   @if (isLoading()) {
@@ -57,62 +69,38 @@
       </mat-card>
     </div>
 
-    <div class="dashboard-columns">
-      <mat-card class="section-card recent-card">
-        <mat-card-header>
-          <mat-card-title>{{ t('userDashboard.recent.title') }}</mat-card-title>
-          <div class="card-header-actions">
-            <a mat-button routerLink="/projects">{{ t('userDashboard.recent.viewAll') }}</a>
-          </div>
-        </mat-card-header>
-        <mat-card-content>
-          @if (d.recentProjects.length > 0) {
-            <table mat-table [dataSource]="d.recentProjects" class="full-width-table">
-              <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef>{{ t('userDashboard.recent.name') }}</th>
-                <td mat-cell *matCellDef="let row">{{ row.name }}</td>
-              </ng-container>
-              <ng-container matColumnDef="lastActivity">
-                <th mat-header-cell *matHeaderCellDef>{{ t('userDashboard.recent.lastActivity') }}</th>
-                <td mat-cell *matCellDef="let row">
-                  {{ lastActivity(row) | date:'mediumDate':undefined:dateLocale() }}
-                </td>
-              </ng-container>
-              <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
-              <tr mat-row class="clickable-row" *matRowDef="let row; columns: recentColumns"
-                  (click)="openProject(row)"></tr>
-            </table>
-          } @else {
-            <p class="empty-hint">{{ t('userDashboard.recent.empty') }}</p>
-          }
-        </mat-card-content>
-      </mat-card>
-
-      @if (currentUser(); as user) {
-        <mat-card class="section-card account-card">
-          <mat-card-header>
-            <mat-card-title>{{ t('userDashboard.account.title') }}</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="account-row">
-              <span class="avatar-circle account-avatar" aria-hidden="true">{{ initials() }}</span>
-              <div class="account-lines">
-                <strong>{{ user.firstName }} {{ user.lastName }}</strong>
-                <small>{{ user.email }}</small>
-              </div>
-            </div>
-            <span class="role-chip" [class.admin]="isAdmin()">
-              {{ t(isAdmin() ? 'profile.roleAdmin' : 'profile.roleUser') }}
-            </span>
-          </mat-card-content>
-          <mat-card-actions>
-            <a mat-stroked-button routerLink="/profile">
-              <mat-icon>person</mat-icon>
-              {{ t('userDashboard.account.viewProfile') }}
-            </a>
-          </mat-card-actions>
-        </mat-card>
-      }
-    </div>
+    <mat-card class="section-card recent-card">
+      <mat-card-header>
+        <mat-card-title>{{ t('userDashboard.recent.title') }}</mat-card-title>
+        <div class="card-header-actions">
+          <a mat-stroked-button routerLink="/projects" [queryParams]="{ new: 1 }">
+            <mat-icon>add</mat-icon>
+            {{ t('projects.list.newProject') }}
+          </a>
+          <a mat-button routerLink="/projects">{{ t('userDashboard.recent.viewAll') }}</a>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        @if (d.recentProjects.length > 0) {
+          <table mat-table [dataSource]="d.recentProjects" class="full-width-table">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>{{ t('userDashboard.recent.name') }}</th>
+              <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+            </ng-container>
+            <ng-container matColumnDef="lastActivity">
+              <th mat-header-cell *matHeaderCellDef>{{ t('userDashboard.recent.lastActivity') }}</th>
+              <td mat-cell *matCellDef="let row">
+                {{ lastActivity(row) | date:'mediumDate':undefined:dateLocale() }}
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
+            <tr mat-row class="clickable-row" *matRowDef="let row; columns: recentColumns"
+                (click)="openProject(row)"></tr>
+          </table>
+        } @else {
+          <p class="empty-hint">{{ t('userDashboard.recent.empty') }}</p>
+        }
+      </mat-card-content>
+    </mat-card>
   }
 </div>

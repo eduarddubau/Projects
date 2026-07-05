@@ -63,8 +63,6 @@
       "title": "Manage your projects,",
       "titleAccent": "without the busywork.",
       "subtitle": "{{app}} gives your team a clean, fast home for everything you're building — with access control, safe deletion, and security designed in from day one.",
-      "goToProjects": "Go to your projects",
-      "welcomeBack": "Welcome back, {{name}}.",
       "getStartedFree": "Get started — it's free",
       "signIn": "Sign in"
     },
@@ -166,8 +164,12 @@
     }
   },
   "userDashboard": {
-    "title": "Dashboard",
     "subtitle": "Your projects at a glance.",
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
     "loading": "Loading dashboard...",
     "loadFailed": "Failed to load dashboard data.",
     "stats": {
@@ -183,7 +185,6 @@
       "empty": "No projects yet — create your first one."
     },
     "account": {
-      "title": "Account",
       "viewProfile": "View profile"
     }
   },

@@ -1,7 +1,7 @@
 import {
   AfterViewInit, Component, ViewChild, inject,
   DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, signal
+  ChangeDetectorRef, signal, afterNextRender
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -12,7 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
@@ -56,6 +56,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
 
   private projectService = inject(ProjectService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
@@ -68,6 +69,17 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   dataSource = new ProjectsDataSource();
   displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
   searchControl = new FormControl('');
+
+  constructor() {
+    // Deep link from the dashboard's "New Project" button: open the create
+    // dialog on arrival, then drop the flag so a reload won't reopen it.
+    afterNextRender(() => {
+      if (this.route.snapshot.queryParamMap.has('new')) {
+        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+        this.openCreateDialog();
+      }
+    });
+  }
 
   ngOnInit() {
     this.projectService.getMyProjects()

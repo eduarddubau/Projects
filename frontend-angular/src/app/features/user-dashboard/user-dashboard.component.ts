@@ -59,6 +59,14 @@ export class UserDashboardComponent implements OnInit {
     return `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
   });
 
+  // Greeting keyed to local time of day; resolved once per page load.
+  greetingKey = computed(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'userDashboard.greeting.morning';
+    if (hour < 18) return 'userDashboard.greeting.afternoon';
+    return 'userDashboard.greeting.evening';
+  });
+
   recentColumns = ['name', 'lastActivity'];
 
   ngOnInit(): void {
