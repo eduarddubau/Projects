@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { Observable, of, throwError } from 'rxjs';
 import { authInterceptor } from './auth.interceptor';
 import { AuthService } from '@core/services/auth.service';
+import { API_URL } from '@core/tokens/app.tokens';
 
 describe('authInterceptor', () => {
   let http: HttpClient;
@@ -31,6 +32,7 @@ describe('authInterceptor', () => {
         provideHttpClient(withInterceptors([authInterceptor])),
         provideHttpClientTesting(),
         { provide: AuthService, useValue: auth },
+        { provide: API_URL, useValue: '/api' },
       ],
     });
     http = TestBed.inject(HttpClient);
@@ -90,5 +92,13 @@ describe('authInterceptor', () => {
 
     expect(auth.loggedOut).toBe(true);
     expect(errored).toBe(true);
+  });
+
+  it('never leaks the token to third-party hosts', () => {
+    http.get('https://ipwho.is/').subscribe();
+
+    const req = httpMock.expectOne('https://ipwho.is/');
+    expect(req.request.headers.has('Authorization')).toBe(false);
+    req.flush({});
   });
 });
