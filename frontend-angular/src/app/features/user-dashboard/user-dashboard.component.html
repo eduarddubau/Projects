@@ -73,7 +73,7 @@
       <mat-card-header>
         <mat-card-title>{{ t('userDashboard.recent.title') }}</mat-card-title>
         <div class="card-header-actions">
-          <a mat-stroked-button routerLink="/projects" [queryParams]="{ new: 1 }">
+          <a mat-flat-button routerLink="/projects" [queryParams]="{ new: 1 }">
             <mat-icon>add</mat-icon>
             {{ t('projects.list.newProject') }}
           </a>

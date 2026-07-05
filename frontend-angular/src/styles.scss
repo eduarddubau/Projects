@@ -241,7 +241,6 @@ a { color: var(--mat-sys-primary); }
   background: var(--mat-sys-surface-container-lowest);
   border: var(--app-hairline);
   border-radius: var(--app-radius-card);
-  box-shadow: var(--app-shadow-card);
   overflow: hidden;
 }
 
@@ -515,7 +514,6 @@ html.theme-transition *::after {
 .section-card {
   background: var(--mat-sys-surface-container-lowest);
   border: var(--app-hairline);
-  box-shadow: var(--app-shadow-card);
 
   mat-card-header {
     display: flex;
