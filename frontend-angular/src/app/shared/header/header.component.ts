@@ -9,6 +9,7 @@ import { TranslocoDirective, TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '@core/services/auth.service';
 import { HealthService } from '@core/services/health.service';
 import { ThemeService } from '@core/services/theme.service';
+import { PaletteService, PALETTES, PALETTE_PREVIEWS, Palette } from '@core/services/palette.service';
 import { HealthStatus } from '@core/models/health-status';
 import { APP_NAME } from '@core/tokens/app.tokens';
 import { LanguageSwitcherComponent } from '@shared/language-switcher/language-switcher.component';
@@ -36,6 +37,7 @@ export class HeaderComponent {
   private authService = inject(AuthService);
   private healthService = inject(HealthService);
   private themeService = inject(ThemeService);
+  private paletteService = inject(PaletteService);
 
   appName = APP_NAME;
   currentUser = this.authService.currentUser;
@@ -52,6 +54,12 @@ export class HeaderComponent {
   });
 
   theme = this.themeService.theme;
+  palette = this.paletteService.palette;
+  schemes = PALETTES.map((id) => ({ id, preview: PALETTE_PREVIEWS[id] }));
+
+  setPalette(palette: Palette): void {
+    this.paletteService.set(palette);
+  }
 
   /** Flips the theme, centering the reveal animation on the toggle. */
   toggleTheme(event: MouseEvent): void {

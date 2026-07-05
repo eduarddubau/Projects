@@ -9,13 +9,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ProfileService } from '@core/services/profile.service';
 import { AuthService } from '@core/services/auth.service';
-import { LanguageService } from '@core/services/language.service';
+import { LANGUAGES, Lang, LanguageService } from '@core/services/language.service';
+import { ThemeService, Theme } from '@core/services/theme.service';
+import { PaletteService, PALETTES, PALETTE_PREVIEWS, Palette } from '@core/services/palette.service';
 import { Profile } from '@core/models/profile';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 
@@ -31,6 +34,7 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     DatePipe,
     AuroraComponent,
     TranslocoDirective
@@ -46,9 +50,18 @@ export class ProfileComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private transloco = inject(TranslocoService);
   private languageService = inject(LanguageService);
+  private themeService = inject(ThemeService);
+  private paletteService = inject(PaletteService);
 
   /** Locale for the date pipes; 'ro' locale data is registered in provideI18n. */
   dateLocale = computed(() => this.languageService.lang() === 'ro' ? 'ro' : 'en-US');
+
+  // Appearance settings mirror the header controls, gathered in one place.
+  theme = this.themeService.theme;
+  lang = this.languageService.lang;
+  languages = LANGUAGES;
+  palette = this.paletteService.palette;
+  schemes = PALETTES.map((id) => ({ id, preview: PALETTE_PREVIEWS[id] }));
 
   isLoading = signal(true);
   hasError = signal(false);
@@ -89,6 +102,18 @@ export class ProfileComponent implements OnInit {
           this.cdr.markForCheck();
         }
       });
+  }
+
+  setPalette(palette: Palette): void {
+    this.paletteService.set(palette);
+  }
+
+  setTheme(theme: Theme): void {
+    this.themeService.set(theme);
+  }
+
+  setLanguage(lang: Lang): void {
+    void this.languageService.set(lang);
   }
 
   startEdit(): void {

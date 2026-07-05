@@ -26,6 +26,22 @@
     "en": "English",
     "ro": "Română"
   },
+  "appearance": {
+    "title": "Aspect",
+    "colorScheme": "Schemă de culori",
+    "colorSchemeHint": "Se aplică în modul luminos și întunecat",
+    "theme": "Temă",
+    "light": "Luminos",
+    "dark": "Întunecat",
+    "language": "Limbă",
+    "schemes": {
+      "violet": "Violet",
+      "indigo": "Indigo",
+      "emerald": "Smarald",
+      "rose": "Roz",
+      "slate": "Ardezie"
+    }
+  },
   "header": {
     "nav": {
       "dashboard": "Tablou de bord",

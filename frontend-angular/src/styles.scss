@@ -73,6 +73,45 @@ html {
   scrollbar-color: color-mix(in srgb, var(--mat-sys-on-surface) 25%, transparent) transparent;
 }
 
+// ============================================================
+// Color schemes — selectable accent palettes (data-palette on <html>,
+// set by PaletteService + the index.html boot script). Only the accent
+// token families change; neutral surfaces stay shared. Default (no
+// attribute) keeps mat.theme's violet/cyan. Each value is a light-dark()
+// pair so every scheme works in both modes.
+// ============================================================
+html[data-palette='indigo'] {
+  --mat-sys-primary: light-dark(#4f46e5, #818cf8);
+  --mat-sys-on-primary: light-dark(#ffffff, #1e1b4b);
+  --mat-sys-primary-container: light-dark(#e0e7ff, #3730a3);
+  --mat-sys-on-primary-container: light-dark(#312e81, #e0e7ff);
+  --mat-sys-tertiary: light-dark(#0284c7, #38bdf8);
+}
+
+html[data-palette='emerald'] {
+  --mat-sys-primary: light-dark(#059669, #34d399);
+  --mat-sys-on-primary: light-dark(#ffffff, #022c22);
+  --mat-sys-primary-container: light-dark(#d1fae5, #065f46);
+  --mat-sys-on-primary-container: light-dark(#064e3b, #d1fae5);
+  --mat-sys-tertiary: light-dark(#0d9488, #2dd4bf);
+}
+
+html[data-palette='rose'] {
+  --mat-sys-primary: light-dark(#e11d48, #fb7185);
+  --mat-sys-on-primary: light-dark(#ffffff, #4c0519);
+  --mat-sys-primary-container: light-dark(#ffe4e6, #9f1239);
+  --mat-sys-on-primary-container: light-dark(#881337, #ffe4e6);
+  --mat-sys-tertiary: light-dark(#d97706, #fbbf24);
+}
+
+html[data-palette='slate'] {
+  --mat-sys-primary: light-dark(#475569, #94a3b8);
+  --mat-sys-on-primary: light-dark(#ffffff, #0f172a);
+  --mat-sys-primary-container: light-dark(#e2e8f0, #334155);
+  --mat-sys-on-primary-container: light-dark(#1e293b, #e2e8f0);
+  --mat-sys-tertiary: light-dark(#0e7490, #38bdf8);
+}
+
 body {
   background-color: var(--mat-sys-surface-container-low);
   // Texturing the canvas hides display-side artifacts (banding, panel tint
@@ -172,6 +211,59 @@ a { color: var(--mat-sys-primary); }
     overflow: hidden;
     text-overflow: ellipsis;
   }
+}
+
+// Color-scheme coins spread across the profile menu width (overlay content,
+// so styled globally).
+.mat-mdc-menu-panel .menu-schemes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px 12px;
+
+  .menu-swatch {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid var(--mat-sys-outline-variant);
+    cursor: pointer;
+    transition: box-shadow 0.12s ease, border-color 0.12s ease;
+
+    &:hover {
+      border-color: var(--mat-sys-on-surface-variant);
+    }
+
+    &.selected {
+      border-color: var(--mat-sys-on-surface);
+      box-shadow: 0 0 0 2px var(--mat-sys-surface-container),
+        0 0 0 3px var(--mat-sys-on-surface);
+    }
+  }
+}
+
+// The account menu leads with a colourful identity card that follows the active
+// scheme (noise-dithered so the soft tint doesn't band), then coloured actions.
+.mat-mdc-menu-panel.profile-menu {
+  .menu-user-info {
+    margin: 6px 8px;
+    padding: 14px;
+    border-radius: 12px;
+    background:
+      var(--app-noise),
+      linear-gradient(135deg,
+        color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface-container-high)),
+        color-mix(in srgb, var(--mat-sys-tertiary) 16%, var(--mat-sys-surface-container-high)));
+
+    .avatar-circle {
+      width: 42px;
+      height: 42px;
+      font-size: 0.95rem;
+    }
+  }
+
+  .menu-item-primary .mat-icon { color: var(--mat-sys-primary); }
+  .menu-item-signout .mat-icon { color: var(--mat-sys-error); }
 }
 
 // Gradient monogram used in the header, menus and auth pages.

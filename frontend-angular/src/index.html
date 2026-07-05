@@ -17,6 +17,8 @@
       try {
         var t = localStorage.getItem('theme');
         if (t === 'light' || t === 'dark') document.documentElement.dataset['theme'] = t;
+        var p = localStorage.getItem('palette');
+        if (p && p !== 'violet') document.documentElement.dataset['palette'] = p;
         var l = document.cookie.match(/(?:^|;\s*)lang=(en|ro)/);
         if (l) document.documentElement.lang = l[1];
       } catch (e) {}

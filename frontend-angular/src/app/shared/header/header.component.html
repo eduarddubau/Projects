@@ -116,7 +116,7 @@
   }
 </mat-menu>
 
-<mat-menu #profileMenu="matMenu" xPosition="before">
+<mat-menu #profileMenu="matMenu" xPosition="before" class="profile-menu">
   <div class="menu-user-info" (click)="$event.stopPropagation()">
     <span class="avatar-circle" aria-hidden="true">{{ initials() }}</span>
     <span class="info-lines">
@@ -124,32 +124,28 @@
       <small>{{ currentUser()?.email }}</small>
     </span>
   </div>
+  <div class="menu-schemes" role="radiogroup" [attr.aria-label]="'appearance.colorScheme' | transloco"
+       (click)="$event.stopPropagation()">
+    @for (s of schemes; track s.id) {
+      <button
+        type="button"
+        class="menu-swatch"
+        role="radio"
+        [class.selected]="palette() === s.id"
+        [attr.aria-checked]="palette() === s.id"
+        [attr.aria-label]="'appearance.schemes.' + s.id | transloco"
+        [matTooltip]="'appearance.schemes.' + s.id | transloco"
+        [style.background]="s.preview"
+        (click)="setPalette(s.id)">
+      </button>
+    }
+  </div>
   <mat-divider></mat-divider>
-  <button mat-menu-item routerLink="/dashboard">
-    <mat-icon>space_dashboard</mat-icon>
-    <span>{{ t('menu.dashboard') }}</span>
-  </button>
-  <button mat-menu-item routerLink="/profile">
+  <button mat-menu-item routerLink="/profile" class="menu-item-primary">
     <mat-icon>person</mat-icon>
     <span>{{ t('menu.profile') }}</span>
   </button>
-  <button mat-menu-item routerLink="/projects">
-    <mat-icon>folder</mat-icon>
-    <span>{{ t('menu.myProjects') }}</span>
-  </button>
-  <button mat-menu-item routerLink="/projects/trash">
-    <mat-icon>delete_outline</mat-icon>
-    <span>{{ t('menu.trash') }}</span>
-  </button>
-  @if (isAdmin()) {
-    <mat-divider></mat-divider>
-    <button mat-menu-item routerLink="/admin">
-      <mat-icon>admin_panel_settings</mat-icon>
-      <span>{{ t('menu.adminPanel') }}</span>
-    </button>
-  }
-  <mat-divider></mat-divider>
-  <button mat-menu-item (click)="logout()">
+  <button mat-menu-item (click)="logout()" class="menu-item-signout">
     <mat-icon>logout</mat-icon>
     <span>{{ t('menu.signOut') }}</span>
   </button>

@@ -26,6 +26,22 @@
     "en": "English",
     "ro": "Română"
   },
+  "appearance": {
+    "title": "Appearance",
+    "colorScheme": "Color scheme",
+    "colorSchemeHint": "Applies in light and dark",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "language": "Language",
+    "schemes": {
+      "violet": "Violet",
+      "indigo": "Indigo",
+      "emerald": "Emerald",
+      "rose": "Rose",
+      "slate": "Slate"
+    }
+  },
   "header": {
     "nav": {
       "dashboard": "Dashboard",

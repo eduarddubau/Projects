@@ -42,8 +42,7 @@ test.describe('My Projects CRUD', () => {
     await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
 
-    await page.getByRole('button', { name: 'Dev dev2@example.com' }).click();
-    await page.getByRole('menuitem', { name: 'Trash' }).click();
+    await page.getByRole('button', { name: 'Trash' }).click();
     await expect(page.getByRole('heading', { name: 'Trash' })).toBeVisible();
     const trashRow = page.locator('tr', { hasText: updatedName });
     await expect(trashRow).toBeVisible();

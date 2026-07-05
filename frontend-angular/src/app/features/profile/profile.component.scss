@@ -51,6 +51,118 @@
   }
 }
 
+.appearance {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: var(--app-hairline);
+
+  .appearance-title {
+    font: var(--mat-sys-title-small);
+    margin: 0 0 4px;
+  }
+}
+
+.appearance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+
+  & + .appearance-row {
+    border-top: var(--app-hairline);
+  }
+
+  .appearance-label-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .appearance-label {
+    font-weight: 600;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  .appearance-hint {
+    font-size: 0.8rem;
+    color: var(--mat-sys-on-surface-variant);
+    opacity: 0.75;
+  }
+}
+
+.scheme-swatches {
+  display: flex;
+  gap: 10px;
+}
+
+// Segmented pill control for theme + language; the lighter selected pill reads
+// as raised against the recessed track without needing a shadow.
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  background: var(--mat-sys-surface-container-high);
+  border: var(--app-hairline);
+
+  .seg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--mat-sys-on-surface-variant);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.12s ease, color 0.12s ease;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .seg-flag {
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    &:hover:not(.selected) {
+      color: var(--mat-sys-on-surface);
+    }
+
+    &.selected {
+      background: var(--mat-sys-surface-container-lowest);
+      color: var(--mat-sys-primary);
+    }
+  }
+}
+
+.swatch {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--mat-sys-outline-variant);
+  cursor: pointer;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+
+  &:hover {
+    border-color: var(--mat-sys-on-surface-variant);
+  }
+
+  &.selected {
+    border-color: var(--mat-sys-on-surface);
+    box-shadow: 0 0 0 2px var(--mat-sys-surface-container-lowest),
+      0 0 0 4px var(--mat-sys-on-surface);
+  }
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: max-content 1fr;
