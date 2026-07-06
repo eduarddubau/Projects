@@ -181,9 +181,9 @@
   },
   "userDashboard": {
     "greeting": {
-      "morning": "Bună dimineața, {{name}}",
-      "afternoon": "Bună ziua, {{name}}",
-      "evening": "Bună seara, {{name}}"
+      "morning": "Bună dimineața",
+      "afternoon": "Bună ziua",
+      "evening": "Bună seara"
     },
     "taglines": {
       "morning": "Profită de zi",

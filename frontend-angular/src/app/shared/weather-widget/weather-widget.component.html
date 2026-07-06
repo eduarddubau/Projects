@@ -1,12 +1,16 @@
 @if (weather(); as w) {
   <div class="weather" *transloco="let t" [title]="w.city + ', ' + w.country">
-    <img class="weather-icon" [src]="'weather/' + w.icon + '.svg'" width="46" height="46" alt="" />
-    <div class="weather-text">
-      <span class="weather-line">
-        <span class="weather-temp">{{ w.temperature }}°</span>
-        <span class="weather-condition">{{ t('weather.conditions.' + w.conditionKey) }}</span>
+    <div class="weather-readout">
+      <span class="weather-temp">{{ w.temperature }}°</span>
+      <span class="weather-location">
+        <mat-icon class="weather-loc-icon">location_on</mat-icon>{{ w.city }}
       </span>
-      <span class="weather-location">{{ w.city }}</span>
     </div>
+    <img
+      class="weather-icon"
+      [src]="'weather/' + w.icon + '.svg'"
+      [alt]="t('weather.conditions.' + w.conditionKey)"
+      width="50"
+      height="50" />
   </div>
 }

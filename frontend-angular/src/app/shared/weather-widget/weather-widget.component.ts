@@ -2,19 +2,20 @@ import {
   Component, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef,
   OnInit, inject, output, signal
 } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { WeatherService } from '@core/services/weather.service';
 import { CurrentWeather } from '@core/models/weather';
 
-// Compact, chrome-less ambient weather: an animated icon, temperature and place.
-// Self-fetches on init (location auto-detected via IP) and renders nothing until
-// — or unless — data arrives, so it drops cleanly into a header row.
+// Compact, chrome-less ambient weather: temperature with a big animated icon and
+// the place below. Self-fetches on init (location auto-detected via IP) and
+// renders nothing until — or unless — data arrives, so it drops into any row.
 @Component({
   selector: 'app-weather-widget',
   templateUrl: './weather-widget.component.html',
   styleUrl: './weather-widget.component.scss',
-  imports: [TranslocoDirective],
+  imports: [MatIconModule, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WeatherWidgetComponent implements OnInit {

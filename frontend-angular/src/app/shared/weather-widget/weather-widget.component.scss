@@ -1,51 +1,50 @@
-// A flex item in the dashboard header; collapses to nothing when empty.
+// Temperature (matching the KPI value size) with the big animated icon to its
+// right, and the place beneath — an ambient glance that sits in the overview row.
 :host {
   display: flex;
   align-items: center;
 }
 
 .weather {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.weather-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.weather-temp {
+  font-family: 'Space Grotesk Variable', 'Inter Variable', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.weather-location {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 3px;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  .weather-loc-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    // Tracks the selected colour scheme, like the KPI icons.
+    color: var(--mat-sys-primary);
+  }
 }
 
 .weather-icon {
   flex: 0 0 auto;
-  // The white cloud bodies vanish on the light header; a thin dark halo plus a
-  // soft drop give them an edge without any card chrome. Harmless on dark.
+  // Keeps the white cloud bodies legible on the light surface; harmless on dark.
   filter: drop-shadow(0 0 1px rgba(2, 6, 23, 0.45))
           drop-shadow(0 1px 2px rgba(2, 6, 23, 0.22));
-}
-
-.weather-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.25;
-  min-width: 0;
-}
-
-.weather-line {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 7px;
-}
-
-.weather-temp {
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--mat-sys-on-surface);
-}
-
-.weather-condition {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--mat-sys-on-surface);
-  white-space: nowrap;
-}
-
-.weather-location {
-  font-size: 0.75rem;
-  color: var(--mat-sys-on-surface-variant);
 }

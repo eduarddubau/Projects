@@ -181,9 +181,9 @@
   },
   "userDashboard": {
     "greeting": {
-      "morning": "Good morning, {{name}}",
-      "afternoon": "Good afternoon, {{name}}",
-      "evening": "Good evening, {{name}}"
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
     },
     "taglines": {
       "morning": "Seize the day",

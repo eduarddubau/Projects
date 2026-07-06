@@ -53,13 +53,14 @@ describe('UserDashboardComponent', () => {
     fixture = TestBed.createComponent(UserDashboardComponent);
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-
-    // The embedded weather widget self-fetches on init; fail it fast so it
-    // leaves no open request for verify(). It's covered by its own spec.
-    httpMock.match('https://ipwho.is/').forEach((r) => r.error(new ProgressEvent('offline')));
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    // The overview's weather widget self-fetches once the dashboard renders;
+    // fail it so it leaves no open request. It's covered by its own spec.
+    httpMock.match('https://ipwho.is/').forEach((r) => r.error(new ProgressEvent('offline')));
+    httpMock.verify();
+  });
 
   it('renders the stats and recent projects', () => {
     httpMock.expectOne(`${apiUrl}/dashboard`).flush(sampleDashboard);
@@ -72,7 +73,7 @@ describe('UserDashboardComponent', () => {
     expect(text).toContain('Rocket Plans');
   });
 
-  it('greets the signed-in user in the header with role and profile link', () => {
+  it('greets the signed-in user and links their name to the profile', () => {
     TestBed.inject(AuthService).currentUser.set({
       id: '1',
       email: 'dev@example.com',
@@ -86,9 +87,8 @@ describe('UserDashboardComponent', () => {
     const title = (fixture.nativeElement as HTMLElement).querySelector('.page-title');
     expect(title?.textContent).toContain('Dev');
 
-    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
-    expect(text).toContain('Member');
-    expect(text).toContain('View profile');
+    const nameLink = (fixture.nativeElement as HTMLElement).querySelector('.name-link');
+    expect(nameLink?.getAttribute('href')).toContain('/profile');
   });
 
   it('shows the error state when loading fails', () => {

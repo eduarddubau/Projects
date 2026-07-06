@@ -38,11 +38,12 @@ describe('WeatherWidgetComponent', () => {
 
     const text = host.textContent ?? '';
     expect(text).toContain('26°');
-    expect(text).toContain('Mainly clear');
     expect(text).toContain('Oradea');
 
+    // Condition is conveyed by the icon (visually + via alt for screen readers).
     const icon = host.querySelector('img.weather-icon');
     expect(icon?.getAttribute('src')).toBe('weather/clear-day.svg');
+    expect(icon?.getAttribute('alt')).toBe('Mainly clear');
   });
 
   it('renders nothing when the weather fails to load', () => {

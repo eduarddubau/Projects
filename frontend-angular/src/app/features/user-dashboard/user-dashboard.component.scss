@@ -1,7 +1,7 @@
 .dashboard-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 32px; // airier section rhythm (8pt scale: 32–48px between sections)
 }
 
 .dash-header {
@@ -9,10 +9,24 @@
   align-items: center;
   gap: 18px;
 
-  .dash-avatar {
-    width: 56px;
-    height: 56px;
-    font-size: 1.25rem;
+  // Avatar links to the profile (replaces the old button); subtle ring on focus.
+  .dash-avatar-link {
+    flex: 0 0 auto;
+    display: inline-flex;
+    border-radius: 50%;
+    outline: none;
+
+    .dash-avatar {
+      width: 56px;
+      height: 56px;
+      font-size: 1.25rem;
+      transition: box-shadow 0.15s ease;
+    }
+
+    &:hover .dash-avatar,
+    &:focus-visible .dash-avatar {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
+    }
   }
 
   .dash-heading {
@@ -25,74 +39,121 @@
     .page-subtitle {
       margin: 4px 0 0;
     }
-  }
 
+    // The name doubles as the profile link; reads as heading text until hovered.
+    .name-link {
+      color: inherit;
+      text-decoration: none;
+      text-underline-offset: 3px;
+
+      &:hover,
+      &:focus-visible {
+        text-decoration: underline;
+        text-decoration-color: var(--mat-sys-primary);
+      }
+    }
+  }
+}
+
+// Overview band: ambient weather on the left, then the key metrics. Whitespace
+// and short hairline dividers do the separating — no boxes.
+.overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+
+  // Weather is the first cell; small left inset aligns it to the section edge.
   app-weather-widget {
-    // Centred in the gap between the greeting and the actions: this auto margin
-    // and the one on .dash-actions split the free space evenly between them.
-    margin-left: auto;
+    padding: 8px 28px 8px 6px;
+  }
+}
+
+.kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 28px;
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+
+  // Short centred divider ahead of each metric (weather has none — it's first).
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 50%;
+    height: 58%;
+    width: 1px;
+    transform: translateY(-50%);
+    background: var(--mat-sys-outline-variant);
+  }
+}
+
+// Only the metrics that navigate get a hover surface.
+a.kpi:hover,
+a.kpi:focus-visible {
+  background: var(--mat-sys-surface-container);
+  outline: none;
+}
+
+.kpi-value {
+  font-family: 'Space Grotesk Variable', 'Inter Variable', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.kpi-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  .kpi-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+
+    &.projects { color: var(--mat-sys-primary); }
+    &.deleted { color: var(--mat-sys-error); }
+  }
+}
+
+@media (max-width: 640px) {
+  .overview {
+    grid-template-columns: 1fr;
+
+    app-weather-widget {
+      padding: 8px 4px 14px;
+    }
   }
 
-  .dash-actions {
-    margin-left: auto;
-    flex: 0 0 auto;
+  .kpi {
+    padding: 14px 4px;
+
+    // Divider flips to a top rule when the band stacks.
+    &::before {
+      inset-inline-start: 0;
+      top: 0;
+      height: 1px;
+      width: 100%;
+      transform: none;
+    }
+  }
+}
+
+.recent-card {
+  .card-header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
-
-    .role-chip {
-      margin-top: 0;
-    }
+    gap: 8px;
   }
-
-  @media (max-width: 860px) {
-    // Not enough room to sit three groups across; drop the ornament.
-    app-weather-widget {
-      display: none;
-    }
-  }
-
-  @media (max-width: 640px) {
-    flex-wrap: wrap;
-
-    .dash-actions {
-      margin-left: 0;
-      width: 100%;
-    }
-  }
-}
-
-// Thinner tiles than the admin dashboard's shared default.
-.stats-grid {
-  .stat-card mat-card-content {
-    padding: 12px 16px;
-  }
-
-  .stat-content {
-    padding: 0;
-    gap: 12px;
-  }
-
-  .stat-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 21px;
-  }
-
-  .stat-value {
-    font-size: 1.55rem;
-
-    &.compact {
-      font-size: 1.05rem;
-      line-height: 1.35;
-    }
-  }
-}
-
-.recent-card .card-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .clickable-row {

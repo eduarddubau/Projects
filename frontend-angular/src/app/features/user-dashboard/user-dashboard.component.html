@@ -2,22 +2,12 @@
 
 <div class="page-container dashboard-container" *transloco="let t">
   <header class="dash-header">
-    <span class="avatar-circle dash-avatar" aria-hidden="true">{{ initials() }}</span>
+    <a routerLink="/profile" class="dash-avatar-link" [attr.aria-label]="t('userDashboard.account.viewProfile')">
+      <span class="avatar-circle dash-avatar" aria-hidden="true">{{ initials() }}</span>
+    </a>
     <div class="dash-heading">
-      <h1 class="page-title">{{ t(greetingKey(), { name: currentUser()?.firstName ?? '' }) }}</h1>
+      <h1 class="page-title">{{ t(greetingKey()) }}@if (currentUser()?.firstName; as name) {, <a routerLink="/profile" class="name-link">{{ name }}</a>}</h1>
       <p class="page-subtitle">{{ t(taglineKey()) }}</p>
-    </div>
-
-    <app-weather-widget (loaded)="onWeatherLoaded($event)"></app-weather-widget>
-
-    <div class="dash-actions">
-      <span class="role-chip" [class.admin]="isAdmin()">
-        {{ t(isAdmin() ? 'profile.roleAdmin' : 'profile.roleUser') }}
-      </span>
-      <a mat-stroked-button routerLink="/profile">
-        <mat-icon>person</mat-icon>
-        {{ t('userDashboard.account.viewProfile') }}
-      </a>
     </div>
   </header>
 
@@ -32,45 +22,25 @@
       <p>{{ t('userDashboard.loadFailed') }}</p>
     </div>
   } @else if (dashboard(); as d) {
-    <div class="stats-grid">
-      <mat-card class="stat-card" routerLink="/projects">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon projects">folder</mat-icon>
-            <div class="stat-text">
-              <span class="stat-value">{{ d.activeProjectCount }}</span>
-              <span class="stat-label">{{ t('userDashboard.stats.activeProjects') }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+    <section class="overview">
+      <app-weather-widget (loaded)="onWeatherLoaded($event)"></app-weather-widget>
 
-      <mat-card class="stat-card" routerLink="/projects/trash">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon deleted">delete_outline</mat-icon>
-            <div class="stat-text">
-              <span class="stat-value">{{ d.deletedProjectCount }}</span>
-              <span class="stat-label">{{ t('userDashboard.stats.inTrash') }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+      <a class="kpi" routerLink="/projects">
+        <span class="kpi-value">{{ d.activeProjectCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon projects">folder</mat-icon>
+          {{ t('userDashboard.stats.activeProjects') }}
+        </span>
+      </a>
 
-      <mat-card class="stat-card static">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon activity">history</mat-icon>
-            <div class="stat-text">
-              <span class="stat-value compact">
-                {{ d.lastActivityAt ? (d.lastActivityAt | date:'mediumDate':undefined:dateLocale()) : '—' }}
-              </span>
-              <span class="stat-label">{{ t('userDashboard.stats.lastActivity') }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+      <a class="kpi" routerLink="/projects/trash">
+        <span class="kpi-value">{{ d.deletedProjectCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon deleted">delete_outline</mat-icon>
+          {{ t('userDashboard.stats.inTrash') }}
+        </span>
+      </a>
+    </section>
 
     <mat-card class="section-card recent-card">
       <mat-card-header>
