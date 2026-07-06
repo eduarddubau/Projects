@@ -1,20 +1,24 @@
-// Temperature (matching the KPI value size) with the big animated icon to its
-// right, and the place beneath — an ambient glance that sits in the overview row.
 :host {
   display: flex;
   align-items: center;
 }
 
+// Temp over location on the left, big animated icon in the middle, and a
+// feels-like / condition / indicators stack on the right. Both text columns
+// stretch to the icon height and space out, so feels-like lines up with the
+// temperature, the indicators with the location, and the condition sits at the
+// icon's midline.
 .weather {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 14px;
 }
 
-.weather-readout {
+.weather-readout,
+.weather-detail {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: space-between;
 }
 
 .weather-temp {
@@ -24,6 +28,21 @@
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
+}
+
+.weather-icon {
+  align-self: center;
+  flex: 0 0 auto;
+  // Keeps the white cloud bodies legible on the light surface; harmless on dark.
+  filter: drop-shadow(0 0 1px rgba(2, 6, 23, 0.45))
+          drop-shadow(0 1px 2px rgba(2, 6, 23, 0.22));
+}
+
+.weather-condition {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
 }
 
 .weather-location {
@@ -37,14 +56,27 @@
     width: 16px;
     height: 16px;
     font-size: 16px;
-    // Tracks the selected colour scheme, like the KPI icons.
+    // Tracks the selected colour scheme.
     color: var(--mat-sys-primary);
   }
 }
 
-.weather-icon {
-  flex: 0 0 auto;
-  // Keeps the white cloud bodies legible on the light surface; harmless on dark.
-  filter: drop-shadow(0 0 1px rgba(2, 6, 23, 0.45))
-          drop-shadow(0 1px 2px rgba(2, 6, 23, 0.22));
+.weather-stats {
+  display: inline-flex;
+  gap: 12px;
+}
+
+.weather-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.82rem; // same size as the location line
+  color: var(--mat-sys-on-surface-variant);
+
+  .weather-stat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: var(--mat-sys-primary);
+  }
 }

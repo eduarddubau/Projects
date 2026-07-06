@@ -9,7 +9,8 @@ import { CurrentWeather, describeWeather } from '@core/models/weather';
 // is the one thing that would justify moving this behind our own API.
 const GEO_URL = 'https://ipwho.is/';
 const METEO_URL = 'https://api.open-meteo.com/v1/forecast';
-const CURRENT_FIELDS = 'temperature_2m,is_day,weather_code';
+const CURRENT_FIELDS =
+  'temperature_2m,relative_humidity_2m,wind_speed_10m,is_day,weather_code';
 
 const REQUEST_TIMEOUT_MS = 8000;
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -26,6 +27,8 @@ interface GeoResponse {
 interface MeteoResponse {
   current: {
     temperature_2m: number;
+    relative_humidity_2m: number;
+    wind_speed_10m: number;
     is_day: number;
     weather_code: number;
   };
@@ -73,6 +76,8 @@ export class WeatherService {
       city: geo.city,
       country: geo.country,
       temperature: Math.round(current.temperature_2m),
+      humidity: Math.round(current.relative_humidity_2m),
+      windSpeed: Math.round(current.wind_speed_10m),
       isDay,
       weatherCode: current.weather_code,
       conditionKey,

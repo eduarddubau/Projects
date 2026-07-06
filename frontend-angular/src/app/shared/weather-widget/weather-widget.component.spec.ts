@@ -32,18 +32,23 @@ describe('WeatherWidgetComponent', () => {
       success: true, city: 'Oradea', country: 'Romania', latitude: 47.05, longitude: 21.92,
     });
     httpMock.expectOne((r) => isMeteo(r.url)).flush({
-      current: { temperature_2m: 26.3, is_day: 1, weather_code: 1 },
+      current: {
+        temperature_2m: 26.3, relative_humidity_2m: 64.7, wind_speed_10m: 11.6,
+        is_day: 1, weather_code: 1,
+      },
     });
     fixture.detectChanges();
 
     const text = host.textContent ?? '';
     expect(text).toContain('26°');
+    expect(text).toContain('Mainly clear');
     expect(text).toContain('Oradea');
+    expect(text).toContain('65%');
+    expect(text).toContain('12 km/h');
 
-    // Condition is conveyed by the icon (visually + via alt for screen readers).
+    // Icon is decorative (condition shown as text beside it).
     const icon = host.querySelector('img.weather-icon');
     expect(icon?.getAttribute('src')).toBe('weather/clear-day.svg');
-    expect(icon?.getAttribute('alt')).toBe('Mainly clear');
   });
 
   it('renders nothing when the weather fails to load', () => {

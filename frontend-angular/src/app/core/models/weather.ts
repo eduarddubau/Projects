@@ -3,6 +3,10 @@ export interface CurrentWeather {
   country: string;
   /** Rounded °C. */
   temperature: number;
+  /** Relative humidity, %. */
+  humidity: number;
+  /** Rounded wind speed, km/h. */
+  windSpeed: number;
   isDay: boolean;
   weatherCode: number;
   /** i18n suffix under `weather.conditions.*`. */
