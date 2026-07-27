@@ -36,7 +36,7 @@
     "@angular/build": "^22.0.4",
     "@angular/cli": "^22.0.4",
     "@angular/compiler-cli": "^22.0.4",
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "1.61.1",
     "@types/express": "^5.0.1",
     "@types/node": "^24.9.2",
     "jsdom": "^29.1.1",
