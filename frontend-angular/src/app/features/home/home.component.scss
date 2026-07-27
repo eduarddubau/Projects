@@ -416,6 +416,12 @@
 }
 
 .closing-panel {
+  // Inverted in light mode so the closing CTA punctuates the page; a raised
+  // surface in dark, where inverting to near-white reads as glare instead.
+  --closing-bg: light-dark(var(--mat-sys-inverse-surface), var(--mat-sys-surface-container-high));
+  --closing-fg: light-dark(var(--mat-sys-inverse-on-surface), var(--mat-sys-on-surface));
+
+  border: var(--app-hairline);
   position: relative;
   overflow: hidden;
   text-align: center;
@@ -432,8 +438,8 @@
       color-mix(in srgb, var(--mat-sys-tertiary) 16%, transparent) 36%,
       color-mix(in srgb, var(--mat-sys-tertiary) 6%, transparent) 60%,
       transparent 80%),
-    var(--mat-sys-inverse-surface);
-  color: var(--mat-sys-inverse-on-surface);
+    var(--closing-bg);
+  color: var(--closing-fg);
 
   &::after {
     content: '';
@@ -450,7 +456,7 @@
   }
 
   p {
-    color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 78%, transparent);
+    color: color-mix(in srgb, var(--closing-fg) 78%, transparent);
     margin: 0 0 28px;
   }
 }
