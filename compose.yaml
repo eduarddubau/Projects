@@ -9,6 +9,9 @@ services:
     volumes:
       - .:/workspaces/fullstack-app:z
       - ./backend:/workspaces/fullstack-app/backend:z
+      # Read-only view of the frontend deps so the dev container's TS/Angular
+      # language service can resolve them; nothing here is ever executed.
+      - angular_node_modules:/workspaces/fullstack-app/frontend-angular/node_modules:ro
       - ~/dotnet_docker_cache/home:/tmp/dotnet_home:z
       - ~/dotnet_docker_cache/nuget:/tmp/nuget_cache:z
     tmpfs:
