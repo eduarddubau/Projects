@@ -19,6 +19,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<Project> Projects { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Workspace> Workspaces { get; set; }
+    public DbSet<WorkspaceMember> WorkspaceMembers { get; set; }
+    public DbSet<Invitation> Invitations { get; set; }
 
     // Bypasses the soft-delete interception below for this entity's next removal.
     public void MarkForHardDelete(object entity) => _hardDeleteOverrides.Add(entity);
@@ -29,6 +32,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
         modelBuilder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
+        modelBuilder.Entity<Workspace>().HasQueryFilter(w => !w.IsDeleted);
 
         modelBuilder.Entity<User>(entity =>
         {
@@ -60,6 +64,55 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(p => p.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Workspace>(entity =>
+        {
+            entity.HasOne(w => w.Creator)
+                .WithMany()
+                .HasForeignKey(w => w.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(w => w.Updater)
+                .WithMany()
+                .HasForeignKey(w => w.UpdatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(w => w.Name).HasMaxLength(60);
+
+            // Project.WorkspaceId doesn't exist until later — without this,
+            // EF's convention discovery invents a shadow FK on projects right now instead.
+            entity.Ignore(w => w.Projects);
+        });
+
+        modelBuilder.Entity<WorkspaceMember>(entity =>
+        {
+            entity.HasIndex(m => new { m.WorkspaceId, m.UserId }).IsUnique();
+
+            entity.Property(m => m.Role).HasConversion<string>();
+
+            entity.HasOne(m => m.Workspace)
+                .WithMany(w => w.Members)
+                .HasForeignKey(m => m.WorkspaceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(m => m.User)
+                .WithMany()
+                .HasForeignKey(m => m.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Invitation>(entity =>
+        {
+            entity.HasIndex(i => new { i.WorkspaceId, i.NormalizedEmail });
+            entity.HasIndex(i => i.TokenHash).IsUnique();
+
+            entity.Property(i => i.Role).HasConversion<string>();
+
+            entity.HasOne(i => i.Workspace)
+                .WithMany()
+                .HasForeignKey(i => i.WorkspaceId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
