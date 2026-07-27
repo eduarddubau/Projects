@@ -53,9 +53,46 @@ public class TokenServiceTests
     }
 
     [Fact]
+    public async Task CreateToken_WhenNicknameSet_IncludesNicknameClaim()
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Nickname = "Countess"
+        };
+        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+
+        var token = await _service.CreateToken(user);
+
+        var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
+        Assert.Equal("Countess", jwt.GetClaim(JwtRegisteredClaimNames.Nickname).Value);
+    }
+
+    [Fact]
+    public async Task CreateToken_WhenNicknameMissing_OmitsNicknameClaim()
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace"
+        };
+        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+
+        var token = await _service.CreateToken(user);
+
+        var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
+        Assert.DoesNotContain(jwt.Claims, c => c.Type == JwtRegisteredClaimNames.Nickname);
+    }
+
+    [Fact]
     public async Task CreateToken_IncludesRoleClaims()
     {
-        var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com" };
+        var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
         _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { AppRoles.Admin });
 
         var token = await _service.CreateToken(user);

@@ -78,4 +78,23 @@ public class CreateUserRequestValidatorTests
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.LastName));
     }
+
+    [Fact]
+    public void Validate_WithNicknameTooLong_HasError()
+    {
+        var request = ValidRequest() with { Nickname = new string('a', 31) };
+
+        var result = _validator.Validate(request);
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.PropertyName == nameof(CreateUserRequest.Nickname));
+    }
+
+    [Fact]
+    public void Validate_WithoutNickname_HasNoErrors()
+    {
+        var result = _validator.Validate(ValidRequest() with { Nickname = null });
+
+        Assert.True(result.IsValid);
+    }
 }

@@ -62,7 +62,7 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_WithWrongPassword_ReturnsUnauthorized()
     {
-        var user = new User { Email = "ada@example.com" };
+        var user = new User { Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
         _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
         _userManager.Setup(m => m.CheckPasswordAsync(user, "wrong")).ReturnsAsync(false);
 
@@ -153,7 +153,7 @@ public class AuthControllerTests
     [Fact]
     public async Task Refresh_WithValidToken_ReturnsOkWithNewTokens()
     {
-        var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com" };
+        var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
         _refreshTokenService
             .Setup(r => r.RotateAsync("rt", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RefreshRotationResult(true, user.Id, "new-rt"));

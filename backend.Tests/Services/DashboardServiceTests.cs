@@ -40,6 +40,8 @@ public class DashboardServiceTests
         {
             Email = email,
             UserName = email,
+            FirstName = "Alan",
+            LastName = "Turing",
             IsDeleted = isDeleted,
             IsAnonymized = isAnonymized,
             CreatedAt = createdAt ?? default

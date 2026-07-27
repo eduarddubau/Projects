@@ -66,7 +66,7 @@ public class DbSeederTests
     {
         var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
         _userManager.Setup(m => m.FindByEmailAsync(admin.Email))
-            .ReturnsAsync(new User { Email = admin.Email, UserName = admin.Email });
+            .ReturnsAsync(new User { Email = admin.Email, UserName = admin.Email, FirstName = "Site", LastName = "Admin" });
 
         await Seed(admin, isDevelopment: false);
 

@@ -34,6 +34,11 @@ public class TokenService : ITokenService
             new(JwtRegisteredClaimNames.FamilyName, user.LastName)
         };
 
+        if (!string.IsNullOrWhiteSpace(user.Nickname))
+        {
+            claims.Add(new Claim(JwtRegisteredClaimNames.Nickname, user.Nickname));
+        }
+
         var roles = await _userManager.GetRolesAsync(user);
         foreach (var role in roles)
             claims.Add(new Claim(ClaimTypes.Role, role));

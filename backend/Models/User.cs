@@ -5,8 +5,9 @@ namespace Backend.Models;
 
 public class User : IdentityUser<Guid>, IAuditEntity
 {
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+    public string? Nickname { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public Guid? CreatedBy { get; set; }

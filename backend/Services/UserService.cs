@@ -48,6 +48,7 @@ public class UserService : BaseService<User>, IUserService
 
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;
+        user.Nickname = dto.Nickname;
 
         await _context.SaveChangesAsync(ct);
 
@@ -140,6 +141,7 @@ public class UserService : BaseService<User>, IUserService
 
         user.FirstName = "Deleted";
         user.LastName = "User";
+        user.Nickname = null;
         user.Email = tombstone;
         user.NormalizedEmail = tombstone.ToUpperInvariant();
         user.UserName = tombstone;

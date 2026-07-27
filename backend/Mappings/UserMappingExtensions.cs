@@ -18,6 +18,7 @@ public static class UserMappingExtensions
         Email = user.Email ?? string.Empty,
         FirstName = user.FirstName,
         LastName = user.LastName,
+        Nickname = user.Nickname,
         IsDeleted = user.IsDeleted,
         DeletedAt = user.DeletedAt,
         CreatedAt = user.CreatedAt,
@@ -36,6 +37,7 @@ public static class UserMappingExtensions
             Email = u.Email ?? string.Empty,
             FirstName = u.FirstName,
             LastName = u.LastName,
+            Nickname = u.Nickname,
             IsDeleted = u.IsDeleted,
             DeletedAt = u.DeletedAt,
             CreatedAt = u.CreatedAt,
@@ -62,7 +64,8 @@ public static class UserMappingExtensions
             UserName = dto.Email,
             Email = dto.Email,
             FirstName = dto.FirstName,
-            LastName = dto.LastName
+            LastName = dto.LastName,
+            Nickname = dto.Nickname
         };
     }
 }

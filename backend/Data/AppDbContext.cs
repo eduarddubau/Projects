@@ -41,6 +41,12 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(u => u.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.Property(u => u.FirstName).HasMaxLength(50);
+
+            entity.Property(u => u.LastName).HasMaxLength(50);
+            
+            entity.Property(u => u.Nickname).HasMaxLength(30);
         });
 
         modelBuilder.Entity<Project>(entity =>

@@ -5,4 +5,5 @@ public record CreateUserRequest : IUserMapSource
     public required string Email { get; init; }
     public required string FirstName { get; init; }
     public required string LastName { get; init; }
+    public string? Nickname { get; init; }
 }

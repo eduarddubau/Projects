@@ -32,9 +32,9 @@ public class UserServiceTests
         _service = new UserService(_context, _currentUser.Object, _userManager.Object);
     }
 
-    private User AddUser(string email, bool isDeleted = false)
+    private User AddUser(string email, bool isDeleted = false, string? nickname = null)
     {
-        var user = new User { Email = email, UserName = email, IsDeleted = isDeleted };
+        var user = new User { Email = email, UserName = email, FirstName = "Alan", LastName = "Turing", Nickname = nickname, IsDeleted = isDeleted };
         _context.Users.Add(user);
         _context.SaveChanges();
         return user;
@@ -91,6 +91,36 @@ public class UserServiceTests
         var stored = await _context.Users.FirstAsync(u => u.Id == user.Id);
         Assert.Equal("Grace", stored.FirstName);
         Assert.Equal("Hopper", stored.LastName);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_UpdatesNickname()
+    {
+        var user = AddUser("me@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Nickname = "Amazing Grace" });
+
+        Assert.Equal("Amazing Grace", result!.Nickname);
+
+        var stored = await _context.Users.FirstAsync(u => u.Id == user.Id);
+        Assert.Equal("Amazing Grace", stored.Nickname);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_WithoutNickname_ClearsExistingOne()
+    {
+        var user = AddUser("me@example.com", nickname: "Amazing Grace");
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+
+        Assert.Null(result!.Nickname);
+
+        var stored = await _context.Users.FirstAsync(u => u.Id == user.Id);
+        Assert.Null(stored.Nickname);
     }
 
     [Fact]
@@ -169,7 +199,7 @@ public class UserServiceTests
     [Fact]
     public async Task CreateUserAsync_WhenEmailAlreadyExists_ThrowsBusinessRuleException()
     {
-        _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(new User { Email = "ada@example.com" });
+        _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(new User { Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" });
 
         var request = new CreateUserRequest { FirstName = "Ada", LastName = "Lovelace", Email = "ada@example.com" };
 
@@ -258,7 +288,7 @@ public class UserServiceTests
     [Fact]
     public async Task AnonymizeUserAsync_WhenDeleted_ScrubsPiiAndKeepsRow()
     {
-        var user = AddUser("jane@example.com", isDeleted: true);
+        var user = AddUser("jane@example.com", isDeleted: true, nickname: "Janey");
 
         var result = await _service.AnonymizeUserAsync(user.Id);
 
@@ -270,6 +300,7 @@ public class UserServiceTests
         Assert.True(stored.IsDeleted);
         Assert.Equal("Deleted", stored.FirstName);
         Assert.Equal("User", stored.LastName);
+        Assert.Null(stored.Nickname);
         Assert.DoesNotContain("jane@example.com", stored.Email);
         Assert.Null(stored.PasswordHash);
     }
