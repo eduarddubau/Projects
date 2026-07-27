@@ -64,6 +64,16 @@
               </mat-form-field>
             </div>
 
+            <mat-form-field appearance="outline">
+              <mat-label>{{ t('profile.form.nickname') }}</mat-label>
+              <input matInput formControlName="nickname" maxlength="30">
+              <mat-hint>{{ t('profile.form.nicknameHint') }}</mat-hint>
+              @if (form.controls.nickname.hasError('maxlength')) {
+                <mat-error>{{ t('profile.form.nicknameMaxLength') }}</mat-error>
+              }
+            </mat-form-field>
+
+
             <div class="form-actions">
               <button mat-button type="button" (click)="cancelEdit()" [disabled]="isSaving()">
                 {{ t('common.actions.cancel') }}

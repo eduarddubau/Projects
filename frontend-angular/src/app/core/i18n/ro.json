@@ -233,7 +233,10 @@
       "firstNameRequired": "Prenumele este obligatoriu",
       "lastNameRequired": "Numele este obligatoriu",
       "firstNameMaxLength": "Prenumele trebuie să aibă cel mult 50 de caractere",
-      "lastNameMaxLength": "Numele trebuie să aibă cel mult 50 de caractere"
+      "lastNameMaxLength": "Numele trebuie să aibă cel mult 50 de caractere",
+      "nickname": "Pseudonim",
+      "nicknameHint": "Afișat în salut în locul prenumelui",
+      "nicknameMaxLength": "Pseudonimul trebuie să aibă cel mult 30 de caractere"
     },
     "notifications": {
       "updated": "Profilul a fost actualizat.",

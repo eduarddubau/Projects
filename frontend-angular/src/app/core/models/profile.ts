@@ -3,6 +3,7 @@ export interface Profile {
   email: string;
   firstName: string;
   lastName: string;
+  nickname: string | null;
   createdAt: string;
   updatedAt?: string;
 }

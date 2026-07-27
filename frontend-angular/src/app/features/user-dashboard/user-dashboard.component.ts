@@ -54,6 +54,7 @@ export class UserDashboardComponent implements OnInit {
   dashboard = signal<UserDashboard | null>(null);
 
   currentUser = this.authService.currentUser;
+  displayName = this.authService.displayName;
 
   initials = computed(() => {
     const user = this.currentUser();

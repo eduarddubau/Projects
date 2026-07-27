@@ -15,6 +15,7 @@ interface DecodedToken {
   email: string;
   given_name: string;
   family_name: string;
+  nickname?: string;
   exp: number;
   'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'?: string | string[];
 }
@@ -29,6 +30,10 @@ export class AuthService {
   currentUser = signal<User | null>(this.getInitialUser());
   isAuthenticated = computed(() => !!this.currentUser());
   isAdmin = computed(() => this.currentUser()?.isAdmin ?? false);
+  displayName = computed(() => {
+    const u = this.currentUser();
+    return u?.nickname?.trim() || u?.firstName || '';
+  });
 
   // Shared in-flight refresh so concurrent 401s trigger only one refresh call.
   private refresh$: Observable<string> | null = null;
@@ -63,6 +68,7 @@ export class AuthService {
       email: decoded.email,
       firstName: decoded.given_name,
       lastName: decoded.family_name,
+      nickname: decoded.nickname,
       isAdmin: roles.includes('Admin')
     };
   }

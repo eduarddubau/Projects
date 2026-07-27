@@ -233,7 +233,11 @@
       "firstNameRequired": "First name is required",
       "lastNameRequired": "Last name is required",
       "firstNameMaxLength": "First name must be 50 characters or fewer",
-      "lastNameMaxLength": "Last name must be 50 characters or fewer"
+      "lastNameMaxLength": "Last name must be 50 characters or fewer",
+      "nickname": "Nickname",
+      "nicknameHint": "Shown in your greeting instead of your first name",
+      "nicknameMaxLength": "Nickname must be 30 characters or fewer"
+
     },
     "notifications": {
       "updated": "Profile updated.",

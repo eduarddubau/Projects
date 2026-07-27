@@ -6,7 +6,7 @@
       <span class="avatar-circle dash-avatar" aria-hidden="true">{{ initials() }}</span>
     </a>
     <div class="dash-heading">
-      <h1 class="page-title">{{ t(greetingKey()) }}@if (currentUser()?.firstName; as name) {, <a routerLink="/profile" class="name-link">{{ name }}</a>}</h1>
+      <h1 class="page-title">{{ t(greetingKey()) }}@if (displayName(); as name) {, <a routerLink="/profile" class="name-link">{{ name }}</a>}</h1>
       <p class="page-subtitle">{{ t(taglineKey()) }}</p>
     </div>
   </header>

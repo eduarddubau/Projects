@@ -41,6 +41,7 @@ export class HeaderComponent {
 
   appName = APP_NAME;
   currentUser = this.authService.currentUser;
+  displayName = this.authService.displayName;
   isAuthenticated = this.authService.isAuthenticated;
   isAdmin = this.authService.isAdmin;
   health = toSignal(this.healthService.status$, {
