@@ -24,16 +24,14 @@ A full-stack project management application — ASP.NET Core 10 API, Angular 22 
 
 Requires Docker (or Podman) with Compose. No local .NET or Node installation is needed to run the app.
 
-1. Create a `.env` file in the repo root:
+1. Copy the template and fill in the blanks:
 
-   ```env
-   POSTGRES_PASSWORD=<choose-a-password>
-   DB_CONNECTION_STRING=Host=db;Port=5432;Database=app_db;Username=admin;Password=<same-password>
-   Jwt__Key=<random string, 64+ characters (HS512)>
-   Jwt__Issuer=fullstack-app
-   Jwt__Audience=fullstack-app
-   Jwt__DurationInMinutes=15
+   ```bash
+   cp .env.example .env
    ```
+
+   `POSTGRES_PASSWORD` and the password inside `DB_CONNECTION_STRING` must match.
+   Generate the signing key with `openssl rand -base64 48`.
 
 2. Start the stack:
 

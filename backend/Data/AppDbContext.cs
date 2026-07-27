@@ -90,7 +90,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 entityEntry.Entity.CreatedAt = now;
                 entityEntry.Entity.IsDeleted = false;
 
-                if (entityEntry.Entity.CreatedBy == null || entityEntry.Entity.CreatedBy == Guid.Empty) // FIX
+                // Preserves a CreatedBy the caller set deliberately; only stamps when unset.
+                if (entityEntry.Entity.CreatedBy == null || entityEntry.Entity.CreatedBy == Guid.Empty)
                 {
                     entityEntry.Entity.CreatedBy = entityEntry.Entity is User newUser
                         ? newUser.Id
