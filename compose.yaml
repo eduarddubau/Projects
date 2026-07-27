@@ -1,3 +1,9 @@
+# VS Code Dev Containers derives the compose project name from the folder with
+# non-alphanumerics stripped ("fullstack-app" -> "fullstackapp") and passes it as
+# --project-name. Pin the same name here so CLI and extension drive one stack;
+# otherwise each builds its own pod and they collide over the container_names.
+name: fullstackapp
+
 services:
   api:
     #user: "${UID:-1000}:${GID:-1000}"
