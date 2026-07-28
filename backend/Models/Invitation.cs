@@ -6,7 +6,7 @@ public class Invitation
     public Guid WorkspaceId { get; set; }
     public required string Email { get; set; }
     public required string NormalizedEmail { get; set; }
-    public WorkspaceRole Role { get; set; }
+    public required WorkspaceRole Role { get; set; }
     public required string TokenHash { get; set; }
     public Guid InvitedBy { get; set; }
     public DateTime CreatedAt { get; set; }
