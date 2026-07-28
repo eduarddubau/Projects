@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
+// Inherits BaseService for the admin soft-delete and restore shared with ProjectService.
 public class UserService : BaseService<User>, IUserService
 {
     private readonly UserManager<User> _userManager;

@@ -36,6 +36,7 @@ public static class ServiceExtensions
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<IWorkspaceAccessService, WorkspaceAccessService>();
 
         // Test-only fixture seeding; the controller that uses it is gated to Development.
         services.AddScoped<ITestSeedService, TestSeedService>();

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
+// Inherits BaseService for the admin soft-delete and restore shared with UserService.
 public class ProjectService : BaseService<Project>, IProjectService
 {
     private readonly int _trashWindowDays;

@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
+/// <summary>Shared soft-delete and restore for entities an admin manages through
+/// the trash views. Inherit only to reuse those — services that merely need the
+/// context should take it directly.</summary>
 public abstract class BaseService<T> where T : class, IAuditEntity
 {
     protected readonly AppDbContext _context;
