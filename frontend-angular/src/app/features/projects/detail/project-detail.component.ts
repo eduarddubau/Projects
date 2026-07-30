@@ -15,6 +15,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { ProjectService } from '@core/services/project.service';
 import { LanguageService } from '@core/services/language.service';
 import { Project } from '@core/models/project';
@@ -156,11 +157,11 @@ export class ProjectDetailComponent implements OnInit {
             { duration: 3000 },
           );
         },
-        error: () => {
+        error: (err) => {
           this.isSaving.set(false);
           this.cdr.markForCheck();
           this.snackBar.open(
-            this.transloco.translate('projects.notifications.updateFailed'),
+            this.transloco.translate(serverErrorKey(err, 'projects.notifications.updateFailed')),
             this.transloco.translate('common.actions.close'),
             { duration: 5000 },
           );
