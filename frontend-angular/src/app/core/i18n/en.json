@@ -237,7 +237,6 @@
       "nickname": "Nickname",
       "nicknameHint": "Shown in your greeting instead of your first name",
       "nicknameMaxLength": "Nickname must be 30 characters or fewer"
-
     },
     "notifications": {
       "updated": "Profile updated.",
@@ -330,6 +329,9 @@
     "confirmDelete": {
       "title": "Delete Project",
       "message": "Are you sure you want to delete \"{{name}}\"? You can restore it from Trash later."
+    },
+    "serverErrors": {
+      "duplicateName": "You already have a project with this name."
     }
   },
   "admin": {
@@ -392,7 +394,10 @@
         "message": "\"{{name}}\" will be moved to trash. They can be restored later from Users Trash."
       },
       "deletedNamed": "\"{{name}}\" deleted.",
-      "deleteFailed": "Failed to delete user."
+      "deleteFailed": "Failed to delete user.",
+      "serverErrors": {
+        "duplicateEmail": "A user with this email already exists."
+      }
     },
     "trashProjects": {
       "title": "Deleted Projects",
@@ -451,5 +456,14 @@
     "lastPage": "Last page",
     "rangeOf": "{{start}} – {{end}} of {{length}}",
     "rangeEmpty": "0 of {{length}}"
+  },
+  "workspaces": {
+    "serverErrors": {
+      "personalNotDeletable": "Your personal workspace cannot be deleted.",
+      "personalNoMembers": "A personal workspace cannot have other members.",
+      "personalNotLeavable": "You cannot leave your personal workspace.",
+      "alreadyMember": "This user is already a member of the workspace.",
+      "mustHaveOwner": "A workspace must have at least one owner."
+    }
   }
 }

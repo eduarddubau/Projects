@@ -21,6 +21,7 @@ import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
+import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { ProjectsDataSource } from './projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
@@ -137,8 +138,8 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
               { duration: 3000 },
             );
           },
-          error: () => this.snackBar.open(
-            this.transloco.translate('projects.notifications.createFailed'),
+          error: (err) => this.snackBar.open(
+            this.transloco.translate(serverErrorKey(err, 'projects.notifications.createFailed')),
             this.transloco.translate('common.actions.close'),
             { duration: 5000 },
           )

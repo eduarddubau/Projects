@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Diagnostics;
 using Backend.Models;
 using Backend.Exceptions;
@@ -20,25 +23,38 @@ public class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var (statusCode, message) = exception switch
+        var (statusCode, message, code) = exception switch
         {
-            BusinessRuleException       => (StatusCodes.Status409Conflict, exception.Message),
-            NotFoundException           => (StatusCodes.Status404NotFound, exception.Message),
-            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, exception.Message),
-            _                           => (StatusCodes.Status500InternalServerError, "A critical error occurred on the server.")
+            BusinessRuleException ex    => (StatusCodes.Status409Conflict, ex.Message, ex.Code),
+            NotFoundException           => (StatusCodes.Status404NotFound, exception.Message, null),
+            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, exception.Message, null),
+            _                           => (StatusCodes.Status500InternalServerError, "A critical error occurred on the server.", null)
         };
+
+        // Returned to the caller as well, so a reported error can be found in the logs.
+        var traceId = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+
+        // Id, never email — logs outlive accounts and shouldn't hold personal data.
+        var userId = httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                  ?? httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         // Mapped 4xx are expected traffic, not faults — logging them as errors
         // buries real ones and lets anyone probing ids fill the log.
         if (statusCode >= StatusCodes.Status500InternalServerError)
-            _logger.LogError(exception, "Unhandled exception ({StatusCode}): {Message}", statusCode, exception.Message);
+            _logger.LogError(exception,
+                "Unhandled exception ({StatusCode}) on {Method} {Path} for user {UserId}. TraceId {TraceId}",
+                statusCode, httpContext.Request.Method, httpContext.Request.Path, userId, traceId);
         else
-            _logger.LogWarning("Request rejected ({StatusCode}): {Message}", statusCode, exception.Message);
+            _logger.LogWarning(
+                "Request rejected ({StatusCode}, {Code}) on {Method} {Path} for user {UserId}: {Message} TraceId {TraceId}",
+                statusCode, code, httpContext.Request.Method, httpContext.Request.Path, userId, exception.Message, traceId);
 
         var response = new ErrorResponse
         {
             StatusCode = statusCode,
+            Code = code,
             Message = message,
+            TraceId = traceId,
             Details = _env.IsDevelopment() ? exception.ToString() : null
         };
 

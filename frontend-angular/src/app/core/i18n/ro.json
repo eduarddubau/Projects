@@ -329,6 +329,9 @@
     "confirmDelete": {
       "title": "Șterge proiectul",
       "message": "Sigur vrei să ștergi „{{name}}”? Îl poți restaura ulterior din Coșul de gunoi."
+    },
+    "serverErrors": {
+      "duplicateName": "Ai deja un proiect cu acest nume."
     }
   },
   "admin": {
@@ -391,7 +394,10 @@
         "message": "„{{name}}” va fi mutat în coșul de gunoi. Poate fi restaurat ulterior din Coșul de utilizatori."
       },
       "deletedNamed": "„{{name}}” a fost șters.",
-      "deleteFailed": "Utilizatorul nu a putut fi șters."
+      "deleteFailed": "Utilizatorul nu a putut fi șters.",
+      "serverErrors": {
+        "duplicateEmail": "Există deja un utilizator cu acest email."
+      }
     },
     "trashProjects": {
       "title": "Proiecte șterse",
@@ -450,5 +456,14 @@
     "lastPage": "Ultima pagină",
     "rangeOf": "{{start}} – {{end}} din {{length}}",
     "rangeEmpty": "0 din {{length}}"
+  },
+  "workspaces": {
+    "serverErrors": {
+      "personalNotDeletable": "Spațiul de lucru personal nu poate fi șters.",
+      "personalNoMembers": "Un spațiu de lucru personal nu poate avea alți membri.",
+      "personalNotLeavable": "Nu poți părăsi spațiul tău de lucru personal.",
+      "alreadyMember": "Acest utilizator este deja membru al spațiului de lucru.",
+      "mustHaveOwner": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar."
+    }
   }
 }

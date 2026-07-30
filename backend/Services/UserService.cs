@@ -85,7 +85,8 @@ public class UserService : BaseService<User>, IUserService
     {
         var emailExists = await _userManager.FindByEmailAsync(dto.Email) != null;
         if (emailExists)
-            throw new BusinessRuleException("A user with this email already exists.");
+            throw new BusinessRuleException(BusinessRuleCodes.DuplicateEmail,
+                "A user with this email already exists.");
 
         var user = dto.ToEntity();
 
@@ -93,7 +94,8 @@ public class UserService : BaseService<User>, IUserService
         var result = await _userManager.CreateAsync(user, tempPassword);
 
         if (!result.Succeeded)
-            throw new BusinessRuleException(string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new BusinessRuleException(BusinessRuleCodes.IdentityError,
+                string.Join(", ", result.Errors.Select(e => e.Description)));
 
         await _userManager.AddToRoleAsync(user, AppRoles.User);
 

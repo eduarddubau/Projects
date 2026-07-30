@@ -62,7 +62,8 @@ public class ProjectService : BaseService<Project>, IProjectService
             .AnyAsync(p => p.Name == dto.Name && p.CreatedBy == _currentUser.UserGuid, ct);
 
         if (nameExists)
-            throw new BusinessRuleException("You already have a project with this name.");
+            throw new BusinessRuleException(BusinessRuleCodes.DuplicateProjectName,
+                "You already have a project with this name.");
 
         var project = new Project
         {
@@ -92,7 +93,8 @@ public class ProjectService : BaseService<Project>, IProjectService
                         && p.Id != id, ct);
 
         if (nameConflict)
-            throw new BusinessRuleException("You already have a project with this name.");
+            throw new BusinessRuleException(BusinessRuleCodes.DuplicateProjectName,
+                "You already have a project with this name.");
 
         project.Name = dto.Name;
         project.Description = dto.Description;
