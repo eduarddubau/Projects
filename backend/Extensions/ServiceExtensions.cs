@@ -24,6 +24,7 @@ public static class ServiceExtensions
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
                 options.JsonSerializerOptions.WriteIndented = env.IsDevelopment();
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
         services.AddFluentValidationAutoValidation();
@@ -37,6 +38,7 @@ public static class ServiceExtensions
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IWorkspaceAccessService, WorkspaceAccessService>();
+        services.AddScoped<IWorkspaceService, WorkspaceService>();
 
         // Test-only fixture seeding; the controller that uses it is gated to Development.
         services.AddScoped<ITestSeedService, TestSeedService>();

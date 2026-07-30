@@ -25,7 +25,6 @@ public class WorkspaceAccessService : IWorkspaceAccessService
             .Select(m => (WorkspaceRole?)m.Role)
             .FirstOrDefaultAsync(ct);
 
-        // Non-membership is indistinguishable from non-existence by design.
         return role ?? throw new NotFoundException("Workspace not found.");
     }
 
