@@ -33,9 +33,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseExceptionHandler();
-
-// Inside UseExceptionHandler so thrown failures unwind past it and get logged once, by
-// the handler. Outside authentication so it still sees the 401s that short-circuit there.
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseCors("AllowFrontend");

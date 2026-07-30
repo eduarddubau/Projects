@@ -4,9 +4,12 @@ using System.Security.Claims;
 
 namespace Backend.Middleware;
 
-/// <summary>Logs failed responses that never reach <see cref="GlobalExceptionHandler"/> —
-/// auth 401s, FluentValidation 400s and controller <c>return NotFound()</c>. Those are
-/// status codes rather than exceptions, so nothing else sees them.</summary>
+/// <summary>Logs request outcomes that never reach <see cref="GlobalExceptionHandler"/> —
+/// auth 401s, FluentValidation 400s and controller <c>return NotFound()</c> are status
+/// codes rather than exceptions, so nothing else sees them.
+/// <para>Failures log at Warning/Error. Successes log at Debug, which the default
+/// Information minimum discards — raise Serilog:MinimumLevel to Debug to get full
+/// request logging without a rebuild.</para></summary>
 public class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
@@ -22,11 +25,18 @@ public class RequestLoggingMiddleware
     {
         var start = Stopwatch.GetTimestamp();
 
-        // Deliberately no try/catch: an exception unwinds past this point to the handler
-        // registered outside us, which logs it. Skipping our own log avoids duplicates.
         await _next(context);
 
-        if (context.Response.StatusCode < StatusCodes.Status400BadRequest) return;
+        var statusCode = context.Response.StatusCode;
+
+        var level = statusCode switch
+        {
+            >= StatusCodes.Status500InternalServerError => LogLevel.Error,
+            >= StatusCodes.Status400BadRequest          => LogLevel.Warning,
+            _                                          => LogLevel.Debug,
+        };
+
+        if (!_logger.IsEnabled(level)) return;
 
         var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
         var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
@@ -35,13 +45,9 @@ public class RequestLoggingMiddleware
         var userId = context.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
                   ?? context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var level = context.Response.StatusCode >= StatusCodes.Status500InternalServerError
-            ? LogLevel.Error
-            : LogLevel.Warning;
-
         _logger.Log(level,
-            "Request failed ({StatusCode}) on {Method} {Path} for user {UserId} in {ElapsedMs:0.0}ms. TraceId {TraceId}",
-            context.Response.StatusCode, context.Request.Method, context.Request.Path,
+            "{Method} {Path} responded {StatusCode} for user {UserId} in {ElapsedMs:0.0}ms. TraceId {TraceId}",
+            context.Request.Method, context.Request.Path, statusCode,
             userId, elapsedMs, traceId);
     }
 }
