@@ -61,13 +61,15 @@ public class AuthController : ControllerBase
 
         if (!passwordValid)
         {
-            _logger.LogWarning("Failed login attempt for: {Email}", request.Email);
+            // No email: a failed-login log would otherwise collect addresses of people
+            // who never had an account here. Null user means the address is unknown.
+            _logger.LogWarning("Failed login attempt for user {UserId}.", user?.Id);
             return Unauthorized("Invalid credentials.");
         }
 
         var token = await _tokenService.CreateToken(user!);
         var refreshToken = await _refreshTokenService.IssueAsync(user!.Id, ct);
-        _logger.LogInformation("User {Email} logged in successfully.", request.Email);
+        _logger.LogInformation("User {UserId} logged in successfully.", user.Id);
 
         return Ok(new
         {
@@ -98,7 +100,7 @@ public class AuthController : ControllerBase
 
         var token = await _tokenService.CreateToken(user);
         var refreshToken = await _refreshTokenService.IssueAsync(user.Id, ct);
-        _logger.LogInformation("New user registered: {Email}", request.Email);
+        _logger.LogInformation("New user registered: {UserId}", user.Id);
 
         return StatusCode(StatusCodes.Status201Created, new
         {
