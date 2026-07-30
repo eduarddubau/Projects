@@ -544,3 +544,6 @@ Thumbs.db
 # No trailing slash: .claude is a symlink to ../fullstack-app-notes, and git
 # sees a symlink as a file, so a directory-only pattern wouldn't match it.
 .claude
+
+# Serilog file sink
+backend/logs/

@@ -1,9 +1,12 @@
 using Backend.Data;
 using Backend.Extensions;
+using Backend.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddLoggingServices(builder.Configuration, builder.Environment);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -30,6 +33,11 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseExceptionHandler();
+
+// Inside UseExceptionHandler so thrown failures unwind past it and get logged once, by
+// the handler. Outside authentication so it still sees the 401s that short-circuit there.
+app.UseMiddleware<RequestLoggingMiddleware>();
+
 app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();

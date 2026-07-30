@@ -11,9 +11,41 @@ using System.Text;
 using Backend.Config;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 public static class ServiceExtensions
 {
+    public static IServiceCollection AddLoggingServices(
+        this IServiceCollection services,
+        IConfiguration config,
+        IWebHostEnvironment env)
+    {
+        services.AddSerilog((provider, loggerConfig) =>
+        {
+            loggerConfig.ReadFrom.Configuration(config)
+                        .ReadFrom.Services(provider)
+                        .Enrich.FromLogContext();
+
+            if (env.IsDevelopment())
+                loggerConfig.WriteTo.Console();
+            else
+                // One JSON object per line on stdout: the container-native contract, so
+                // any collector can parse it without a regex.
+                loggerConfig.WriteTo.Console(new CompactJsonFormatter());
+
+            loggerConfig.WriteTo.File(
+                new CompactJsonFormatter(),
+                "logs/api-.json",
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 14,
+                fileSizeLimitBytes: 50 * 1024 * 1024,
+                rollOnFileSizeLimit: true);
+        });
+
+        return services;
+    }
+
     public static IServiceCollection AddApplicationServices(
         this IServiceCollection services,
         IConfiguration config,
