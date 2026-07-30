@@ -1,5 +1,3 @@
-using Backend.DTOs;
-
 namespace Backend.DTOs.User;
 
 public record UserResponseDto : AuditResponseDto
