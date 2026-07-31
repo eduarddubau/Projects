@@ -15,6 +15,7 @@ public class UserServiceTests
 {
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly Mock<UserManager<User>> _userManager;
+    private readonly Mock<IWorkspaceService> _workspaceService = new();
     private readonly AppDbContext _context;
     private readonly UserService _service;
 
@@ -29,7 +30,24 @@ public class UserServiceTests
         var store = new Mock<IUserStore<User>>();
         _userManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
-        _service = new UserService(_context, _currentUser.Object, _userManager.Object);
+        _service = new UserService(_context, _currentUser.Object, _userManager.Object, _workspaceService.Object);
+    }
+
+    private Workspace AddWorkspace(string name, bool isPersonal, params (User user, WorkspaceRole role)[] members)
+    {
+        var workspace = new Workspace { Name = name, IsPersonal = isPersonal };
+
+        foreach (var (user, role) in members)
+            workspace.Members.Add(new WorkspaceMember
+            {
+                UserId = user.Id,
+                Role = role,
+                JoinedAt = DateTime.UtcNow
+            });
+
+        _context.Workspaces.Add(workspace);
+        _context.SaveChanges();
+        return workspace;
     }
 
     private User AddUser(string email, bool isDeleted = false, string? nickname = null)
@@ -303,6 +321,85 @@ public class UserServiceTests
         Assert.Null(stored.Nickname);
         Assert.DoesNotContain("jane@example.com", stored.Email);
         Assert.Null(stored.PasswordHash);
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_WhenSoleOwnerOfSharedWorkspace_ThrowsAndLeavesUserIntact()
+    {
+        var user = AddUser("owner@example.com", isDeleted: true);
+        AddWorkspace("Acme Team", isPersonal: false, (user, WorkspaceRole.Owner));
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AnonymizeUserAsync(user.Id));
+
+        Assert.Equal(BusinessRuleCodes.SoleOwnerOfWorkspaces, ex.Code);
+        Assert.Contains("Acme Team", ex.Message);
+
+        // The erasure must not be half-applied when it is refused.
+        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == user.Id);
+        Assert.False(stored.IsAnonymized);
+        Assert.Equal("owner@example.com", stored.Email);
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_WhenSharedWorkspaceHasAnotherOwner_SucceedsAndDropsMembership()
+    {
+        var user = AddUser("leaving@example.com", isDeleted: true);
+        var coOwner = AddUser("staying@example.com");
+        AddWorkspace("Acme Team", isPersonal: false,
+            (user, WorkspaceRole.Owner), (coOwner, WorkspaceRole.Owner));
+
+        var result = await _service.AnonymizeUserAsync(user.Id);
+
+        Assert.True(result);
+        Assert.Empty(await _context.WorkspaceMembers.Where(m => m.UserId == user.Id).ToListAsync());
+        Assert.Single(await _context.WorkspaceMembers.Where(m => m.UserId == coOwner.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_MemberButNotOwner_IsNotBlocked()
+    {
+        var user = AddUser("member@example.com", isDeleted: true);
+        var owner = AddUser("boss@example.com");
+        AddWorkspace("Acme Team", isPersonal: false,
+            (owner, WorkspaceRole.Owner), (user, WorkspaceRole.Member));
+
+        Assert.True(await _service.AnonymizeUserAsync(user.Id));
+    }
+
+    [Fact]
+    public async Task AnonymizeUserAsync_SoftDeletesPersonalWorkspaceRatherThanPurgingIt()
+    {
+        var user = AddUser("solo@example.com", isDeleted: true);
+        var personal = AddWorkspace("Solo's Workspace", isPersonal: true, (user, WorkspaceRole.Owner));
+
+        Assert.True(await _service.AnonymizeUserAsync(user.Id));
+
+        // Row survives so audit foreign keys stay valid, but nothing lists it.
+        var stored = await _context.Workspaces.IgnoreQueryFilters().FirstAsync(w => w.Id == personal.Id);
+        Assert.True(stored.IsDeleted);
+        Assert.Empty(await _context.Workspaces.Where(w => w.Id == personal.Id).ToListAsync());
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_EnsuresPersonalWorkspace()
+    {
+        _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        await _service.CreateUserAsync(new CreateUserRequest
+        {
+            Email = "new@example.com",
+            FirstName = "Grace",
+            LastName = "Hopper"
+        });
+
+        _workspaceService.Verify(
+            w => w.EnsurePersonalWorkspaceAsync(
+                It.Is<User>(u => u.Email == "new@example.com"), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]

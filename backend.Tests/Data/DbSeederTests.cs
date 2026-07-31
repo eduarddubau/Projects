@@ -38,6 +38,113 @@ public class DbSeederTests
     private Task Seed(AdminSeedOptions admin, bool isDevelopment) =>
         DbSeeder.SeedAsync(_userManager.Object, _roleManager.Object, _context, _logger, _retention, admin, isDevelopment);
 
+    /// <summary>Admin options whose account already exists, so admin seeding is a no-op and the
+    /// test can focus on what follows it.</summary>
+    private AdminSeedOptions ExistingAdmin()
+    {
+        var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
+        _userManager.Setup(m => m.FindByEmailAsync(admin.Email))
+            .ReturnsAsync(new User { Email = admin.Email, UserName = admin.Email, FirstName = "Site", LastName = "Admin" });
+        return admin;
+    }
+
+    /// <summary>UserManager is mocked, so users it "creates" never reach the context —
+    /// personal-workspace seeding reads the context, so seed users into it directly.</summary>
+    private User AddUser(string email, string firstName, string? nickname = null)
+    {
+        var user = new User
+        {
+            Email = email,
+            UserName = email,
+            FirstName = firstName,
+            LastName = "Tester",
+            Nickname = nickname
+        };
+        _context.Users.Add(user);
+        _context.SaveChanges();
+        return user;
+    }
+
+    [Fact]
+    public async Task SeedAsync_GivesEveryUserAPersonalWorkspaceOwnedByThem()
+    {
+        var admin = ExistingAdmin();
+        AddUser("alan@example.com", "Alan");
+        AddUser("grace@example.com", "Grace", nickname: "Amazing");
+
+        await Seed(admin, isDevelopment: false);
+
+        // Include: there are no lazy-loading proxies, so Members is empty without it.
+        var personal = await _context.Workspaces
+            .Include(w => w.Members)
+            .Where(w => w.IsPersonal)
+            .ToListAsync();
+
+        Assert.Equal(2, personal.Count);
+        Assert.Contains(personal, w => w.Name == "Alan's Workspace");
+        Assert.Contains(personal, w => w.Name == "Amazing's Workspace");
+        Assert.All(personal, w => Assert.Single(w.Members, m => m.Role == WorkspaceRole.Owner));
+    }
+
+    [Fact]
+    public async Task SeedAsync_BlankNicknameFallsBackToFirstName()
+    {
+        var admin = ExistingAdmin();
+        AddUser("alan@example.com", "Alan", nickname: "  ");
+
+        await Seed(admin, isDevelopment: false);
+
+        Assert.Equal("Alan's Workspace", (await _context.Workspaces.FirstAsync(w => w.IsPersonal)).Name);
+    }
+
+    [Fact]
+    public async Task SeedAsync_RunTwice_DoesNotDuplicatePersonalWorkspaces()
+    {
+        var admin = ExistingAdmin();
+        AddUser("alan@example.com", "Alan");
+
+        await Seed(admin, isDevelopment: false);
+        await Seed(admin, isDevelopment: false);
+
+        Assert.Equal(1, await _context.Workspaces.CountAsync(w => w.IsPersonal));
+    }
+
+    [Fact]
+    public async Task SeedAsync_SkipsAnonymizedUsers()
+    {
+        var admin = ExistingAdmin();
+        var user = AddUser("erased@example.com", "Ghost");
+        user.IsAnonymized = true;
+        await _context.SaveChangesAsync();
+
+        await Seed(admin, isDevelopment: false);
+
+        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal));
+    }
+
+    [Fact]
+    public async Task SeedAsync_InDevelopment_SeedsSharedWorkspaceOnceAcrossRuns()
+    {
+        _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
+
+        await Seed(admin, isDevelopment: true);
+        await Seed(admin, isDevelopment: true);
+
+        var shared = await _context.Workspaces
+            .Include(w => w.Members)
+            .Where(w => !w.IsPersonal && w.Name == "Acme Team")
+            .ToListAsync();
+
+        Assert.Single(shared);
+        Assert.Single(shared[0].Members, m => m.Role == WorkspaceRole.Owner);
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

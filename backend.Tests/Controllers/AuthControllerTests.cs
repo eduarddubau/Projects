@@ -16,6 +16,7 @@ public class AuthControllerTests
     private readonly Mock<ITokenService> _tokenService = new();
     private readonly Mock<IRefreshTokenService> _refreshTokenService = new();
     private readonly Mock<ICurrentUserService> _currentUser = new();
+    private readonly Mock<IWorkspaceService> _workspaceService = new();
     private readonly AuthController _controller;
 
     public AuthControllerTests()
@@ -32,7 +33,8 @@ public class AuthControllerTests
             Mock.Of<ILogger<AuthController>>(),
             _tokenService.Object,
             _refreshTokenService.Object,
-            _currentUser.Object);
+            _currentUser.Object,
+            _workspaceService.Object);
     }
 
     [Fact]
@@ -94,6 +96,55 @@ public class AuthControllerTests
 
         var objectResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(StatusCodes.Status201Created, objectResult.StatusCode);
+    }
+
+    [Fact]
+    public async Task Register_WithValidRequest_CreatesPersonalWorkspace()
+    {
+        _userManager
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), "Str0ng!Pass"))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManager
+            .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _tokenService.Setup(t => t.CreateToken(It.IsAny<User>())).ReturnsAsync("jwt-token");
+
+        var request = new RegisterRequest
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+            Password = "Str0ng!Pass"
+        };
+
+        await _controller.Register(request, CancellationToken.None);
+
+        _workspaceService.Verify(
+            w => w.EnsurePersonalWorkspaceAsync(
+                It.Is<User>(u => u.Email == "ada@example.com"), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Register_WhenCreateFails_DoesNotCreatePersonalWorkspace()
+    {
+        _userManager
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "DuplicateEmail", Description = "Email already taken." }));
+
+        var request = new RegisterRequest
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+            Password = "Str0ng!Pass"
+        };
+
+        await _controller.Register(request, CancellationToken.None);
+
+        _workspaceService.Verify(
+            w => w.EnsurePersonalWorkspaceAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
