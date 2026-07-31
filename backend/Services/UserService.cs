@@ -148,13 +148,18 @@ public class UserService : BaseService<User>, IUserService
             .Where(w => !w.IsPersonal
                     && w.Members.Any(m => m.UserId == id && m.Role == WorkspaceRole.Owner)
                     && !w.Members.Any(m => m.UserId != id && m.Role == WorkspaceRole.Owner))
+            .OrderBy(w => w.Name)
             .Select(w => w.Name)
             .ToListAsync(ct);
 
         if (soleOwned.Count > 0)
+        {
+            var names = string.Join(", ", soleOwned);
+
             throw new BusinessRuleException(BusinessRuleCodes.SoleOwnerOfWorkspaces,
-                $"This user is the only owner of: {string.Join(", ", soleOwned)}. " +
-                "Promote another owner or delete those workspaces first.");
+                $"This user is the only owner of: {names}. Promote another owner or delete those workspaces first.",
+                new Dictionary<string, string> { ["workspaces"] = names });
+        }
 
         var personalWorkspaces = await _context.Workspaces
             .Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))

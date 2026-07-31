@@ -396,7 +396,8 @@
       "deletedNamed": "„{{name}}” a fost șters.",
       "deleteFailed": "Utilizatorul nu a putut fi șters.",
       "serverErrors": {
-        "duplicateEmail": "Există deja un utilizator cu acest email."
+        "duplicateEmail": "Există deja un utilizator cu acest email.",
+        "soleOwnerOfWorkspaces": "Acest utilizator este singurul proprietar al: {{workspaces}}. Promovează un alt proprietar sau șterge acele spații de lucru mai întâi."
       }
     },
     "trashProjects": {

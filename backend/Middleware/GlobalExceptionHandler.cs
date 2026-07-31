@@ -23,12 +23,12 @@ public class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var (statusCode, message, code) = exception switch
+        var (statusCode, message, code, parameters) = exception switch
         {
-            BusinessRuleException ex    => (StatusCodes.Status409Conflict, ex.Message, ex.Code),
-            NotFoundException           => (StatusCodes.Status404NotFound, exception.Message, null),
-            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, exception.Message, null),
-            _                           => (StatusCodes.Status500InternalServerError, "A critical error occurred on the server.", null)
+            BusinessRuleException ex    => (StatusCodes.Status409Conflict, ex.Message, ex.Code, ex.Params),
+            NotFoundException           => (StatusCodes.Status404NotFound, exception.Message, null, null),
+            UnauthorizedAccessException => (StatusCodes.Status403Forbidden, exception.Message, null, null),
+            _                           => (StatusCodes.Status500InternalServerError, "A critical error occurred on the server.", null, null)
         };
 
         // Returned to the caller as well, so a reported error can be found in the logs.
@@ -53,6 +53,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             StatusCode = statusCode,
             Code = code,
+            Params = parameters,
             Message = message,
             TraceId = traceId,
             Details = _env.IsDevelopment() ? exception.ToString() : null

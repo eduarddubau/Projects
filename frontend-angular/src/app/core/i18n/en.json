@@ -396,7 +396,8 @@
       "deletedNamed": "\"{{name}}\" deleted.",
       "deleteFailed": "Failed to delete user.",
       "serverErrors": {
-        "duplicateEmail": "A user with this email already exists."
+        "duplicateEmail": "A user with this email already exists.",
+        "soleOwnerOfWorkspaces": "This user is the only owner of: {{workspaces}}. Promote another owner or delete those workspaces first."
       }
     },
     "trashProjects": {

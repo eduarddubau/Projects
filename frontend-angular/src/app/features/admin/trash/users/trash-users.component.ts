@@ -22,6 +22,7 @@ import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { UserService } from '@core/services/user.service';
 import { AdminUser } from '@core/models/admin-user';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
+import { serverErrorKey, serverErrorParams } from '@core/i18n/server-error-keys';
 
 @Component({
   selector: 'app-trash-users',
@@ -156,10 +157,13 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
               { duration: 3000 },
             );
           },
-          error: () => this.snackBar.open(
-            this.transloco.translate('admin.trashUsers.eraseFailed'),
+          error: (err) => this.snackBar.open(
+            this.transloco.translate(
+              serverErrorKey(err, 'admin.trashUsers.eraseFailed'),
+              serverErrorParams(err)
+            ),
             this.transloco.translate('common.actions.close'),
-            { duration: 5000 },
+            { duration: 10000 },
           )
         });
       });
