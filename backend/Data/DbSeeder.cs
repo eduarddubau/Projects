@@ -91,7 +91,7 @@ public static class DbSeeder
 
         for (var index = 1; index <= UserCount; index++)
         {
-            var user = await SeedUserAsync(userManager, logger, index);
+            var user = await SeedUserAsync(userManager, context, logger, index);
             if (user is null) continue;
 
             devUsers.Add(user);
@@ -142,11 +142,30 @@ public static class DbSeeder
         logger.LogInformation("Seeded {Count} personal workspace(s).", users.Count);
     }
 
-    private static async Task<User?> SeedUserAsync(UserManager<User> userManager, ILogger logger, int index)
+    private static async Task<User?> SeedUserAsync(
+        UserManager<User> userManager, AppDbContext context, ILogger logger, int index)
     {
         var email = $"dev{index}@example.com";
-        var existingUser = await userManager.FindByEmailAsync(email);
-        if (existingUser is not null) return existingUser;
+
+        // Looked up through the query filter, not via FindByEmailAsync: a soft-deleted user is
+        // invisible to the filter but still holds the unique username index, so the seeder would
+        // decide the account is missing and fail startup on the duplicate.
+        var existingUser = await context.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == email.ToUpperInvariant());
+
+        if (existingUser is not null)
+        {
+            // Deleting a dev user is a deliberate act; resurrecting it on the next boot
+            // would undo that silently.
+            if (existingUser.IsDeleted)
+            {
+                logger.LogDebug("Dev user {Email} is deleted. Leaving it alone.", email);
+                return null;
+            }
+
+            return existingUser;
+        }
 
         logger.LogInformation("Seeding user: {Email}", email);
         var user = new User

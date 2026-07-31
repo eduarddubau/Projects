@@ -333,6 +333,8 @@ public class UserServiceTests
 
         Assert.Equal(BusinessRuleCodes.SoleOwnerOfWorkspaces, ex.Code);
         Assert.Contains("Acme Team", ex.Message);
+        // The client renders its own text, so the names have to travel as data too.
+        Assert.Equal("Acme Team", ex.Params!["workspaces"]);
 
         // The erasure must not be half-applied when it is refused.
         var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == user.Id);

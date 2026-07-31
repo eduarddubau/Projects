@@ -56,6 +56,9 @@ public class DbSeederTests
         {
             Email = email,
             UserName = email,
+            // UserManager normalizes on create; the seeder looks users up by it.
+            NormalizedEmail = email.ToUpperInvariant(),
+            NormalizedUserName = email.ToUpperInvariant(),
             FirstName = firstName,
             LastName = "Tester",
             Nickname = nickname
@@ -120,6 +123,32 @@ public class DbSeederTests
         await Seed(admin, isDevelopment: false);
 
         Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal));
+    }
+
+    [Fact]
+    public async Task SeedAsync_WhenDevUserIsSoftDeleted_LeavesThemAloneRatherThanRecreating()
+    {
+        // A soft-deleted user is hidden by the query filter but still owns the unique username
+        // index, so re-creating them threw 23505 and took the whole app down at startup.
+        var deleted = AddUser("dev1@example.com", "Dev");
+        deleted.IsDeleted = true;
+        await _context.SaveChangesAsync();
+
+        _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
+
+        await Seed(admin, isDevelopment: true);
+
+        _userManager.Verify(
+            m => m.CreateAsync(It.Is<User>(u => u.Email == "dev1@example.com"), It.IsAny<string>()),
+            Times.Never);
+        // Deleted users get no personal workspace either.
+        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal && w.CreatedBy == deleted.Id));
     }
 
     [Fact]
