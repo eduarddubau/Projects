@@ -21,43 +21,32 @@ public static class DbSeeder
     {
         logger.LogInformation("Starting database seeding...");
 
-        // Roles are required for the app to function in every environment.
         await SeedRolesAsync(roleManager, logger);
-
-        // The configured admin is seeded in every environment so the same account
-        // exists everywhere (its credentials come from configuration/secrets).
         await SeedAdminAsync(userManager, logger, adminOptions);
 
         if (isDevelopment)
         {
-            // Development additionally gets the full demo dataset (dev users +
-            // sample/trash projects) that the local app and E2E specs rely on.
             await SeedDevelopmentDataAsync(userManager, context, logger, retentionOptions);
         }
+
+        await SeedPersonalWorkspacesAsync(context, logger);
 
         logger.LogInformation("Database seeding completed successfully.");
     }
 
-    private static async Task SeedDevelopmentDataAsync(
-        UserManager<User> userManager,
-        AppDbContext context,
-        ILogger logger,
-        ProjectRetentionOptions retentionOptions)
+    private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager, ILogger logger)
     {
-        for (var index = 1; index <= UserCount; index++)
+        foreach (var roleName in new[] { AppRoles.Admin, AppRoles.User })
         {
-            var user = await SeedUserAsync(userManager, logger, index);
-            if (user is null) continue;
+            if (await roleManager.RoleExistsAsync(roleName)) continue;
 
-            await SeedProjectsForUserAsync(context, logger, user, index, retentionOptions.TrashWindowDays);
+            logger.LogInformation("Creating role: {RoleName}", roleName);
+            await roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
         }
     }
 
     private static async Task SeedAdminAsync(UserManager<User> userManager, ILogger logger, AdminSeedOptions options)
     {
-        // An admin account is mandatory in every environment: fail fast so a
-        // misconfigured setup is caught at startup rather than running an app
-        // nobody can administer.
         if (string.IsNullOrWhiteSpace(options.Email) || string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException(
                 $"No admin credentials configured. Set {AdminSeedOptions.SectionName}:Email and " +
@@ -92,15 +81,65 @@ public static class DbSeeder
         await userManager.AddToRoleAsync(admin, AppRoles.Admin);
     }
 
-    private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager, ILogger logger)
+    private static async Task SeedDevelopmentDataAsync(
+        UserManager<User> userManager,
+        AppDbContext context,
+        ILogger logger,
+        ProjectRetentionOptions retentionOptions)
     {
-        foreach (var roleName in new[] { AppRoles.Admin, AppRoles.User })
-        {
-            if (await roleManager.RoleExistsAsync(roleName)) continue;
+        var devUsers = new List<User>();
 
-            logger.LogInformation("Creating role: {RoleName}", roleName);
-            await roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
+        for (var index = 1; index <= UserCount; index++)
+        {
+            var user = await SeedUserAsync(userManager, logger, index);
+            if (user is null) continue;
+
+            devUsers.Add(user);
+            await SeedProjectsForUserAsync(context, logger, user, index, retentionOptions.TrashWindowDays);
         }
+
+        await SeedSharedWorkspaceAsync(context, logger, devUsers);
+    }
+
+    private static async Task SeedPersonalWorkspacesAsync(AppDbContext context, ILogger logger)
+    {
+        var users = await context.Users
+            .Where(u => !u.IsAnonymized)
+            .Where(u => !context.Workspaces.Any(w => w.IsPersonal && w.Members.Any(m => m.UserId == u.Id)))
+            .ToListAsync();
+
+        if (users.Count == 0)
+        {
+            logger.LogDebug("Every user already has a personal workspace.");
+            return;
+        }
+
+        foreach (var user in users)
+        {
+            logger.LogDebug("Seeding personal workspace for user: {UserId}", user.Id);
+            var owner = string.IsNullOrWhiteSpace(user.Nickname) ? user.FirstName : user.Nickname;
+
+            var workspace = new Workspace
+            {
+                Name = $"{owner}'s Workspace",
+                IsPersonal = true,
+                CreatedBy = user.Id,
+                Members =
+                {
+                    new WorkspaceMember
+                    {
+                        UserId = user.Id,
+                        Role = WorkspaceRole.Owner,
+                        JoinedAt = DateTime.UtcNow
+                    }
+                }
+            };
+
+            context.Workspaces.Add(workspace);
+        }
+
+        await context.SaveChangesAsync();
+        logger.LogInformation("Seeded {Count} personal workspace(s).", users.Count);
     }
 
     private static async Task<User?> SeedUserAsync(UserManager<User> userManager, ILogger logger, int index)
@@ -116,6 +155,7 @@ public static class DbSeeder
             Email = email,
             FirstName = "Dev",
             LastName = $"User{index}",
+            Nickname = $"dev{index}",
             EmailConfirmed = true
         };
 
@@ -192,6 +232,51 @@ public static class DbSeeder
             deletedProjects[i].DeletedAt = DateTime.UtcNow.AddDays(-deletedAges[i]);
         }
 
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>One shared workspace so the switcher, the members page and the multi-owner
+    /// and last-owner guards have something real to run against.</summary>
+    private static async Task SeedSharedWorkspaceAsync(AppDbContext context, ILogger logger, IReadOnlyList<User> devUsers)
+    {
+        const string sharedName = "Acme Team";
+
+        if (devUsers.Count == 0)
+        {
+            logger.LogDebug("No dev users to place in the shared workspace. Skipping.");
+            return;
+        }
+
+        if (await context.Workspaces.AnyAsync(w => !w.IsPersonal && w.Name == sharedName))
+        {
+            logger.LogDebug("Shared workspace already seeded. Skipping.");
+            return;
+        }
+
+
+        logger.LogInformation("Seeding shared workspace: {Name}", sharedName);
+
+        var workspace = new Workspace
+        {
+            Name = sharedName,
+            Description = "Shared demo workspace.",
+            IsPersonal = false,
+            // No HTTP context at startup, so SaveChangesAsync can't infer the creator.
+            // devUsers is filled dev1..devN in order, so the first is dev1.
+            CreatedBy = devUsers[0].Id
+        };
+
+        for (var i = 0; i < devUsers.Count; i++)
+        {
+            workspace.Members.Add(new WorkspaceMember
+            {
+                UserId = devUsers[i].Id,
+                Role = i == 0 ? WorkspaceRole.Owner : WorkspaceRole.Member,
+                JoinedAt = DateTime.UtcNow
+            });
+        }
+
+        context.Workspaces.Add(workspace);
         await context.SaveChangesAsync();
     }
 }

@@ -14,14 +14,17 @@ namespace Backend.Services;
 public class UserService : BaseService<User>, IUserService
 {
     private readonly UserManager<User> _userManager;
+    private readonly IWorkspaceService _workspaceService;
 
     public UserService(
         AppDbContext context,
         ICurrentUserService currentUser,
-        UserManager<User> userManager)
+        UserManager<User> userManager,
+        IWorkspaceService workspaceService)
         : base(context, currentUser)
     {
         _userManager = userManager;
+        _workspaceService = workspaceService;
     }
 
     public async Task<UserResponseDto?> GetMyProfileAsync(CancellationToken ct = default)
@@ -98,6 +101,7 @@ public class UserService : BaseService<User>, IUserService
                 string.Join(", ", result.Errors.Select(e => e.Description)));
 
         await _userManager.AddToRoleAsync(user, AppRoles.User);
+        await _workspaceService.EnsurePersonalWorkspaceAsync(user, ct);
 
         return user.MapToDto();
     }
@@ -139,6 +143,29 @@ public class UserService : BaseService<User>, IUserService
             .FirstOrDefaultAsync(u => u.Id == id && u.IsDeleted && !u.IsAnonymized, ct);
 
         if (user is null) return false;
+
+        var soleOwned = await _context.Workspaces
+            .Where(w => !w.IsPersonal
+                    && w.Members.Any(m => m.UserId == id && m.Role == WorkspaceRole.Owner)
+                    && !w.Members.Any(m => m.UserId != id && m.Role == WorkspaceRole.Owner))
+            .Select(w => w.Name)
+            .ToListAsync(ct);
+
+        if (soleOwned.Count > 0)
+            throw new BusinessRuleException(BusinessRuleCodes.SoleOwnerOfWorkspaces,
+                $"This user is the only owner of: {string.Join(", ", soleOwned)}. " +
+                "Promote another owner or delete those workspaces first.");
+
+        var personalWorkspaces = await _context.Workspaces
+            .Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))
+            .ToListAsync(ct);
+
+        var memberships = await _context.WorkspaceMembers
+            .Where(m => m.UserId == id)
+            .ToListAsync(ct);
+
+        _context.WorkspaceMembers.RemoveRange(memberships);
+        _context.Workspaces.RemoveRange(personalWorkspaces);
 
         var tombstone = $"deleted-{user.Id:N}@anonymized.invalid";
 

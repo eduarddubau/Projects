@@ -12,5 +12,10 @@ public static class BusinessRuleCodes
     public const string PersonalWorkspaceNoMembers = "PersonalWorkspaceNoMembers";
     public const string PersonalWorkspaceNotLeavable = "PersonalWorkspaceNotLeavable";
     public const string AlreadyWorkspaceMember = "AlreadyWorkspaceMember";
+
+    // Used when user tries to demote or remove an owner
     public const string WorkspaceMustHaveOwner = "WorkspaceMustHaveOwner";
+
+    // Used when an admin tries to demote or remove an owner
+    public const string SoleOwnerOfWorkspaces = "SoleOwnerOfWorkspaces";
 }

@@ -22,18 +22,22 @@ public class AuthController : ControllerBase
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ICurrentUserService _currentUser;
 
+    private readonly IWorkspaceService _workspaceService;
+
     public AuthController(
         UserManager<User> userManager,
         ILogger<AuthController> logger,
         ITokenService tokenService,
         IRefreshTokenService refreshTokenService,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        IWorkspaceService workspaceService)
     {
         _userManager = userManager;
         _logger = logger;
         _tokenService = tokenService;
         _refreshTokenService = refreshTokenService;
         _currentUser = currentUser;
+        _workspaceService = workspaceService;
     }
 
     [Authorize(Policy = AppPolicies.StandardUser)]
@@ -97,6 +101,7 @@ public class AuthController : ControllerBase
         }
 
         await _userManager.AddToRoleAsync(user, AppRoles.User);
+        await _workspaceService.EnsurePersonalWorkspaceAsync(user, ct);
 
         var token = await _tokenService.CreateToken(user);
         var refreshToken = await _refreshTokenService.IssueAsync(user.Id, ct);
