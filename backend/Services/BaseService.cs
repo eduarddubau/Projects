@@ -27,7 +27,12 @@ public abstract class BaseService<T> where T : class, IAuditEntity
 
         if (entity is null) return false;
 
-        _context.Set<T>().Remove(entity);
+        // Set the flags rather than Remove(): Remove marks loaded dependents Deleted before
+        // SaveChangesAsync can intercept, and dependents that aren't IAuditEntity never get
+        // rescued — so a soft delete would hard-delete them depending on what was tracked.
+        entity.IsDeleted = true;
+        entity.DeletedAt = DateTime.UtcNow;
+
         await _context.SaveChangesAsync(ct);
 
         return true;

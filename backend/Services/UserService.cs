@@ -169,8 +169,18 @@ public class UserService : BaseService<User>, IUserService
             .Where(m => m.UserId == id)
             .ToListAsync(ct);
 
+        // A real delete: the user stops appearing in member lists rather than lingering
+        // as "Deleted User".
         _context.WorkspaceMembers.RemoveRange(memberships);
-        _context.Workspaces.RemoveRange(personalWorkspaces);
+
+        var now = DateTime.UtcNow;
+
+        // A soft delete: the personal workspace is hidden from the user and cannot be restored.
+        foreach (var workspace in personalWorkspaces)
+        {
+           workspace.IsDeleted = true;
+           workspace.DeletedAt = now;
+        }
 
         var tombstone = $"deleted-{user.Id:N}@anonymized.invalid";
 
@@ -185,7 +195,7 @@ public class UserService : BaseService<User>, IUserService
         user.PasswordHash = null;
         user.SecurityStamp = Guid.NewGuid().ToString();
         user.IsAnonymized = true;
-        user.AnonymizedAt = DateTime.UtcNow;
+        user.AnonymizedAt = now;
 
         await _context.SaveChangesAsync(ct);
 

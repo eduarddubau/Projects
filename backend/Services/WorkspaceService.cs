@@ -92,7 +92,11 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         // TODO(stage 2): also refuse when the workspace holds any project, active or trashed.
         // Not expressible until Project.WorkspaceId exists.
 
-        _context.Workspaces.Remove(workspace);
+        // Not Remove(): WorkspaceMember cascades from Workspace, so removing the principal
+        // would hard-delete the membership rows this workspace needs to come back.
+        workspace.IsDeleted = true;
+        workspace.DeletedAt = DateTime.UtcNow;
+
         await _context.SaveChangesAsync(ct);
     }
 

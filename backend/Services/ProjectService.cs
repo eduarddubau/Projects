@@ -114,7 +114,9 @@ public class ProjectService : BaseService<Project>, IProjectService
 
         if (project is null) return false;
 
-        _context.Projects.Remove(project);
+        project.IsDeleted = true;
+        project.DeletedAt = DateTime.UtcNow;
+
         await _context.SaveChangesAsync(ct);
 
         return true;

@@ -163,6 +163,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 if (userGuid.HasValue)
                     entityEntry.Entity.UpdatedBy = userGuid;
             }
+            // A safety net, not the mechanism. Services soft-delete by setting the flags
+            // themselves, because Remove() cascades to loaded dependents before this runs and
+            // ones that aren't IAuditEntity are never rescued below. Kept so a stray Remove()
+            // hides a row instead of destroying it.
             else if (entityEntry.State == EntityState.Deleted)
             {
                 if (_hardDeleteOverrides.Remove(entityEntry.Entity))
