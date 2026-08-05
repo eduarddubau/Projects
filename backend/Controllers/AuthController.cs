@@ -21,8 +21,8 @@ public class AuthController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ICurrentUserService _currentUser;
-
     private readonly IWorkspaceService _workspaceService;
+    private readonly IInvitationService _invitationService;
 
     public AuthController(
         UserManager<User> userManager,
@@ -30,7 +30,8 @@ public class AuthController : ControllerBase
         ITokenService tokenService,
         IRefreshTokenService refreshTokenService,
         ICurrentUserService currentUser,
-        IWorkspaceService workspaceService)
+        IWorkspaceService workspaceService,
+        IInvitationService invitationService)
     {
         _userManager = userManager;
         _logger = logger;
@@ -38,6 +39,7 @@ public class AuthController : ControllerBase
         _refreshTokenService = refreshTokenService;
         _currentUser = currentUser;
         _workspaceService = workspaceService;
+        _invitationService = invitationService;
     }
 
     [Authorize(Policy = AppPolicies.StandardUser)]
@@ -102,6 +104,7 @@ public class AuthController : ControllerBase
 
         await _userManager.AddToRoleAsync(user, AppRoles.User);
         await _workspaceService.EnsurePersonalWorkspaceAsync(user, ct);
+        await _invitationService.RedeemPendingForEmailAsync(user, ct);
 
         var token = await _tokenService.CreateToken(user);
         var refreshToken = await _refreshTokenService.IssueAsync(user.Id, ct);

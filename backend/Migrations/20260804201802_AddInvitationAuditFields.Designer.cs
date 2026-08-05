@@ -3,6 +3,7 @@ using System;
 using Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260804201802_AddInvitationAuditFields")]
+    partial class AddInvitationAuditFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,9 +86,6 @@ namespace backend.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_invitations");
-
-                    b.HasIndex("InvitedBy")
-                        .HasDatabaseName("ix_invitations_invited_by");
 
                     b.HasIndex("TokenHash")
                         .IsUnique()
@@ -589,21 +589,12 @@ namespace backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Invitation", b =>
                 {
-                    b.HasOne("Backend.Models.User", "Inviter")
-                        .WithMany()
-                        .HasForeignKey("InvitedBy")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_invitations_users_invited_by");
-
                     b.HasOne("Backend.Models.Workspace", "Workspace")
                         .WithMany()
                         .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_invitations_workspaces_workspace_id");
-
-                    b.Navigation("Inviter");
 
                     b.Navigation("Workspace");
                 });

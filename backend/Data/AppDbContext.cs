@@ -115,6 +115,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(i => i.WorkspaceId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Restrict, like the audit FKs: an inviter must not be purged out from under
+            // the invitations that record what they did.
+            entity.HasOne(i => i.Inviter)
+                .WithMany()
+                .HasForeignKey(i => i.InvitedBy)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>

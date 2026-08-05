@@ -55,6 +55,24 @@ public static class WorkspaceMappingExtensions
         });
     }
 
+    public static IQueryable<InvitationResponseDto> MapToDto(this IQueryable<Invitation> query)
+    {
+        return query.Select(i => new InvitationResponseDto
+        {
+            Id = i.Id,
+            WorkspaceId = i.WorkspaceId,
+            Email = i.Email,
+            Role = i.Role,
+            CreatedAt = i.CreatedAt,
+            ExpiresAt = i.ExpiresAt,
+            InvitedByDisplayName = i.Inviter == null
+                ? string.Empty
+                : (i.Inviter.FirstName + " " + i.Inviter.LastName).Trim() != ""
+                    ? (i.Inviter.FirstName + " " + i.Inviter.LastName).Trim()
+                    : i.Inviter.Email ?? string.Empty
+        });
+    }
+
     public static WorkspaceMemberResponseDto MapToDto(this WorkspaceMember member) => new()
     {
         WorkspaceId = member.WorkspaceId,
