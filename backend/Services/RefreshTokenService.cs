@@ -1,8 +1,7 @@
-using System.Security.Cryptography;
-using System.Text;
 using Backend.Config;
 using Backend.Data;
 using Backend.Models;
+using Backend.Security;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -24,7 +23,7 @@ public class RefreshTokenService : IRefreshTokenService
 
     public async Task<string> IssueAsync(Guid userId, CancellationToken ct = default)
     {
-        var (raw, hash) = GenerateToken();
+        var (raw, hash) = SecureToken.Generate();
         _db.RefreshTokens.Add(NewToken(userId, hash));
         await _db.SaveChangesAsync(ct);
         return raw;
@@ -32,7 +31,7 @@ public class RefreshTokenService : IRefreshTokenService
 
     public async Task<RefreshRotationResult> RotateAsync(string rawToken, CancellationToken ct = default)
     {
-        var hash = Hash(rawToken);
+        var hash = SecureToken.Hash(rawToken);
         var token = await _db.RefreshTokens.FirstOrDefaultAsync(rt => rt.TokenHash == hash, ct);
 
         if (token is null)
@@ -58,7 +57,7 @@ public class RefreshTokenService : IRefreshTokenService
         }
 
         // Rotate: revoke the current token and issue a replacement in one save.
-        var (raw, newHash) = GenerateToken();
+        var (raw, newHash) = SecureToken.Generate();
         token.RevokedAt = DateTime.UtcNow;
         token.ReplacedByTokenHash = newHash;
         _db.RefreshTokens.Add(NewToken(token.UserId, newHash));
@@ -70,7 +69,7 @@ public class RefreshTokenService : IRefreshTokenService
 
     public async Task RevokeAsync(string rawToken, CancellationToken ct = default)
     {
-        var hash = Hash(rawToken);
+        var hash = SecureToken.Hash(rawToken);
         var token = await _db.RefreshTokens.FirstOrDefaultAsync(rt => rt.TokenHash == hash, ct);
         if (token is { RevokedAt: null })
         {
@@ -99,17 +98,4 @@ public class RefreshTokenService : IRefreshTokenService
         CreatedAt = DateTime.UtcNow,
         ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDurationInDays)
     };
-
-    private static (string raw, string hash) GenerateToken()
-    {
-        var raw = Base64UrlEncode(RandomNumberGenerator.GetBytes(64));
-        return (raw, Hash(raw));
-    }
-
-    // High-entropy token, so a fast hash suffices; only the hash is ever stored.
-    private static string Hash(string raw) =>
-        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
-
-    private static string Base64UrlEncode(byte[] bytes) =>
-        Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
 }
