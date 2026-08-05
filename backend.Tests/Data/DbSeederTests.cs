@@ -12,6 +12,7 @@ namespace Backend.Tests.Data;
 public class DbSeederTests
 {
     private readonly Mock<UserManager<User>> _userManager;
+    private readonly ILookupNormalizer _normalizer = new UpperInvariantLookupNormalizer();
     private readonly Mock<RoleManager<IdentityRole<Guid>>> _roleManager;
     private readonly AppDbContext _context;
     private readonly ILogger _logger = new Mock<ILogger>().Object;
@@ -36,7 +37,8 @@ public class DbSeederTests
     }
 
     private Task Seed(AdminSeedOptions admin, bool isDevelopment) =>
-        DbSeeder.SeedAsync(_userManager.Object, _roleManager.Object, _context, _logger, _retention, admin, isDevelopment);
+        DbSeeder.SeedAsync(_userManager.Object, _roleManager.Object, _context, _logger, _retention, admin,
+            _normalizer, isDevelopment);
 
     /// <summary>Admin options whose account already exists, so admin seeding is a no-op and the
     /// test can focus on what follows it.</summary>
@@ -57,8 +59,8 @@ public class DbSeederTests
             Email = email,
             UserName = email,
             // UserManager normalizes on create; the seeder looks users up by it.
-            NormalizedEmail = email.ToUpperInvariant(),
-            NormalizedUserName = email.ToUpperInvariant(),
+            NormalizedEmail = _normalizer.NormalizeEmail(email),
+            NormalizedUserName = _normalizer.NormalizeName(email),
             FirstName = firstName,
             LastName = "Tester",
             Nickname = nickname

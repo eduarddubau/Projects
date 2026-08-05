@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Backend.Config;
 using Backend.DTOs.User;
+using Backend.Exceptions;
 
 namespace Backend.Controllers;
 
@@ -92,7 +93,16 @@ public class AuthController : ControllerBase
     {
         var user = request.ToEntity();
 
-        var result = await _userManager.CreateAsync(user, request.Password);
+        IdentityResult result;
+        try
+        {
+            result = await _userManager.CreateAsync(user, request.Password);
+        }
+        catch (BusinessRuleException ex) when (ex.Code == BusinessRuleCodes.DuplicateEmail)
+        {
+            ModelState.AddModelError("DuplicateEmail", ex.Message);
+            return BadRequest(ModelState);
+        }
 
         if (!result.Succeeded)
         {

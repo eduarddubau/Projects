@@ -446,7 +446,10 @@
       "eraseTitle": "Șterge definitiv utilizatorul",
       "eraseMessage": "„{{name}}” ({{email}}) va fi șters definitiv. Datele personale sunt eliminate, iar utilizatorul nu mai poate fi restaurat. Acțiunea este ireversibilă și este destinată cererilor GDPR de ștergere a datelor.",
       "erased": "Utilizatorul a fost șters definitiv.",
-      "eraseFailed": "Utilizatorul nu a putut fi șters definitiv."
+      "eraseFailed": "Utilizatorul nu a putut fi șters definitiv.",
+      "serverErrors": {
+        "emailReclaimed": "{{email}} aparține acum altui cont. Șterge definitiv acest utilizator sau cere-i deținătorului actual să își schimbe adresa mai întâi."
+      }
     }
   },
   "paginator": {

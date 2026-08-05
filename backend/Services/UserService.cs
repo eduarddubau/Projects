@@ -15,16 +15,19 @@ public class UserService : BaseService<User>, IUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IWorkspaceService _workspaceService;
+    private readonly ILookupNormalizer _normalizer;
 
     public UserService(
         AppDbContext context,
         ICurrentUserService currentUser,
         UserManager<User> userManager,
-        IWorkspaceService workspaceService)
+        IWorkspaceService workspaceService,
+        ILookupNormalizer normalizer)
         : base(context, currentUser)
     {
         _userManager = userManager;
         _workspaceService = workspaceService;
+        _normalizer = normalizer;
     }
 
     public async Task<UserResponseDto?> GetMyProfileAsync(CancellationToken ct = default)
@@ -110,13 +113,35 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<UserResponseDto?> RestoreAnyUserAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await RestoreAnyByIdAsync(id, ct);
-        if (user is null) return null;
+        var deleted = await _context.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == id, ct);
 
-        await _context.Entry(user).Reference(u => u.Creator).LoadAsync(ct);
-        await _context.Entry(user).Reference(u => u.Updater).LoadAsync(ct);
+        if (deleted is null) return null;
 
-        return user.MapToDto();
+        if (deleted.IsDeleted)
+        {
+            // Uniqueness is scoped to live rows, so restoring re-enters the partial index.
+            // Only a live holder blocks it — another deleted row isn't in the index either.
+            bool taken = await _context.Users
+                .AnyAsync(u => u.Id != id
+                            && (u.NormalizedEmail == deleted.NormalizedEmail
+                            || u.NormalizedUserName == deleted.NormalizedUserName), ct);
+
+            if (taken)
+                throw new BusinessRuleException(BusinessRuleCodes.EmailReclaimed,
+                    $"{deleted.Email} now belongs to another account. Erase this one, or have the current holder change their address first.",
+                    new Dictionary<string, string> { ["email"] = deleted.Email ?? string.Empty });
+
+            deleted.IsDeleted = false;
+            deleted.DeletedAt = null;
+            await _context.SaveChangesAsync(ct);
+        }
+
+        return await _context.Users
+            .Where(u => u.Id == id)
+            .MapToDto()
+            .FirstAsync(ct);
     }
 
     public async Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync(CancellationToken ct = default)
@@ -188,9 +213,9 @@ public class UserService : BaseService<User>, IUserService
         user.LastName = "User";
         user.Nickname = null;
         user.Email = tombstone;
-        user.NormalizedEmail = tombstone.ToUpperInvariant();
+        user.NormalizedEmail = _normalizer.NormalizeEmail(tombstone);
         user.UserName = tombstone;
-        user.NormalizedUserName = tombstone.ToUpperInvariant();
+        user.NormalizedUserName = _normalizer.NormalizeName(tombstone);
         user.PhoneNumber = null;
         user.PasswordHash = null;
         user.SecurityStamp = Guid.NewGuid().ToString();

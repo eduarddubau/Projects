@@ -16,6 +16,9 @@ public class UserServiceTests
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly Mock<UserManager<User>> _userManager;
     private readonly Mock<IWorkspaceService> _workspaceService = new();
+    // The real normalizer, not a mock: fixtures then produce exactly what Identity
+    // writes in production, so they can't drift from the code under test.
+    private readonly ILookupNormalizer _normalizer = new UpperInvariantLookupNormalizer();
     private readonly AppDbContext _context;
     private readonly UserService _service;
 
@@ -30,7 +33,8 @@ public class UserServiceTests
         var store = new Mock<IUserStore<User>>();
         _userManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
-        _service = new UserService(_context, _currentUser.Object, _userManager.Object, _workspaceService.Object);
+        _service = new UserService(
+            _context, _currentUser.Object, _userManager.Object, _workspaceService.Object, _normalizer);
     }
 
     private Workspace AddWorkspace(string name, bool isPersonal, params (User user, WorkspaceRole role)[] members)
@@ -52,7 +56,20 @@ public class UserServiceTests
 
     private User AddUser(string email, bool isDeleted = false, string? nickname = null)
     {
-        var user = new User { Email = email, UserName = email, FirstName = "Alan", LastName = "Turing", Nickname = nickname, IsDeleted = isDeleted };
+        // Normalized fields matter: the reclaim guard in RestoreAnyUserAsync compares them,
+        // and under InMemory (LINQ to Objects) two nulls compare equal, so leaving them
+        // unset would make every user look like every other user to that guard.
+        var user = new User
+        {
+            Email = email,
+            UserName = email,
+            NormalizedEmail = _normalizer.NormalizeEmail(email),
+            NormalizedUserName = _normalizer.NormalizeName(email),
+            FirstName = "Alan",
+            LastName = "Turing",
+            Nickname = nickname,
+            IsDeleted = isDeleted
+        };
         _context.Users.Add(user);
         _context.SaveChanges();
         return user;
@@ -277,6 +294,50 @@ public class UserServiceTests
         var result = await _service.RestoreAnyUserAsync(Guid.NewGuid());
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task RestoreAnyUserAsync_WhenAddressWasReclaimed_Throws()
+    {
+        // Uniqueness is scoped to live rows, so restoring would put this row back into the
+        // partial index and Postgres would reject it. The guard turns that 500 into a 409.
+        var deleted = AddUser("ada@example.com", isDeleted: true);
+        AddUser("ada@example.com");
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _service.RestoreAnyUserAsync(deleted.Id));
+
+        Assert.Equal(BusinessRuleCodes.EmailReclaimed, ex.Code);
+        Assert.Equal("ada@example.com", ex.Params?["email"]);
+
+        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == deleted.Id);
+        Assert.True(stored.IsDeleted);
+    }
+
+    [Fact]
+    public async Task RestoreAnyUserAsync_WhenAnotherAddressIsLive_Restores()
+    {
+        var deleted = AddUser("ada@example.com", isDeleted: true);
+        AddUser("grace@example.com");
+
+        var result = await _service.RestoreAnyUserAsync(deleted.Id);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsDeleted);
+    }
+
+    [Fact]
+    public async Task RestoreAnyUserAsync_WhenOnlyADeletedUserHoldsTheAddress_Restores()
+    {
+        // The guard queries _context.Users *with* the !IsDeleted filter on purpose: another
+        // deleted row isn't in the partial index either, so it can't block a restore.
+        var deleted = AddUser("ada@example.com", isDeleted: true);
+        AddUser("ada@example.com", isDeleted: true);
+
+        var result = await _service.RestoreAnyUserAsync(deleted.Id);
+
+        Assert.NotNull(result);
+        Assert.False(result!.IsDeleted);
     }
 
     [Fact]

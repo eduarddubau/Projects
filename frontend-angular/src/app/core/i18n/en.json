@@ -446,7 +446,10 @@
       "eraseTitle": "Permanently Erase User",
       "eraseMessage": "\"{{name}}\" ({{email}}) will be permanently erased. Their personal data is scrubbed and they can no longer be restored. This is irreversible and is intended for data-erasure (GDPR) requests.",
       "erased": "User permanently erased.",
-      "eraseFailed": "Failed to erase user."
+      "eraseFailed": "Failed to erase user.",
+      "serverErrors": {
+        "emailReclaimed": "{{email}} now belongs to another account. Erase this user, or have the current holder change their address first."
+      }
     }
   },
   "paginator": {

@@ -22,13 +22,15 @@ public static class MigrationExtensions
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
             var retentionOptions = services.GetRequiredService<IOptions<ProjectRetentionOptions>>();
             var adminOptions = services.GetRequiredService<IOptions<AdminSeedOptions>>();
+            var normalizer = services.GetRequiredService<ILookupNormalizer>();
 
             if ((await context.Database.GetPendingMigrationsAsync()).Any())
                 await context.Database.MigrateAsync();
 
             await DbSeeder.SeedAsync(
                 userManager, roleManager, context, logger,
-                retentionOptions.Value, adminOptions.Value, app.Environment.IsDevelopment());
+                retentionOptions.Value, adminOptions.Value, normalizer,
+                app.Environment.IsDevelopment());
         }
         catch (Exception ex)
         {

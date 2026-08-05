@@ -6,6 +6,7 @@ using Backend.Models;
 using Backend.Security;
 using Backend.Services;
 using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -14,6 +15,7 @@ namespace Backend.Tests.Services;
 public class InvitationServiceTests
 {
     private readonly Mock<ICurrentUserService> _currentUser = new();
+    private readonly ILookupNormalizer _normalizer = new UpperInvariantLookupNormalizer();
     private readonly AppDbContext _context;
     private readonly InvitationService _service;
 
@@ -32,7 +34,7 @@ public class InvitationServiceTests
 
         // The real guard, not a mock: the owner-only rule is part of what's under test.
         _service = new InvitationService(
-            _context, _currentUser.Object, new WorkspaceAccessService(_context, _currentUser.Object));
+            _context, _currentUser.Object, new WorkspaceAccessService(_context, _currentUser.Object), _normalizer);
     }
 
     private User AddUser(string email, string firstName, bool isDeleted = false, bool isAnonymized = false)
@@ -41,7 +43,7 @@ public class InvitationServiceTests
         {
             Email = email,
             UserName = email,
-            NormalizedEmail = email.ToUpperInvariant(),
+            NormalizedEmail = _normalizer.NormalizeEmail(email),
             FirstName = firstName,
             LastName = "Tester",
             IsDeleted = isDeleted,
@@ -82,7 +84,7 @@ public class InvitationServiceTests
         {
             WorkspaceId = workspaceId,
             Email = email,
-            NormalizedEmail = email.ToUpperInvariant(),
+            NormalizedEmail = _normalizer.NormalizeEmail(email),
             Role = WorkspaceRole.Member,
             TokenHash = SecureToken.Hash(rawToken),
             InvitedBy = _caller.Id,

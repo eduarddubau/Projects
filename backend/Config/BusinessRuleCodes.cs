@@ -22,4 +22,5 @@ public static class BusinessRuleCodes
     public const string PendingInvitationExists = "PendingInvitationExists";
     public const string InvitationInvalid = "InvitationInvalid";
     public const string EmailBelongsToDeletedAccount = "EmailBelongsToDeletedAccount";
+    public const string EmailReclaimed = "EmailReclaimed";
 }

@@ -17,6 +17,7 @@ public static class DbSeeder
         ILogger logger,
         ProjectRetentionOptions retentionOptions,
         AdminSeedOptions adminOptions,
+        ILookupNormalizer normalizer,
         bool isDevelopment)
     {
         logger.LogInformation("Starting database seeding...");
@@ -26,7 +27,7 @@ public static class DbSeeder
 
         if (isDevelopment)
         {
-            await SeedDevelopmentDataAsync(userManager, context, logger, retentionOptions);
+            await SeedDevelopmentDataAsync(userManager, context, logger, retentionOptions, normalizer);
         }
 
         await SeedPersonalWorkspacesAsync(context, logger);
@@ -85,13 +86,14 @@ public static class DbSeeder
         UserManager<User> userManager,
         AppDbContext context,
         ILogger logger,
-        ProjectRetentionOptions retentionOptions)
+        ProjectRetentionOptions retentionOptions,
+        ILookupNormalizer normalizer)
     {
         var devUsers = new List<User>();
 
         for (var index = 1; index <= UserCount; index++)
         {
-            var user = await SeedUserAsync(userManager, context, logger, index);
+            var user = await SeedUserAsync(userManager, context, logger, normalizer, index);
             if (user is null) continue;
 
             devUsers.Add(user);
@@ -143,16 +145,23 @@ public static class DbSeeder
     }
 
     private static async Task<User?> SeedUserAsync(
-        UserManager<User> userManager, AppDbContext context, ILogger logger, int index)
+        UserManager<User> userManager, AppDbContext context, ILogger logger,
+        ILookupNormalizer normalizer, int index)
     {
         var email = $"dev{index}@example.com";
 
-        // Looked up through the query filter, not via FindByEmailAsync: a soft-deleted user is
-        // invisible to the filter but still holds the unique username index, so the seeder would
-        // decide the account is missing and fail startup on the duplicate.
+        // Looked up past the query filter, not via FindByEmailAsync, which reads through it:
+        // a soft-deleted user is invisible to !IsDeleted, so the seeder would decide the
+        // account is missing. Since AddPartialUniqueUserIndexes that no longer fails on a
+        // duplicate — the insert would succeed and silently resurrect the account — which
+        // makes the skip below a policy choice rather than crash-avoidance.
+        // Hoisted out of the predicate: a method call inside an expression tree relies on
+        // EF's parameter extraction, which works here but is not something to depend on.
+        var normalizedEmail = normalizer.NormalizeEmail(email);
+
         var existingUser = await context.Users
             .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(u => u.NormalizedEmail == email.ToUpperInvariant());
+            .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
 
         if (existingUser is not null)
         {

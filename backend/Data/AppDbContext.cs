@@ -3,6 +3,9 @@ using Backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
+using Npgsql;
+using Backend.Config;
+using Backend.Exceptions;
 
 namespace Backend.Data;
 
@@ -36,6 +39,17 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         modelBuilder.Entity<User>(entity =>
         {
+            // Uniqueness scoped to live rows: a soft-deleted account stops reserving its address.
+            // Postgres enforces this atomically, which no validator can — Identity's checks read
+            // through the !IsDeleted filter and aren't atomic with the insert anyway.
+            entity.HasIndex(u => u.NormalizedUserName)
+                .IsUnique()
+                .HasFilter("is_deleted = false");
+
+            entity.HasIndex(u => u.NormalizedEmail)
+                .IsUnique()
+                .HasFilter("is_deleted = false");
+
             entity.HasOne(u => u.Creator)
                 .WithMany()
                 .HasForeignKey(u => u.CreatedBy)
@@ -135,7 +149,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         });
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var userGuid = _currentUserService.UserGuid;
         var now = DateTime.UtcNow;
@@ -192,6 +206,22 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             }
         }
 
-        return base.SaveChangesAsync(cancellationToken);
+        try
+        {
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } pg)
+        {
+            // A unique index is the only check that's atomic with the insert, so it catches
+            // races no service-layer guard can. Translated here because this is the last
+            // place that legitimately knows what database we're on.
+            throw pg.ConstraintName switch
+            {
+                "UserNameIndex" or "EmailIndex" => new BusinessRuleException(
+                    BusinessRuleCodes.DuplicateEmail, "That email address is already registered."),
+                _ => ex
+            };
+        }
     }
 }

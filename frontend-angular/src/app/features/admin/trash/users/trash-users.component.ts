@@ -121,10 +121,13 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
           { duration: 3000 },
         );
       },
-      error: () => this.snackBar.open(
-        this.transloco.translate('admin.trashUsers.restoreFailed'),
+      error: (err) => this.snackBar.open(
+        this.transloco.translate(
+          serverErrorKey(err, 'admin.trashUsers.restoreFailed'),
+          serverErrorParams(err)
+        ),
         this.transloco.translate('common.actions.close'),
-        { duration: 5000 },
+        { duration: 10000 },
       )
     });
   }

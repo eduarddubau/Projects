@@ -6,6 +6,7 @@ using Backend.Mappings;
 using Backend.Models;
 using Backend.Security;
 using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
@@ -17,12 +18,18 @@ public class InvitationService : IInvitationService
     private readonly AppDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly IWorkspaceAccessService _accessService;
+    private readonly ILookupNormalizer _normalizer;
 
-    public InvitationService(AppDbContext context, ICurrentUserService currentUser, IWorkspaceAccessService accessService)
+    public InvitationService(
+        AppDbContext context,
+        ICurrentUserService currentUser,
+        IWorkspaceAccessService accessService,
+        ILookupNormalizer normalizer)
     {
         _context = context;
         _currentUser = currentUser;
         _accessService = accessService;
+        _normalizer = normalizer;
     }
 
     public async Task<InviteResultDto> InviteAsync(Guid workspaceId, InviteRequest dto, CancellationToken ct = default)
@@ -36,7 +43,10 @@ public class InvitationService : IInvitationService
             throw new BusinessRuleException(BusinessRuleCodes.PersonalWorkspaceNoMembers,
                 "A personal workspace cannot have other members.");
 
-        var normalized = dto.Email.ToUpperInvariant();
+        // Ask Identity how it normalizes rather than reimplementing it: the normalizer
+        // is swappable in IdentityOptions, and a hardcoded ToUpperInvariant would
+        // silently stop matching NormalizedEmail the day anyone changes it.
+        var normalized = _normalizer.NormalizeEmail(dto.Email);
 
         // IgnoreQueryFilters: a soft-deleted user is invisible to the !IsDeleted filter but still
         // holds the unique username index, so they can never re-register — an invite to that
@@ -207,7 +217,7 @@ public class InvitationService : IInvitationService
     /// </summary>
     public async Task RedeemPendingForEmailAsync(User user, CancellationToken ct = default)
     {
-        var normalized = user.NormalizedEmail ?? user.Email?.ToUpperInvariant();
+        var normalized = user.NormalizedEmail ?? _normalizer.NormalizeEmail(user.Email);
         if (normalized is null) return;
 
         var invitations = await _context.Invitations

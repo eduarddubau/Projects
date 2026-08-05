@@ -10,6 +10,7 @@ const SERVER_ERROR_KEYS: Record<string, string> = {
   AlreadyWorkspaceMember: 'workspaces.serverErrors.alreadyMember',
   WorkspaceMustHaveOwner: 'workspaces.serverErrors.mustHaveOwner',
   SoleOwnerOfWorkspaces: 'admin.users.serverErrors.soleOwnerOfWorkspaces',
+  EmailReclaimed: 'admin.trashUsers.serverErrors.emailReclaimed',
 };
 
 export function serverErrorKey(err: unknown, fallbackKey: string): string {
