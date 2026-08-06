@@ -13,6 +13,10 @@ const SERVER_ERROR_KEYS: Record<string, string> = {
   WorkspaceMustHaveOwner: 'workspaces.serverErrors.mustHaveOwner',
   SoleOwnerOfWorkspaces: 'admin.users.serverErrors.soleOwnerOfWorkspaces',
   EmailReclaimed: 'admin.trashUsers.serverErrors.emailReclaimed',
+
+  PendingInvitationExists: 'invitations.serverErrors.pendingExists',
+  InvitationInvalid: 'invitations.serverErrors.invalid',
+  EmailBelongsToDeletedAccount: 'invitations.serverErrors.deletedAccount',
 };
 
 export function serverErrorKey(err: unknown, fallbackKey: string): string {

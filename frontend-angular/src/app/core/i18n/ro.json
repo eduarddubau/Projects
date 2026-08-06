@@ -476,5 +476,12 @@
       "mustHaveOwner": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar.",
       "personalNotRenamable": "Spațiul de lucru personal nu poate fi redenumit."
     }
+  },
+  "invitations": {
+    "serverErrors": {
+      "pendingExists": "Această adresă are deja o invitație în așteptare pentru acest spațiu de lucru.",
+      "invalid": "Acest link de invitație nu este valid sau a expirat ori a fost revocat.",
+      "deletedAccount": "Această adresă aparține unui cont șters și nu poate fi invitată."
+    }
   }
 }

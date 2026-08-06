@@ -476,5 +476,12 @@
       "mustHaveOwner": "A workspace must have at least one owner.",
       "personalNotRenamable": "Your personal workspace cannot be renamed."
     }
+  },
+  "invitations": {
+    "serverErrors": {
+      "pendingExists": "This address already has a pending invitation to this workspace.",
+      "invalid": "This invitation link is not valid, or it has expired or been revoked.",
+      "deletedAccount": "This address belongs to a deleted account and cannot be invited."
+    }
   }
 }
