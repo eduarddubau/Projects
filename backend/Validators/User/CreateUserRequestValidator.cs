@@ -20,6 +20,7 @@ public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
 
         RuleFor(x => x.Email)
             .NotEmpty()
-            .EmailAddress();
+            .EmailAddress()
+            .MaximumLength(254);
     }
 }

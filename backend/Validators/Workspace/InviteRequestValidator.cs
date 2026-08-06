@@ -10,7 +10,7 @@ public class InviteRequestValidator : AbstractValidator<InviteRequest>
         RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress()
-            .MaximumLength(256);
+            .MaximumLength(254);
 
         RuleFor(x => x.Role)
             .IsInEnum();
