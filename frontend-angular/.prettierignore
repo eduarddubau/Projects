@@ -1,0 +1,13 @@
+# Build output and caches
+dist/
+.angular/
+node_modules/
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+
+# Generated / vendored
+*.min.js
+*.min.css

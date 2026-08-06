@@ -1,0 +1,45 @@
+{
+  // Format-on-save is enabled per-language rather than globally: the backend is C#
+  // and belongs to the C# extension, and Markdown is excluded because `.claude` is a
+  // symlink into the notes repo — reformatting memory files from this workspace
+  // would dirty a different repository.
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+
+  // Resolve the Prettier binary from the host install under frontend-angular/
+  // rather than the extension's bundled copy, so the editor and `npm run format`
+  // can never disagree about the version.
+  "prettier.prettierPath": "./frontend-angular/node_modules/prettier",
+
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  }
+}

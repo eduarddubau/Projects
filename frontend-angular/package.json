@@ -8,6 +8,8 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "serve:ssr:frontend-angular": "node dist/frontend-angular/server/server.mjs"
   },
   "private": true,
