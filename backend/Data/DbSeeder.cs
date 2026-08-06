@@ -1,5 +1,6 @@
 using Backend.Models;
 using Backend.Config;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,7 @@ public static class DbSeeder
         ProjectRetentionOptions retentionOptions,
         AdminSeedOptions adminOptions,
         ILookupNormalizer normalizer,
+        IWorkspaceService workspaceService,
         bool isDevelopment)
     {
         logger.LogInformation("Starting database seeding...");
@@ -30,7 +32,7 @@ public static class DbSeeder
             await SeedDevelopmentDataAsync(userManager, context, logger, retentionOptions, normalizer);
         }
 
-        await SeedPersonalWorkspacesAsync(context, logger);
+        await SeedPersonalWorkspacesAsync(context, workspaceService, logger);
 
         logger.LogInformation("Database seeding completed successfully.");
     }
@@ -62,9 +64,11 @@ public static class DbSeeder
         }
 
         logger.LogInformation("Seeding admin account: {Email}", options.Email);
+        var id = Guid.CreateVersion7();
         var admin = new User
         {
-            UserName = options.Email,
+            Id = id,
+            UserName = id.ToString("N"),
             Email = options.Email,
             FirstName = options.FirstName,
             LastName = options.LastName,
@@ -103,7 +107,10 @@ public static class DbSeeder
         await SeedSharedWorkspaceAsync(context, logger, devUsers);
     }
 
-    private static async Task SeedPersonalWorkspacesAsync(AppDbContext context, ILogger logger)
+    /// <summary>Delegates to the service rather than reimplementing it: this used to be a
+    /// near-verbatim copy, which meant the derived-name overflow had to be fixed twice.</summary>
+    private static async Task SeedPersonalWorkspacesAsync(
+        AppDbContext context, IWorkspaceService workspaceService, ILogger logger)
     {
         var users = await context.Users
             .Where(u => !u.IsAnonymized)
@@ -119,28 +126,9 @@ public static class DbSeeder
         foreach (var user in users)
         {
             logger.LogDebug("Seeding personal workspace for user: {UserId}", user.Id);
-            var owner = string.IsNullOrWhiteSpace(user.Nickname) ? user.FirstName : user.Nickname;
-
-            var workspace = new Workspace
-            {
-                Name = $"{owner}'s Workspace",
-                IsPersonal = true,
-                CreatedBy = user.Id,
-                Members =
-                {
-                    new WorkspaceMember
-                    {
-                        UserId = user.Id,
-                        Role = WorkspaceRole.Owner,
-                        JoinedAt = DateTime.UtcNow
-                    }
-                }
-            };
-
-            context.Workspaces.Add(workspace);
+            await workspaceService.EnsurePersonalWorkspaceAsync(user);
         }
 
-        await context.SaveChangesAsync();
         logger.LogInformation("Seeded {Count} personal workspace(s).", users.Count);
     }
 
@@ -177,9 +165,11 @@ public static class DbSeeder
         }
 
         logger.LogInformation("Seeding user: {Email}", email);
+        var id = Guid.CreateVersion7();
         var user = new User
         {
-            UserName = email,
+            Id = id,
+            UserName = id.ToString("N"),
             Email = email,
             FirstName = "Dev",
             LastName = $"User{index}",

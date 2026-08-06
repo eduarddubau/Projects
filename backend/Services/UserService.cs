@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-// Inherits BaseService for the admin soft-delete and restore shared with ProjectService.
 public class UserService : BaseService<User>, IUserService
 {
     private readonly UserManager<User> _userManager;
@@ -53,16 +52,33 @@ public class UserService : BaseService<User>, IUserService
 
         if (user is null) return null;
 
+        // Names first, without saving: SetEmailAsync calls UpdateAsync, which saves the whole
+        // tracked context — so these commit in the same write. Reversing the order gives two
+        // saves with a window where the email moved but the name didn't.
         user.FirstName = dto.FirstName;
         user.LastName = dto.LastName;
         user.Nickname = dto.Nickname;
 
+        // Compare normalized, or "ada@x.com" -> "Ada@X.com" reads as a change and needlessly
+        // resets EmailConfirmed. UserName is no longer a copy of Email, so this moves one column.
+        if (user.NormalizedEmail != _normalizer.NormalizeEmail(dto.Email))
+        {
+            var result = await _userManager.SetEmailAsync(user, dto.Email);
+
+            // A live holder is caught here by Identity's validator; a concurrent race is caught
+            // by the partial unique index and translated in AppDbContext.SaveChangesAsync.
+            if (!result.Succeeded)
+                throw new BusinessRuleException(BusinessRuleCodes.DuplicateEmail,
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+
+        // No-op when SetEmailAsync already saved; needed when only the name changed.
         await _context.SaveChangesAsync(ct);
 
-        await _context.Entry(user).Reference(u => u.Creator).LoadAsync(ct);
-        await _context.Entry(user).Reference(u => u.Updater).LoadAsync(ct);
-
-        return user.MapToDto();
+        return await _context.Users
+            .Where(u => u.Id == userId)
+            .MapToDto()
+            .FirstAsync(ct);
     }
 
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(CancellationToken ct = default)
@@ -123,10 +139,9 @@ public class UserService : BaseService<User>, IUserService
         {
             // Uniqueness is scoped to live rows, so restoring re-enters the partial index.
             // Only a live holder blocks it — another deleted row isn't in the index either.
+            // Email only: UserName is derived from the row's own id, so it cannot collide.
             bool taken = await _context.Users
-                .AnyAsync(u => u.Id != id
-                            && (u.NormalizedEmail == deleted.NormalizedEmail
-                            || u.NormalizedUserName == deleted.NormalizedUserName), ct);
+                .AnyAsync(u => u.Id != id && u.NormalizedEmail == deleted.NormalizedEmail, ct);
 
             if (taken)
                 throw new BusinessRuleException(BusinessRuleCodes.EmailReclaimed,
@@ -214,8 +229,6 @@ public class UserService : BaseService<User>, IUserService
         user.Nickname = null;
         user.Email = tombstone;
         user.NormalizedEmail = _normalizer.NormalizeEmail(tombstone);
-        user.UserName = tombstone;
-        user.NormalizedUserName = _normalizer.NormalizeName(tombstone);
         user.PhoneNumber = null;
         user.PasswordHash = null;
         user.SecurityStamp = Guid.NewGuid().ToString();

@@ -236,7 +236,11 @@
       "lastNameMaxLength": "Numele trebuie să aibă cel mult 50 de caractere",
       "nickname": "Pseudonim",
       "nicknameHint": "Afișat în salut în locul prenumelui",
-      "nicknameMaxLength": "Pseudonimul trebuie să aibă cel mult 30 de caractere"
+      "nicknameMaxLength": "Pseudonimul trebuie să aibă cel mult 30 de caractere",
+      "email": "Email",
+      "emailHint": "Folosit pentru autentificare. Dacă îl schimbi, te vei conecta cu noua adresă.",
+      "emailRequired": "Emailul este obligatoriu",
+      "emailInvalid": "Introdu o adresă de email validă"
     },
     "notifications": {
       "updated": "Profilul a fost actualizat.",
@@ -462,12 +466,14 @@
     "rangeEmpty": "0 din {{length}}"
   },
   "workspaces": {
+    "personal": "Spațiul meu de lucru",
     "serverErrors": {
       "personalNotDeletable": "Spațiul de lucru personal nu poate fi șters.",
       "personalNoMembers": "Un spațiu de lucru personal nu poate avea alți membri.",
       "personalNotLeavable": "Nu poți părăsi spațiul tău de lucru personal.",
       "alreadyMember": "Acest utilizator este deja membru al spațiului de lucru.",
-      "mustHaveOwner": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar."
+      "mustHaveOwner": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar.",
+      "personalNotRenamable": "Spațiul de lucru personal nu poate fi redenumit."
     }
   }
 }

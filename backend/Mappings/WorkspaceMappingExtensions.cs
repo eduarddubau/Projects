@@ -26,16 +26,12 @@ public static class WorkspaceMappingExtensions
             CreatedBy = w.CreatedBy,
             CreatedByDisplayName = w.Creator == null
                 ? string.Empty
-                : (w.Creator.FirstName + " " + w.Creator.LastName).Trim() != ""
-                    ? (w.Creator.FirstName + " " + w.Creator.LastName).Trim()
-                    : w.Creator.Email ?? string.Empty,
+                : w.Creator.FirstName + " " + w.Creator.LastName,
             UpdatedAt = w.UpdatedAt,
             UpdatedBy = w.UpdatedBy,
             UpdatedByDisplayName = w.Updater == null
                 ? string.Empty
-                : (w.Updater.FirstName + " " + w.Updater.LastName).Trim() != ""
-                    ? (w.Updater.FirstName + " " + w.Updater.LastName).Trim()
-                    : w.Updater.Email ?? string.Empty
+                : w.Updater.FirstName + " " + w.Updater.LastName
         });
     }
 
@@ -47,9 +43,7 @@ public static class WorkspaceMappingExtensions
             UserId = m.UserId,
             UserName = m.User == null
                 ? string.Empty
-                : (m.User.FirstName + " " + m.User.LastName).Trim() != ""
-                    ? (m.User.FirstName + " " + m.User.LastName).Trim()
-                    : m.User.Email ?? string.Empty,
+                : m.User.FirstName + " " + m.User.LastName,
             Role = m.Role,
             JoinedAt = m.JoinedAt
         });
@@ -67,9 +61,7 @@ public static class WorkspaceMappingExtensions
             ExpiresAt = i.ExpiresAt,
             InvitedByDisplayName = i.Inviter == null
                 ? string.Empty
-                : (i.Inviter.FirstName + " " + i.Inviter.LastName).Trim() != ""
-                    ? (i.Inviter.FirstName + " " + i.Inviter.LastName).Trim()
-                    : i.Inviter.Email ?? string.Empty
+                : i.Inviter.FirstName + " " + i.Inviter.LastName
         });
     }
 

@@ -13,7 +13,7 @@ export class ProfileService {
     return this.http.get<Profile>(`${this.apiUrl}/profile`);
   }
 
-  updateProfile(payload: { firstName: string; lastName: string, nickname?: string | null }): Observable<Profile> {
+  updateProfile(payload: { firstName: string; lastName: string; email: string; nickname?: string | null }): Observable<Profile> {
     return this.http.put<Profile>(`${this.apiUrl}/profile`, payload);
   }
 }

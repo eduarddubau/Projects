@@ -236,7 +236,11 @@
       "lastNameMaxLength": "Last name must be 50 characters or fewer",
       "nickname": "Nickname",
       "nicknameHint": "Shown in your greeting instead of your first name",
-      "nicknameMaxLength": "Nickname must be 30 characters or fewer"
+      "nicknameMaxLength": "Nickname must be 30 characters or fewer",
+      "email": "Email",
+      "emailHint": "Used to sign in. Changing it changes how you log in.",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address"
     },
     "notifications": {
       "updated": "Profile updated.",
@@ -462,12 +466,14 @@
     "rangeEmpty": "0 of {{length}}"
   },
   "workspaces": {
+    "personal": "My Workspace",
     "serverErrors": {
       "personalNotDeletable": "Your personal workspace cannot be deleted.",
       "personalNoMembers": "A personal workspace cannot have other members.",
       "personalNotLeavable": "You cannot leave your personal workspace.",
       "alreadyMember": "This user is already a member of the workspace.",
-      "mustHaveOwner": "A workspace must have at least one owner."
+      "mustHaveOwner": "A workspace must have at least one owner.",
+      "personalNotRenamable": "Your personal workspace cannot be renamed."
     }
   }
 }

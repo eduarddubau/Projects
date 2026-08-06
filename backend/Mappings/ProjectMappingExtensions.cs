@@ -33,16 +33,12 @@ public static class ProjectMappingExtensions
             CreatedBy = p.CreatedBy,
             CreatedByDisplayName = p.Creator == null
                 ? string.Empty
-                : (p.Creator.FirstName + " " + p.Creator.LastName).Trim() != ""
-                    ? (p.Creator.FirstName + " " + p.Creator.LastName).Trim()
-                    : p.Creator.Email ?? string.Empty,
+                : p.Creator.FirstName + " " + p.Creator.LastName,
             UpdatedAt = p.UpdatedAt,
             UpdatedBy = p.UpdatedBy,
             UpdatedByDisplayName = p.Updater == null
                 ? string.Empty
-                : (p.Updater.FirstName + " " + p.Updater.LastName).Trim() != ""
-                    ? (p.Updater.FirstName + " " + p.Updater.LastName).Trim()
-                    : p.Updater.Email ?? string.Empty
+                : p.Updater.FirstName + " " + p.Updater.LastName
         });
     }
 }

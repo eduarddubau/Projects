@@ -59,12 +59,16 @@ public class UserServiceTests
         // Normalized fields matter: the reclaim guard in RestoreAnyUserAsync compares them,
         // and under InMemory (LINQ to Objects) two nulls compare equal, so leaving them
         // unset would make every user look like every other user to that guard.
+        // Mirrors ToEntity: UserName is derived from the id, not the email, so fixtures
+        // can't set up a username collision that production can no longer produce.
+        var id = Guid.CreateVersion7();
         var user = new User
         {
+            Id = id,
             Email = email,
-            UserName = email,
+            UserName = id.ToString("N"),
             NormalizedEmail = _normalizer.NormalizeEmail(email),
-            NormalizedUserName = _normalizer.NormalizeName(email),
+            NormalizedUserName = _normalizer.NormalizeName(id.ToString("N")),
             FirstName = "Alan",
             LastName = "Turing",
             Nickname = nickname,
@@ -117,7 +121,7 @@ public class UserServiceTests
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
         var result = await _service.UpdateMyProfileAsync(
-            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" });
 
         Assert.NotNull(result);
         Assert.Equal("Grace", result!.FirstName);
@@ -135,7 +139,7 @@ public class UserServiceTests
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
         var result = await _service.UpdateMyProfileAsync(
-            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Nickname = "Amazing Grace" });
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Nickname = "Amazing Grace", Email = "me@example.com" });
 
         Assert.Equal("Amazing Grace", result!.Nickname);
 
@@ -150,12 +154,60 @@ public class UserServiceTests
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
         var result = await _service.UpdateMyProfileAsync(
-            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" });
 
         Assert.Null(result!.Nickname);
 
         var stored = await _context.Users.FirstAsync(u => u.Id == user.Id);
         Assert.Null(stored.Nickname);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_WhenEmailDiffers_CallsSetEmail()
+    {
+        var user = AddUser("me@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+        _userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "new@example.com" });
+
+        // Asserting the decision, not the mutation: a mocked UserManager never actually
+        // changes the entity, so "the email changed" could only ever pass vacuously.
+        _userManager.Verify(m => m.SetEmailAsync(
+            It.Is<User>(u => u.Id == user.Id), "new@example.com"), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_WhenEmailOnlyDiffersByCase_DoesNotCallSetEmail()
+    {
+        // The comparison is on the normalized value. Without that, re-saving the profile with
+        // a differently-cased address would reset EmailConfirmed every time.
+        var user = AddUser("me@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+
+        await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "ME@Example.COM" });
+
+        _userManager.Verify(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateMyProfileAsync_WhenSetEmailFails_ThrowsDuplicateEmail()
+    {
+        var user = AddUser("me@example.com");
+        _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
+        _userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError
+            {
+                Code = "DuplicateEmail", Description = "Email 'taken@example.com' is already taken."
+            }));
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "taken@example.com" }));
+
+        Assert.Equal(BusinessRuleCodes.DuplicateEmail, ex.Code);
     }
 
     [Fact]
@@ -165,7 +217,7 @@ public class UserServiceTests
         _currentUser.Setup(c => c.UserGuid).Returns((Guid?)null);
 
         var result = await _service.UpdateMyProfileAsync(
-            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" });
 
         Assert.Null(result);
     }
@@ -177,7 +229,7 @@ public class UserServiceTests
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
         var result = await _service.UpdateMyProfileAsync(
-            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper" });
+            new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" });
 
         Assert.Null(result);
     }

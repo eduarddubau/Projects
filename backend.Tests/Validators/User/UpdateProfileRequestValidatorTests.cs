@@ -10,7 +10,8 @@ public class UpdateProfileRequestValidatorTests
     private static UpdateProfileRequest ValidRequest() => new()
     {
         FirstName = "Ada",
-        LastName = "Lovelace"
+        LastName = "Lovelace",
+        Email = "ada@example.com"
     };
 
     [Fact]

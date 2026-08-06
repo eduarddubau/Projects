@@ -65,6 +65,17 @@
             </div>
 
             <mat-form-field appearance="outline">
+              <mat-label>{{ t('profile.form.email') }}</mat-label>
+              <input matInput formControlName="email" type="email" maxlength="254" required>
+              <mat-hint>{{ t('profile.form.emailHint') }}</mat-hint>
+              @if (form.controls.email.hasError('required')) {
+                <mat-error>{{ t('profile.form.emailRequired') }}</mat-error>
+              } @else if (form.controls.email.hasError('email')) {
+                <mat-error>{{ t('profile.form.emailInvalid') }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
               <mat-label>{{ t('profile.form.nickname') }}</mat-label>
               <input matInput formControlName="nickname" maxlength="30">
               <mat-hint>{{ t('profile.form.nicknameHint') }}</mat-hint>

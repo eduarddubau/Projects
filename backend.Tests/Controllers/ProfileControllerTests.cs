@@ -51,7 +51,7 @@ public class ProfileControllerTests
     public async Task UpdateProfile_WhenFound_ReturnsOk()
     {
         var profile = SampleProfile();
-        var request = new UpdateProfileRequest { FirstName = profile.FirstName, LastName = profile.LastName };
+        var request = new UpdateProfileRequest { FirstName = profile.FirstName, LastName = profile.LastName, Email = "me@example.com" };
         _userService.Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>())).ReturnsAsync(profile);
 
         var result = await _controller.UpdateProfile(request, CancellationToken.None);
@@ -63,7 +63,7 @@ public class ProfileControllerTests
     [Fact]
     public async Task UpdateProfile_WhenNotFound_ReturnsNotFound()
     {
-        var request = new UpdateProfileRequest { FirstName = "Ada", LastName = "Lovelace" };
+        var request = new UpdateProfileRequest { FirstName = "Ada", LastName = "Lovelace", Email = "me@example.com" };
         _userService.Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>())).ReturnsAsync((UserResponseDto?)null);
 
         var result = await _controller.UpdateProfile(request, CancellationToken.None);

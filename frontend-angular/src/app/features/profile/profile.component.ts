@@ -85,6 +85,7 @@ export class ProfileComponent implements OnInit {
   form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50)]],
     lastName: ['', [Validators.required, Validators.maxLength(50)]],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
     nickname: ['', [Validators.maxLength(30)]]
   });
 
@@ -121,7 +122,12 @@ export class ProfileComponent implements OnInit {
     const profile = this.profile();
     if (!profile) return;
 
-    this.form.reset({ firstName: profile.firstName, lastName: profile.lastName, nickname: profile.nickname ?? ''});
+    this.form.reset({
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email: profile.email,
+      nickname: profile.nickname ?? '',
+    });
     this.isEditing.set(true);
   }
 
@@ -133,9 +139,9 @@ export class ProfileComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.isSaving.set(true);
-    const { firstName, lastName, nickname } = this.form.getRawValue();
+    const { firstName, lastName, email, nickname } = this.form.getRawValue();
 
-    this.profileService.updateProfile({ firstName, lastName, nickname: nickname.trim() || null })
+    this.profileService.updateProfile({ firstName, lastName, email, nickname: nickname.trim() || null })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updated) => {

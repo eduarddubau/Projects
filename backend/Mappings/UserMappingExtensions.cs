@@ -5,12 +5,14 @@ namespace Backend.Mappings;
 
 public static class UserMappingExtensions
 {
-    public static string? GetDisplayName(this User? user)
-    {
-        if (user is null) return null;
-        var fullName = $"{user.FirstName} {user.LastName}".Trim();
-        return string.IsNullOrWhiteSpace(fullName) ? user.Email : fullName;
-    }
+    /// <summary>
+    /// Kept deliberately trivial so it stays equivalent to the inline form the IQueryable
+    /// projections below must use — EF can't translate a method call into SQL, so the rule
+    /// necessarily exists twice. There is no blank-name fallback because FirstName and
+    /// LastName are required, validated NotEmpty, and NOT NULL in the database.
+    /// </summary>
+    public static string? GetDisplayName(this User? user) =>
+        user is null ? null : user.FirstName + " " + user.LastName;
 
     public static UserResponseDto MapToDto(this User user) => new()
     {
@@ -44,28 +46,32 @@ public static class UserMappingExtensions
             CreatedBy = u.CreatedBy,
             CreatedByDisplayName = u.Creator == null
                 ? string.Empty
-                : (u.Creator.FirstName + " " + u.Creator.LastName).Trim() != ""
-                    ? (u.Creator.FirstName + " " + u.Creator.LastName).Trim()
-                    : u.Creator.Email ?? string.Empty,
+                : u.Creator.FirstName + " " + u.Creator.LastName,
             UpdatedAt = u.UpdatedAt,
             UpdatedBy = u.UpdatedBy,
             UpdatedByDisplayName = u.Updater == null
                 ? string.Empty
-                : (u.Updater.FirstName + " " + u.Updater.LastName).Trim() != ""
-                    ? (u.Updater.FirstName + " " + u.Updater.LastName).Trim()
-                    : u.Updater.Email ?? string.Empty
+                : u.Updater.FirstName + " " + u.Updater.LastName
         });
     }
 
     public static User ToEntity<T>(this T dto) where T : class, IUserMapSource
     {
+        // UserName is deliberately not the email. Both columns carry live-scoped unique
+        // indexes, so a coupled pair means every email change is two writes and forgetting
+        // one silently reserves the old address forever. Deriving it from the id keeps a
+        // single identifier and an invariant you can check in one query.
+        var id = Guid.CreateVersion7();
+
         return new User
         {
-            UserName = dto.Email,
+            Id = id,
+            UserName = id.ToString("N"),
             Email = dto.Email,
             FirstName = dto.FirstName,
             LastName = dto.LastName,
             Nickname = dto.Nickname
         };
     }
+
 }
