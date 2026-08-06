@@ -21,10 +21,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "importHelpers": true,
-    "target": "ES2022",
+    "target": "ES2024",
     "module": "ESNext",
     "useDefineForClassFields": false,
-    "lib": ["ES2022", "dom"],
+    "lib": ["ES2024", "dom"],
     "skipLibCheck": true
   },
   "angularCompilerOptions": {
