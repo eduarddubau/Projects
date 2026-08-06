@@ -5,6 +5,7 @@ const SERVER_ERROR_KEYS: Record<string, string> = {
   DuplicateEmail: 'admin.users.serverErrors.duplicateEmail',
 
   PersonalWorkspaceNotDeletable: 'workspaces.serverErrors.personalNotDeletable',
+  PersonalWorkspaceNotRenamable: 'workspaces.serverErrors.personalNotRenamable',
   PersonalWorkspaceNoMembers: 'workspaces.serverErrors.personalNoMembers',
   PersonalWorkspaceNotLeavable: 'workspaces.serverErrors.personalNotLeavable',
   AlreadyWorkspaceMember: 'workspaces.serverErrors.alreadyMember',

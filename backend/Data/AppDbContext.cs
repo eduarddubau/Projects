@@ -92,9 +92,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .HasForeignKey(w => w.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.Property(w => w.Name).HasMaxLength(60);
+            entity.Property(w => w.Name).HasMaxLength(Workspace.NameMaxLength);
 
-            entity.Property(w => w.Description).HasMaxLength(500);
+            entity.Property(w => w.Description).HasMaxLength(Workspace.DescriptionMaxLength);
 
             // Project.WorkspaceId doesn't exist until later — without this,
             // EF's convention discovery invents a shadow FK on projects right now instead.

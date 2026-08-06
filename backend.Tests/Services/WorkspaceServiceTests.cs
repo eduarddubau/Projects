@@ -67,6 +67,22 @@ public class WorkspaceServiceTests
         return workspace;
     }
 
+    [Fact]
+    public async Task EnsurePersonalWorkspaceAsync_WithAMaxLengthFirstName_FitsTheColumn()
+    {
+        // FirstName is validated at 50 and "'s Workspace" costs 12, so an untruncated name
+        // reaches 62 against a 60-char column -- Postgres 22001, surfacing as a 500 on
+        // registration. InMemory won't enforce the length, so assert it directly.
+        var user = AddUser("long@example.com", new string('A', 50));
+
+        await _service.EnsurePersonalWorkspaceAsync(user);
+
+        var workspace = await _context.Workspaces.SingleAsync(w => w.IsPersonal && w.CreatedBy == user.Id);
+        Assert.True(workspace.Name.Length <= Workspace.NameMaxLength,
+            $"derived name was {workspace.Name.Length} chars, column allows {Workspace.NameMaxLength}");
+        Assert.EndsWith("'s Workspace", workspace.Name);
+    }
+
     // ---- scoping -------------------------------------------------------------------
 
     [Fact]
@@ -144,6 +160,22 @@ public class WorkspaceServiceTests
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
             () => _service.UpdateWorkspaceAsync(shared.Id, new UpdateWorkspaceRequest("Renamed", null)));
+    }
+
+    [Fact]
+    public async Task UpdateWorkspaceAsync_WhenPersonal_IsRefused()
+    {
+        // Clients render personal workspaces from a translation key, not from this column,
+        // so a rename would be accepted and then never displayed.
+        var personal = AddWorkspace("Ada's Workspace", isPersonal: true, (_caller, WorkspaceRole.Owner));
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
+            () => _service.UpdateWorkspaceAsync(personal.Id, new UpdateWorkspaceRequest("Renamed", null)));
+
+        Assert.Equal(BusinessRuleCodes.PersonalWorkspaceNotRenamable, ex.Code);
+
+        var stored = await _context.Workspaces.SingleAsync(w => w.Id == personal.Id);
+        Assert.Equal("Ada's Workspace", stored.Name);
     }
 
     // ---- delete --------------------------------------------------------------------

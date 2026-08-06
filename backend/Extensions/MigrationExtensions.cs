@@ -1,5 +1,6 @@
 using Backend.Config;
 using Backend.Data;
+using Backend.Services.Interfaces;
 using Backend.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,13 +24,14 @@ public static class MigrationExtensions
             var retentionOptions = services.GetRequiredService<IOptions<ProjectRetentionOptions>>();
             var adminOptions = services.GetRequiredService<IOptions<AdminSeedOptions>>();
             var normalizer = services.GetRequiredService<ILookupNormalizer>();
+            var workspaceService = services.GetRequiredService<IWorkspaceService>();
 
             if ((await context.Database.GetPendingMigrationsAsync()).Any())
                 await context.Database.MigrateAsync();
 
             await DbSeeder.SeedAsync(
                 userManager, roleManager, context, logger,
-                retentionOptions.Value, adminOptions.Value, normalizer,
+                retentionOptions.Value, adminOptions.Value, normalizer, workspaceService,
                 app.Environment.IsDevelopment());
         }
         catch (Exception ex)

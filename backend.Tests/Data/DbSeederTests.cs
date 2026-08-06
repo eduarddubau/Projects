@@ -1,6 +1,7 @@
 using Backend.Config;
 using Backend.Data;
 using Backend.Models;
+using Backend.Services;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ public class DbSeederTests
     private readonly AppDbContext _context;
     private readonly ILogger _logger = new Mock<ILogger>().Object;
     private readonly ProjectRetentionOptions _retention = new() { TrashWindowDays = 30 };
+    private readonly IWorkspaceService _workspaceService;
 
     public DbSeederTests()
     {
@@ -33,12 +35,18 @@ public class DbSeederTests
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
-        _context = new AppDbContext(options, new Mock<ICurrentUserService>().Object);
+        var currentUser = new Mock<ICurrentUserService>().Object;
+        _context = new AppDbContext(options, currentUser);
+
+        // The real service, not a mock: the seeder now delegates personal-workspace creation
+        // to it, so these tests assert on its actual behaviour (naming, owner membership).
+        _workspaceService = new WorkspaceService(
+            _context, currentUser, new WorkspaceAccessService(_context, currentUser));
     }
 
     private Task Seed(AdminSeedOptions admin, bool isDevelopment) =>
         DbSeeder.SeedAsync(_userManager.Object, _roleManager.Object, _context, _logger, _retention, admin,
-            _normalizer, isDevelopment);
+            _normalizer, _workspaceService, isDevelopment);
 
     /// <summary>Admin options whose account already exists, so admin seeding is a no-op and the
     /// test can focus on what follows it.</summary>

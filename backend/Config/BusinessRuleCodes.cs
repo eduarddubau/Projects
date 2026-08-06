@@ -9,6 +9,7 @@ public static class BusinessRuleCodes
     public const string IdentityError = "IdentityError";
 
     public const string PersonalWorkspaceNotDeletable = "PersonalWorkspaceNotDeletable";
+    public const string PersonalWorkspaceNotRenamable = "PersonalWorkspaceNotRenamable";
     public const string PersonalWorkspaceNoMembers = "PersonalWorkspaceNoMembers";
     public const string PersonalWorkspaceNotLeavable = "PersonalWorkspaceNotLeavable";
     public const string AlreadyWorkspaceMember = "AlreadyWorkspaceMember";

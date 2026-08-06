@@ -9,10 +9,10 @@ public abstract class WorkspaceRequestValidatorBase<T> : AbstractValidator<T> wh
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(60);
+            .MaximumLength(Backend.Models.Workspace.NameMaxLength);
 
         RuleFor(x => x.Description)
-            .MaximumLength(500)
+            .MaximumLength(Backend.Models.Workspace.DescriptionMaxLength)
             .When(x => x.Description is not null);
     }
 }

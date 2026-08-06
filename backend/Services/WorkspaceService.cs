@@ -70,6 +70,14 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         var workspace = await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
+        // Clients render a personal workspace from a translation key rather than this column,
+        // because "X's Workspace" is English *grammar* — Romanian needs "Spațiul de lucru al
+        // lui X", a different construction entirely, so a stored name cannot be translated.
+        // Allowing a rename that nothing ever displays would be worse than refusing it.
+        if (workspace.IsPersonal)
+            throw new BusinessRuleException(BusinessRuleCodes.PersonalWorkspaceNotRenamable,
+                "Your personal workspace cannot be renamed.");
+
         workspace.Name = dto.Name;
         workspace.Description = dto.Description;
 
@@ -227,11 +235,9 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
 
         if (exists) return;
 
-        var owner = string.IsNullOrWhiteSpace(user.Nickname) ? user.FirstName : user.Nickname;
-
         _context.Workspaces.Add(new Workspace
         {
-            Name = $"{owner}'s Workspace",
+            Name = PersonalWorkspaceName(user),
             IsPersonal = true,
             CreatedBy = user.Id,
             Members =
@@ -246,6 +252,25 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         });
 
         await _context.SaveChangesAsync(ct);
+    }
+
+    private const string PersonalWorkspaceSuffix = "'s Workspace";
+
+    /// <summary>
+    /// Truncates the owner segment so the derived name fits the column. FirstName is validated
+    /// at 50 and the suffix costs 12, so an untruncated name reaches 62 against a 60-char column
+    /// and registration fails with Postgres 22001. Nothing the caller submitted was too long —
+    /// the overflow is in the derived value, which request validation cannot see.
+    /// </summary>
+    private static string PersonalWorkspaceName(User user)
+    {
+        var owner = string.IsNullOrWhiteSpace(user.Nickname) ? user.FirstName : user.Nickname;
+        var maxOwner = Workspace.NameMaxLength - PersonalWorkspaceSuffix.Length;
+
+        if (owner.Length > maxOwner)
+            owner = owner[..maxOwner];
+
+        return owner + PersonalWorkspaceSuffix;
     }
 
     private Guid RequireCurrentUserId() =>
