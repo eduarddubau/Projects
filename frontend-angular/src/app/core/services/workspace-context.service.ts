@@ -3,8 +3,9 @@ import { isPlatformBrowser } from '@angular/common';
 import { Observable, of, tap, finalize, shareReplay } from 'rxjs';
 import { WorkspaceService } from '@core/services/workspace.service';
 import { Workspace, WorkspaceRole } from '@core/models/workspace';
+import { StorageKeys } from '@core/utils/storage-keys';
 
-const STORAGE_KEY = 'currentWorkspaceId';
+const STORAGE_KEY = StorageKeys.CURRENT_WORKSPACE_ID;
 
 @Injectable({ providedIn: 'root' })
 export class WorkspaceContextService {

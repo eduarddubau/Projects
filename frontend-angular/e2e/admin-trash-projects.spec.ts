@@ -7,7 +7,7 @@ async function seedDeletedProjects(
   page: Page,
   projects: { name: string; deletedDaysAgo: number }[]
 ): Promise<void> {
-  const token = await page.evaluate(() => localStorage.getItem('authToken'));
+  const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
   const resp = await page.request.post('/api/test-seed/deleted-projects', {
     headers: { Authorization: `Bearer ${token}` },
     data: { projects }

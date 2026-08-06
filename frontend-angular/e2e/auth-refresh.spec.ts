@@ -10,8 +10,8 @@ test.describe('Auth token lifecycle', () => {
 
     // Both tokens are persisted after login.
     const stored = await page.evaluate(() => ({
-      access: localStorage.getItem('authToken'),
-      refresh: localStorage.getItem('refreshToken'),
+      access: localStorage.getItem('pj-authToken'),
+      refresh: localStorage.getItem('pj-refreshToken'),
     }));
     expect(stored.access).toBeTruthy();
     expect(stored.refresh).toBeTruthy();
@@ -26,8 +26,8 @@ test.describe('Auth token lifecycle', () => {
     await page.waitForURL((url) => url.pathname === '/');
 
     const cleared = await page.evaluate(() => ({
-      access: localStorage.getItem('authToken'),
-      refresh: localStorage.getItem('refreshToken'),
+      access: localStorage.getItem('pj-authToken'),
+      refresh: localStorage.getItem('pj-refreshToken'),
     }));
     expect(cleared.access).toBeNull();
     expect(cleared.refresh).toBeNull();

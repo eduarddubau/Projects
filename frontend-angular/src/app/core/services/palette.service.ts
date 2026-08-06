@@ -1,5 +1,6 @@
 import { DOCUMENT, Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { StorageKeys } from '@core/utils/storage-keys';
 
 export type Palette = 'violet' | 'indigo' | 'emerald' | 'rose' | 'slate';
 
@@ -16,7 +17,7 @@ export const PALETTE_PREVIEWS: Record<Palette, string> = {
   slate: 'linear-gradient(135deg, #334155 0%, #334155 45%, #94a3b8 100%)',
 };
 
-const STORAGE_KEY = 'palette';
+const STORAGE_KEY = StorageKeys.PALETTE;
 
 // Accent color scheme, independent of light/dark. 'violet' is the built-in
 // mat.theme default (no data-palette attribute); the others are token overrides

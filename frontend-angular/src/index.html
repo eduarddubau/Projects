@@ -12,12 +12,14 @@
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f6f6f8" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#18181c" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-    <!-- Applies the stored theme and language before first paint so reloads never flash. -->
+    <!-- Applies the stored theme and language before first paint so reloads never flash.
+         Keys are literals because this runs before any module loads — mirror any change
+         to core/utils/storage-keys.ts here. -->
     <script>
       try {
-        var t = localStorage.getItem('theme');
+        var t = localStorage.getItem('pj-theme');
         if (t === 'light' || t === 'dark') document.documentElement.dataset['theme'] = t;
-        var p = localStorage.getItem('palette');
+        var p = localStorage.getItem('pj-palette');
         if (p && p !== 'violet') document.documentElement.dataset['palette'] = p;
         var l = document.cookie.match(/(?:^|;\s*)lang=(en|ro)/);
         if (l) document.documentElement.lang = l[1];

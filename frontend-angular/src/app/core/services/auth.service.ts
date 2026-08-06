@@ -9,6 +9,7 @@ import { AuthResponse } from '@core/models/auth-response';
 import { LoginCredentials } from '@core/models/login-credentials';
 import { RegisterCredentials } from '@core/models/register-credentials';
 import { User } from '@core/models/user';
+import { StorageKeys } from '@core/utils/storage-keys';
 
 interface DecodedToken {
   sub: string;
@@ -41,7 +42,7 @@ export class AuthService {
   private getInitialUser(): User | null {
     if (!isPlatformBrowser(this.platformId)) return null;
 
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem(StorageKeys.AUTH_TOKEN);
     if (!token) return null;
 
     try {
@@ -49,7 +50,7 @@ export class AuthService {
 
       // An expired access token is fine while a refresh token remains; the
       // interceptor refreshes on demand.
-      if (decoded.exp < Date.now() / 1000 && !localStorage.getItem('refreshToken')) {
+      if (decoded.exp < Date.now() / 1000 && !localStorage.getItem(StorageKeys.REFRESH_TOKEN)) {
         this.clearSession();
         return null;
       }
@@ -81,12 +82,12 @@ export class AuthService {
 
   getToken(): string | null {
     if (!isPlatformBrowser(this.platformId)) return null;
-    return localStorage.getItem('authToken');
+    return localStorage.getItem(StorageKeys.AUTH_TOKEN);
   }
 
   getRefreshToken(): string | null {
     if (!isPlatformBrowser(this.platformId)) return null;
-    return localStorage.getItem('refreshToken');
+    return localStorage.getItem(StorageKeys.REFRESH_TOKEN);
   }
 
   /** Swaps the refresh token for a new access token, sharing one in-flight
@@ -123,8 +124,8 @@ export class AuthService {
 
   private setSession(response: AuthResponse) {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('refreshToken', response.refreshToken);
+      localStorage.setItem(StorageKeys.AUTH_TOKEN, response.token);
+      localStorage.setItem(StorageKeys.REFRESH_TOKEN, response.refreshToken);
     }
     // Re-parse token to get roles since AuthResponse.user doesn't include them
     const token = response.token;
@@ -150,8 +151,8 @@ export class AuthService {
 
   private clearSession(): void {
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
+      localStorage.removeItem(StorageKeys.AUTH_TOKEN);
+      localStorage.removeItem(StorageKeys.REFRESH_TOKEN);
     }
   }
 }

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { API_URL } from '@core/tokens/app.tokens';
 import { AuthResponse } from '@core/models/auth-response';
+import { StorageKeys } from '@core/utils/storage-keys';
 
 const apiUrl = 'http://api.test';
 
@@ -42,12 +43,12 @@ describe('AuthService', () => {
     const req = httpMock.expectOne(`${apiUrl}/auth/login`);
     req.flush(authResponse('access-1', 'refresh-1'));
 
-    expect(localStorage.getItem('authToken')).toBe('access-1');
-    expect(localStorage.getItem('refreshToken')).toBe('refresh-1');
+    expect(localStorage.getItem(StorageKeys.AUTH_TOKEN)).toBe('access-1');
+    expect(localStorage.getItem(StorageKeys.REFRESH_TOKEN)).toBe('refresh-1');
   });
 
   it('refresh() posts the stored token and stores the rotated pair', () => {
-    localStorage.setItem('refreshToken', 'refresh-old');
+    localStorage.setItem(StorageKeys.REFRESH_TOKEN, 'refresh-old');
     let newAccess: string | undefined;
 
     service.refresh().subscribe(token => (newAccess = token));
@@ -57,12 +58,12 @@ describe('AuthService', () => {
     req.flush(authResponse('access-2', 'refresh-2'));
 
     expect(newAccess).toBe('access-2');
-    expect(localStorage.getItem('authToken')).toBe('access-2');
-    expect(localStorage.getItem('refreshToken')).toBe('refresh-2');
+    expect(localStorage.getItem(StorageKeys.AUTH_TOKEN)).toBe('access-2');
+    expect(localStorage.getItem(StorageKeys.REFRESH_TOKEN)).toBe('refresh-2');
   });
 
   it('refresh() is single-flight: concurrent callers share one request', () => {
-    localStorage.setItem('refreshToken', 'refresh-old');
+    localStorage.setItem(StorageKeys.REFRESH_TOKEN, 'refresh-old');
 
     service.refresh().subscribe();
     service.refresh().subscribe();
@@ -82,8 +83,8 @@ describe('AuthService', () => {
   });
 
   it('logout() revokes the token server-side and clears storage', () => {
-    localStorage.setItem('authToken', 'access-1');
-    localStorage.setItem('refreshToken', 'refresh-1');
+    localStorage.setItem(StorageKeys.AUTH_TOKEN, 'access-1');
+    localStorage.setItem(StorageKeys.REFRESH_TOKEN, 'refresh-1');
 
     service.logout();
 
@@ -91,7 +92,7 @@ describe('AuthService', () => {
     expect(req.request.body).toEqual({ refreshToken: 'refresh-1' });
     req.flush(null);
 
-    expect(localStorage.getItem('authToken')).toBeNull();
-    expect(localStorage.getItem('refreshToken')).toBeNull();
+    expect(localStorage.getItem(StorageKeys.AUTH_TOKEN)).toBeNull();
+    expect(localStorage.getItem(StorageKeys.REFRESH_TOKEN)).toBeNull();
   });
 });

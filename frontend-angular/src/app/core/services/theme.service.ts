@@ -1,10 +1,11 @@
 import { DOCUMENT, Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { prefersReducedMotion, startViewTransition } from '@core/utils/view-transition';
+import { StorageKeys } from '@core/utils/storage-keys';
 
 export type Theme = 'light' | 'dark';
 
-const STORAGE_KEY = 'theme';
+const STORAGE_KEY = StorageKeys.THEME;
 
 // Resolves the OS scheme on entry and follows it until the user explicitly
 // toggles; a choice is then stamped as data-theme on <html> and persisted

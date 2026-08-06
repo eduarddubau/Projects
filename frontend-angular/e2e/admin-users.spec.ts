@@ -31,7 +31,7 @@ test.describe('Admin Users', () => {
 
   test('deletes a user to trash and restores it', async ({ page }) => {
     // Create a throwaway user so we never delete a seeded account other specs rely on.
-    const token = await page.evaluate(() => localStorage.getItem('authToken'));
+    const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
     const email = `delrestore-${Date.now()}@example.com`;
     const createResp = await page.request.post('/api/users', {
       headers: { Authorization: `Bearer ${token}` },
@@ -67,7 +67,7 @@ test.describe('Admin Users', () => {
 
   test('permanently erases a deleted user (GDPR), removing them from trash for good', async ({ page }) => {
     // Create a throwaway user via the API so we never erase a seeded account other specs rely on.
-    const token = await page.evaluate(() => localStorage.getItem('authToken'));
+    const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
     const email = `erase-${Date.now()}@example.com`;
     const createResp = await page.request.post('/api/users', {
       headers: { Authorization: `Bearer ${token}` },

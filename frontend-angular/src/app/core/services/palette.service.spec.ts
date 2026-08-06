@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { PaletteService } from './palette.service';
+import { StorageKeys } from '@core/utils/storage-keys';
 
 describe('PaletteService', () => {
   beforeEach(() => {
@@ -20,13 +21,13 @@ describe('PaletteService', () => {
   });
 
   it('restores a stored palette on init', () => {
-    localStorage.setItem('palette', 'indigo');
+    localStorage.setItem(StorageKeys.PALETTE, 'indigo');
     const service = create();
     expect(service.palette()).toBe('indigo');
   });
 
   it('ignores an unknown stored palette', () => {
-    localStorage.setItem('palette', 'chartreuse');
+    localStorage.setItem(StorageKeys.PALETTE, 'chartreuse');
     const service = create();
     expect(service.palette()).toBe('violet');
   });
@@ -38,7 +39,7 @@ describe('PaletteService', () => {
 
     expect(service.palette()).toBe('emerald');
     expect(document.documentElement.dataset['palette']).toBe('emerald');
-    expect(localStorage.getItem('palette')).toBe('emerald');
+    expect(localStorage.getItem(StorageKeys.PALETTE)).toBe('emerald');
   });
 
   it('set("violet") clears the attribute (mat.theme default)', () => {
@@ -48,6 +49,6 @@ describe('PaletteService', () => {
     service.set('violet');
 
     expect(document.documentElement.hasAttribute('data-palette')).toBe(false);
-    expect(localStorage.getItem('palette')).toBe('violet');
+    expect(localStorage.getItem(StorageKeys.PALETTE)).toBe('violet');
   });
 });
