@@ -8,6 +8,10 @@ public static class BusinessRuleCodes
     public const string DuplicateEmail = "DuplicateEmail";
     public const string IdentityError = "IdentityError";
 
+    /// <summary>Backstop for a length the database enforced and no validator did.
+    /// Reaching this is a bug — a missing rule — but a 409 beats a 500 while it lasts.</summary>
+    public const string ValueTooLong = "ValueTooLong";
+
     public const string PersonalWorkspaceNotDeletable = "PersonalWorkspaceNotDeletable";
     public const string PersonalWorkspaceNotRenamable = "PersonalWorkspaceNotRenamable";
     public const string PersonalWorkspaceNoMembers = "PersonalWorkspaceNoMembers";

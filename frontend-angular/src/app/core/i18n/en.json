@@ -18,7 +18,8 @@
       "purge": "Purge"
     },
     "errors": {
-      "unexpected": "An unexpected error occurred."
+      "unexpected": "An unexpected error occurred.",
+      "valueTooLong": "One of the values you entered is too long."
     }
   },
   "language": {

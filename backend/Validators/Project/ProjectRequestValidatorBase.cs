@@ -9,10 +9,10 @@ public abstract class ProjectRequestValidatorBase<T> : AbstractValidator<T> wher
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .MaximumLength(100);
+            .MaximumLength(Backend.Models.Project.NameMaxLength);
 
         RuleFor(x => x.Description)
-            .MaximumLength(500)
+            .MaximumLength(Backend.Models.Project.DescriptionMaxLength)
             .When(x => x.Description is not null);
     }
 }

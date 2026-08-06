@@ -69,6 +69,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         modelBuilder.Entity<Project>(entity =>
         {
+            entity.Property(p => p.Name).HasMaxLength(Project.NameMaxLength);
+
+            entity.Property(p => p.Description).HasMaxLength(Project.DescriptionMaxLength);
+
             entity.HasOne(p => p.Creator)
                 .WithMany()
                 .HasForeignKey(p => p.CreatedBy)
@@ -210,18 +214,33 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             return await base.SaveChangesAsync(cancellationToken);
         }
+        // Each filter names one exact condition, so an unrecognised database error never
+        // enters a catch block at all. That matters: exception filters run *before* the stack
+        // unwinds, so anything unmapped propagates with its original trace intact. A broad
+        // catch with a `_ => ex` fall-through would rethrow via `throw <expression>`, which
+        // resets the trace to this file and hides where the write actually came from.
         catch (DbUpdateException ex)
-            when (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } pg)
+            when (ex.InnerException is PostgresException
+                  {
+                      SqlState: PostgresErrorCodes.UniqueViolation,
+                      ConstraintName: "UserNameIndex" or "EmailIndex"
+                  })
         {
-            // A unique index is the only check that's atomic with the insert, so it catches
-            // races no service-layer guard can. Translated here because this is the last
-            // place that legitimately knows what database we're on.
-            throw pg.ConstraintName switch
-            {
-                "UserNameIndex" or "EmailIndex" => new BusinessRuleException(
-                    BusinessRuleCodes.DuplicateEmail, "That email address is already registered."),
-                _ => ex
-            };
+            // A unique index is the only check atomic with the insert, so it catches races
+            // no service-layer guard can. Translated here because this is the last place
+            // that legitimately knows which database we're on.
+            throw new BusinessRuleException(BusinessRuleCodes.DuplicateEmail,
+                "That email address is already registered.");
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is PostgresException
+                  { SqlState: PostgresErrorCodes.StringDataRightTruncation })
+        {
+            // 22001 doesn't carry a column name the way a unique violation carries a constraint
+            // name, so this can't be specific. Reaching it means a validator is missing a length
+            // rule — the honest answer is a 409 rather than "a critical error occurred".
+            throw new BusinessRuleException(BusinessRuleCodes.ValueTooLong,
+                "One of the values submitted is too long.");
         }
     }
 }
