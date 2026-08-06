@@ -278,7 +278,7 @@ public class WorkspaceServiceTests
 
         Assert.Equal(invitee.Id, member.UserId);
         Assert.Equal(WorkspaceRole.Member, member.Role);
-        Assert.Equal("Bob Tester", member.UserName);
+        Assert.Equal("Bob Tester", member.UserDisplayName);
     }
 
     // ---- the last-owner invariant, across all three ways to break it ---------------

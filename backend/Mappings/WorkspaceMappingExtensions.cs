@@ -41,7 +41,7 @@ public static class WorkspaceMappingExtensions
         {
             WorkspaceId = m.WorkspaceId,
             UserId = m.UserId,
-            UserName = m.User == null
+            UserDisplayName = m.User == null
                 ? string.Empty
                 : m.User.FirstName + " " + m.User.LastName,
             Role = m.Role,
@@ -69,7 +69,7 @@ public static class WorkspaceMappingExtensions
     {
         WorkspaceId = member.WorkspaceId,
         UserId = member.UserId,
-        UserName = member.User.GetDisplayName() ?? string.Empty,
+        UserDisplayName = member.User.GetDisplayName() ?? string.Empty,
         Role = member.Role,
         JoinedAt = member.JoinedAt
     };

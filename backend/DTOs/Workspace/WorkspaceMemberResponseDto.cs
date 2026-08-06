@@ -6,7 +6,7 @@ public record WorkspaceMemberResponseDto
 {
     public Guid WorkspaceId { get; init; }
     public Guid UserId { get; init; }
-    public string UserName { get; init; } = string.Empty;
+    public string UserDisplayName { get; init; } = string.Empty;
     public WorkspaceRole Role { get; init; }
     public DateTime JoinedAt { get; init; }
 }
