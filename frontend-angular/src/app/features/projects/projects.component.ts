@@ -1,7 +1,7 @@
 import {
   AfterViewInit, Component, ViewChild, inject,
   DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, signal, afterNextRender
+  ChangeDetectorRef, effect, afterNextRender
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -64,14 +64,26 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  isLoading = signal(true);
-  hasError = signal(false);
+  projects = this.projectService.myProjects();
 
   dataSource = new ProjectsDataSource();
   displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
   searchControl = new FormControl('');
 
   constructor() {
+    // The table reads a plain property, not a signal, so the resource's value has
+    // to be pushed across; every local edit below goes through the resource too,
+    // which keeps this the single place the table is filled.
+    effect(() => {
+      // value() throws while the resource is in its error state, and an effect
+      // that throws takes change detection down with it.
+      if (!this.projects.hasValue()) return;
+
+      this.dataSource.data = this.projects.value();
+      this.dataSource.triggerUpdate();
+      this.cdr.markForCheck();
+    });
+
     // Deep link from the dashboard's "New Project" button: open the create
     // dialog on arrival, then drop the flag so a reload won't reopen it.
     afterNextRender(() => {
@@ -83,22 +95,6 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.projectService.getMyProjects()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (projects) => {
-          this.dataSource.data = projects;
-          this.isLoading.set(false);
-          this.dataSource.triggerUpdate();
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.hasError.set(true);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        }
-      });
-
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value),
       debounceTime(300),
@@ -129,9 +125,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
 
         this.projectService.createProject(result).subscribe({
           next: (project) => {
-            this.dataSource.data = [project, ...this.dataSource.data];
-            this.dataSource.triggerUpdate();
-            this.cdr.markForCheck();
+            this.projects.update((list) => [project, ...list]);
             this.snackBar.open(
               this.transloco.translate('projects.notifications.created'),
               this.transloco.translate('common.actions.close'),
@@ -168,9 +162,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
 
         this.projectService.deleteMyProject(project.id).subscribe({
           next: () => {
-            this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
-            this.dataSource.triggerUpdate();
-            this.cdr.markForCheck();
+            this.projects.update((list) => list.filter((p) => p.id !== project.id));
             this.snackBar.open(
               this.transloco.translate('projects.notifications.deleted'),
               this.transloco.translate('common.actions.close'),

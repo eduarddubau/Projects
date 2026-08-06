@@ -20,19 +20,19 @@
       </mat-form-field>
     </div>
 
-    @if (isLoading()) {
+    @if (deleted.isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
         <p>{{ t('projects.trash.loading') }}</p>
       </div>
-    } @else if (hasError()) {
+    } @else if (deleted.error()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
         <p>{{ t('projects.trash.loadFailed') }}</p>
       </div>
     }
 
-    <div [hidden]="isLoading() || hasError()">
+    <div [hidden]="deleted.isLoading() || deleted.error()">
 
       <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('projects.trash.tableAria')">
 

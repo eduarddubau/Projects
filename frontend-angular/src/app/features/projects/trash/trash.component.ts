@@ -1,7 +1,7 @@
 import {
-  AfterViewInit, Component, ViewChild, inject,
+  AfterViewInit, Component, ViewChild, inject, effect,
   DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, signal
+  ChangeDetectorRef
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -56,30 +56,28 @@ export class TrashComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  isLoading = signal(true);
-  hasError = signal(false);
+  deleted = this.projectService.myDeletedProjects();
 
   dataSource = new ProjectsDataSource();
   displayedColumns = ['index', 'name', 'description', 'deletedAt', 'actions'];
   searchControl = new FormControl('');
 
-  ngOnInit() {
-    this.projectService.getMyDeletedProjects()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (projects) => {
-          this.dataSource.data = projects;
-          this.isLoading.set(false);
-          this.dataSource.triggerUpdate();
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.hasError.set(true);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        }
-      });
+  constructor() {
+    // The table reads a plain property, not a signal, so the resource's value has
+    // to be pushed across; every local edit below goes through the resource too,
+    // which keeps this the single place the table is filled.
+    effect(() => {
+      // value() throws while the resource is in its error state, and an effect
+      // that throws takes change detection down with it.
+      if (!this.deleted.hasValue()) return;
 
+      this.dataSource.data = this.deleted.value();
+      this.dataSource.triggerUpdate();
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngOnInit() {
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value),
       debounceTime(300),
@@ -104,9 +102,7 @@ export class TrashComponent implements OnInit, AfterViewInit {
   restoreProject(project: Project): void {
     this.projectService.restoreMyProject(project.id).subscribe({
       next: () => {
-        this.dataSource.data = this.dataSource.data.filter(p => p.id !== project.id);
-        this.dataSource.triggerUpdate();
-        this.cdr.markForCheck();
+        this.deleted.update((list) => list.filter((p) => p.id !== project.id));
         this.snackBar.open(
           this.transloco.translate('projects.notifications.restored'),
           this.transloco.translate('common.actions.close'),

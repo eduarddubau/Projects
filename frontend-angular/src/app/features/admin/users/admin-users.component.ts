@@ -1,7 +1,7 @@
 import {
   AfterViewInit, Component, ViewChild, inject,
   DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, signal
+  ChangeDetectorRef, effect
 } from '@angular/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -59,14 +59,27 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  isLoading = signal(true);
-  hasError = signal(false);
+  users = this.userService.allUsers();
 
   dataSource = new MatTableDataSource<AdminUser>([]);
   displayedColumns = ['index', 'name', 'email', 'createdAt', 'actions'];
   searchControl = new FormControl('');
 
   private currentUserId = this.authService.currentUser()?.id;
+
+  constructor() {
+    // The table reads a plain property, not a signal, so the resource's value has
+    // to be pushed across; every local edit below goes through the resource too,
+    // which keeps this the single place the table is filled.
+    effect(() => {
+      // value() throws while the resource is in its error state, and an effect
+      // that throws takes change detection down with it.
+      if (!this.users.hasValue()) return;
+
+      this.dataSource.data = this.users.value().filter((u) => !u.isDeleted);
+      this.cdr.markForCheck();
+    });
+  }
 
   ngOnInit() {
     this.dataSource.filterPredicate = (user, filter) =>
@@ -79,21 +92,6 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
         default: return '';
       }
     };
-
-    this.userService.getAllUsers()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (users) => {
-          this.dataSource.data = users.filter(u => !u.isDeleted);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.hasError.set(true);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        }
-      });
 
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value),
@@ -138,7 +136,7 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
 
         this.userService.deleteUser(user.id).subscribe({
           next: () => {
-            this.dataSource.data = this.dataSource.data.filter(u => u.id !== user.id);
+            this.users.update((list) => list.filter((u) => u.id !== user.id));
             this.cdr.markForCheck();
             this.snackBar.open(
               this.transloco.translate('admin.users.deletedNamed', {

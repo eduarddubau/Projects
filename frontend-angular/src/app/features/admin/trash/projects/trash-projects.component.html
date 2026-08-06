@@ -34,19 +34,19 @@
       </div>
     </div>
 
-    @if (isLoading()) {
+    @if (deleted.isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
         <p>{{ t('admin.trashProjects.loading') }}</p>
       </div>
-    } @else if (hasError()) {
+    } @else if (deleted.error()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
         <p>{{ t('admin.trashProjects.loadFailed') }}</p>
       </div>
     }
 
-    <div [hidden]="isLoading() || hasError()">
+    <div [hidden]="deleted.isLoading() || deleted.error()">
 
       <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('admin.trashProjects.tableAria')">
 

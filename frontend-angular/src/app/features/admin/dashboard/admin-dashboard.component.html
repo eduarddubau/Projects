@@ -3,17 +3,18 @@
     <h1 class="page-title">{{ t('title') }}</h1>
   </div>
 
-  @if (isLoading()) {
+  @if (stats.isLoading()) {
     <div class="state-container">
       <mat-spinner diameter="40"></mat-spinner>
       <p>{{ t('loading') }}</p>
     </div>
-  } @else if (hasError()) {
+  } @else if (stats.error()) {
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
       <p>{{ t('loadFailed') }}</p>
     </div>
-  } @else if (stats()) {
+  } @else if (stats.hasValue()) {
+    @let s = stats.value();
     <!-- Stats Cards -->
     <div class="stats-grid">
       <mat-card class="stat-card" routerLink="/admin/projects">
@@ -21,7 +22,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon projects">folder</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.activeProjectCount }}</span>
+              <span class="stat-value">{{ s.activeProjectCount }}</span>
               <span class="stat-label">{{ t('activeProjects') }}</span>
             </div>
           </div>
@@ -33,7 +34,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon users">people</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.activeUserCount }}</span>
+              <span class="stat-value">{{ s.activeUserCount }}</span>
               <span class="stat-label">{{ t('activeUsers') }}</span>
             </div>
           </div>
@@ -45,7 +46,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon deleted">delete</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.deletedProjectCount }}</span>
+              <span class="stat-value">{{ s.deletedProjectCount }}</span>
               <span class="stat-label">{{ t('deletedProjects') }}</span>
             </div>
           </div>
@@ -57,7 +58,7 @@
           <div class="stat-content">
             <mat-icon class="stat-icon deleted">person_off</mat-icon>
             <div class="stat-text">
-              <span class="stat-value">{{ stats()!.deletedUserCount }}</span>
+              <span class="stat-value">{{ s.deletedUserCount }}</span>
               <span class="stat-label">{{ t('deletedUsers') }}</span>
             </div>
           </div>
@@ -74,7 +75,7 @@
         </div>
       </mat-card-header>
       <mat-card-content>
-        <table mat-table [dataSource]="stats()!.recentProjects" class="full-width-table">
+        <table mat-table [dataSource]="s.recentProjects" class="full-width-table">
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>{{ t('name') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.name }}</td>
@@ -102,7 +103,7 @@
         </div>
       </mat-card-header>
       <mat-card-content>
-        <table mat-table [dataSource]="stats()!.recentUsers" class="full-width-table">
+        <table mat-table [dataSource]="s.recentUsers" class="full-width-table">
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>{{ t('name') }}</th>
             <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>

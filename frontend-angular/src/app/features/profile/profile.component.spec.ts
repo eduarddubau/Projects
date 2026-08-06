@@ -49,26 +49,26 @@ describe('ProfileComponent', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('renders the loaded profile', () => {
+  it('renders the loaded profile', async () => {
     httpMock.expectOne(`${apiUrl}/profile`).flush(sampleProfile);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Dev User2');
     expect(text).toContain('dev2@example.com');
   });
 
-  it('shows the error state when loading fails', () => {
+  it('shows the error state when loading fails', async () => {
     httpMock.expectOne(`${apiUrl}/profile`).flush('boom', { status: 500, statusText: 'Server Error' });
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Failed to load your profile. Please try again.');
   });
 
-  it('saves edited names via PUT and shows the updated profile', () => {
+  it('saves edited names via PUT and shows the updated profile', async () => {
     httpMock.expectOne(`${apiUrl}/profile`).flush(sampleProfile);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const component = fixture.componentInstance;
     component.startEdit();
@@ -89,16 +89,16 @@ describe('ProfileComponent', () => {
       nickname: null,
     });
     putReq.flush({ ...sampleProfile, firstName: 'Grace', lastName: 'Hopper' });
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     expect(component.isEditing()).toBe(false);
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Grace Hopper');
   });
 
-  it('trims the nickname before sending it', () => {
+  it('trims the nickname before sending it', async () => {
     httpMock.expectOne(`${apiUrl}/profile`).flush(sampleProfile);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const component = fixture.componentInstance;
     component.startEdit();
@@ -117,9 +117,9 @@ describe('ProfileComponent', () => {
 
   // Whitespace has to clear the nickname, not store a blank string: the column
   // is nullable and the backend assigns whatever it is handed.
-  it('sends null when the nickname is only whitespace', () => {
+  it('sends null when the nickname is only whitespace', async () => {
     httpMock.expectOne(`${apiUrl}/profile`).flush({ ...sampleProfile, nickname: 'Eddy' });
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const component = fixture.componentInstance;
     component.startEdit();
@@ -136,9 +136,9 @@ describe('ProfileComponent', () => {
     putReq.flush(sampleProfile);
   });
 
-  it('seeds the edit form with the existing nickname', () => {
+  it('seeds the edit form with the existing nickname', async () => {
     httpMock.expectOne(`${apiUrl}/profile`).flush({ ...sampleProfile, nickname: 'Eddy' });
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const component = fixture.componentInstance;
     component.startEdit();

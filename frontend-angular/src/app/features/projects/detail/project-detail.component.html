@@ -1,18 +1,19 @@
 <app-aurora></app-aurora>
 
 <div class="detail-container" *transloco="let t">
-  @if (isLoading()) {
+  @if (project.isLoading()) {
     <div class="state-container">
       <mat-spinner diameter="40"></mat-spinner>
       <p>{{ t('projects.detail.loading') }}</p>
     </div>
-  } @else if (hasError()) {
+  } @else if (project.error()) {
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
       <p>{{ t('projects.detail.notFound') }}</p>
       <a mat-stroked-button routerLink="/projects">{{ t('projects.detail.backToProjects') }}</a>
     </div>
-  } @else if (project(); as p) {
+  } @else if (project.hasValue()) {
+    @let p = project.value();
     <mat-card class="detail-card" appearance="outlined">
       <mat-card-header class="detail-header">
         <mat-card-title>{{ p.name }}</mat-card-title>

@@ -62,9 +62,9 @@ describe('UserDashboardComponent', () => {
     httpMock.verify();
   });
 
-  it('renders the stats and recent projects', () => {
+  it('renders the stats and recent projects', async () => {
     httpMock.expectOne(`${apiUrl}/dashboard`).flush(sampleDashboard);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Active Projects');
@@ -73,7 +73,7 @@ describe('UserDashboardComponent', () => {
     expect(text).toContain('Rocket Plans');
   });
 
-  it('greets the signed-in user and links their name to the profile', () => {
+  it('greets the signed-in user and links their name to the profile', async () => {
     TestBed.inject(AuthService).currentUser.set({
       id: '1',
       email: 'dev@example.com',
@@ -82,7 +82,7 @@ describe('UserDashboardComponent', () => {
       isAdmin: false,
     });
     httpMock.expectOne(`${apiUrl}/dashboard`).flush(sampleDashboard);
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const title = (fixture.nativeElement as HTMLElement).querySelector('.page-title');
     expect(title?.textContent).toContain('Dev');
@@ -91,9 +91,9 @@ describe('UserDashboardComponent', () => {
     expect(nameLink?.getAttribute('href')).toContain('/profile');
   });
 
-  it('shows the error state when loading fails', () => {
+  it('shows the error state when loading fails', async () => {
     httpMock.expectOne(`${apiUrl}/dashboard`).flush('boom', { status: 500, statusText: 'Server Error' });
-    fixture.detectChanges();
+    await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Failed to load dashboard data.');

@@ -25,19 +25,19 @@
       </mat-form-field>
     </div>
 
-    @if (isLoading()) {
+    @if (projects.isLoading()) {
       <div class="state-container">
         <mat-spinner diameter="40"></mat-spinner>
         <p>{{ t('projects.list.loading') }}</p>
       </div>
-    } @else if (hasError()) {
+    } @else if (projects.error()) {
       <div class="state-container">
         <mat-icon color="warn">error_outline</mat-icon>
         <p>{{ t('projects.list.loadFailed') }}</p>
       </div>
     }
 
-    <div [hidden]="isLoading() || hasError()">
+    <div [hidden]="projects.isLoading() || projects.error()">
 
       <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('projects.list.tableAria')">
 

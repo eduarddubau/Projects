@@ -1,5 +1,5 @@
 import {
-  Component, computed, inject, signal, OnInit,
+  Component, computed, inject, signal,
   ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -41,7 +41,7 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent {
   private profileService = inject(ProfileService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
@@ -63,22 +63,21 @@ export class ProfileComponent implements OnInit {
   palette = this.paletteService.palette;
   schemes = PALETTES.map((id) => ({ id, preview: PALETTE_PREVIEWS[id] }));
 
-  isLoading = signal(true);
-  hasError = signal(false);
   isEditing = signal(false);
   isSaving = signal(false);
-  profile = signal<Profile | null>(null);
+  profile = this.profileService.myProfile();
 
   isAdmin = this.authService.isAdmin;
 
   fullName = computed(() => {
-    const profile = this.profile();
-    return profile ? `${profile.firstName} ${profile.lastName}`.trim() : '';
+    if (!this.profile.hasValue()) return '';
+    const profile = this.profile.value();
+    return `${profile.firstName} ${profile.lastName}`.trim();
   });
 
   initials = computed(() => {
-    const profile = this.profile();
-    if (!profile) return '';
+    if (!this.profile.hasValue()) return '';
+    const profile = this.profile.value();
     return `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase();
   });
 
@@ -89,22 +88,6 @@ export class ProfileComponent implements OnInit {
     nickname: ['', [Validators.maxLength(30)]]
   });
 
-  ngOnInit(): void {
-    this.profileService.getProfile()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (profile) => {
-          this.profile.set(profile);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.hasError.set(true);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        }
-      });
-  }
 
   setPalette(palette: Palette): void {
     this.paletteService.set(palette);
@@ -119,8 +102,8 @@ export class ProfileComponent implements OnInit {
   }
 
   startEdit(): void {
-    const profile = this.profile();
-    if (!profile) return;
+    if (!this.profile.hasValue()) return;
+    const profile = this.profile.value();
 
     this.form.reset({
       firstName: profile.firstName,

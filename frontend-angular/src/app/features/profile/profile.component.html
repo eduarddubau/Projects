@@ -6,17 +6,18 @@
     <p class="page-subtitle">{{ t('profile.subtitle') }}</p>
   </header>
 
-  @if (isLoading()) {
+  @if (profile.isLoading()) {
     <div class="state-container">
       <mat-spinner diameter="40"></mat-spinner>
       <p>{{ t('profile.loading') }}</p>
     </div>
-  } @else if (hasError()) {
+  } @else if (profile.error()) {
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
       <p>{{ t('profile.loadFailed') }}</p>
     </div>
-  } @else if (profile(); as p) {
+  } @else if (profile.hasValue()) {
+    @let p = profile.value();
     <mat-card class="profile-card" appearance="outlined">
       <mat-card-content>
         <div class="profile-header">

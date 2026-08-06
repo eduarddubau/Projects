@@ -1,5 +1,5 @@
 import {
-  Component, computed, inject, signal, OnInit,
+  Component, computed, inject, signal,
   ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -41,7 +41,7 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectDetailComponent implements OnInit {
+export class ProjectDetailComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private projectService = inject(ProjectService);
@@ -56,44 +56,23 @@ export class ProjectDetailComponent implements OnInit {
   /** Locale for the date:'medium' pipes; 'ro' locale data is registered in provideI18n. */
   dateLocale = computed(() => this.languageService.lang() === 'ro' ? 'ro' : 'en-US');
 
-  isLoading = signal(true);
-  hasError = signal(false);
   isEditing = signal(false);
   isSaving = signal(false);
-  project = signal<Project | null>(null);
+
+  // Route params are read once here rather than watched: this route is only
+  // reachable per-id, so the component is rebuilt when the id changes.
+  private projectId = signal(this.route.snapshot.paramMap.get('id') ?? undefined);
+  project = this.projectService.myProject(this.projectId);
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     description: ['', Validators.maxLength(500)]
   });
 
-  ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.hasError.set(true);
-      this.isLoading.set(false);
-      return;
-    }
-
-    this.projectService.getMyProjectById(id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (project) => {
-          this.project.set(project);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.hasError.set(true);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        }
-      });
-  }
 
   startEdit(): void {
-    const project = this.project();
-    if (!project) return;
+    if (!this.project.hasValue()) return;
+    const project = this.project.value();
 
     this.form.reset({ name: project.name, description: project.description ?? '' });
     this.isEditing.set(true);
@@ -137,8 +116,8 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   save(): void {
-    const project = this.project();
-    if (!project || this.form.invalid) return;
+    if (!this.project.hasValue() || this.form.invalid) return;
+    const project = this.project.value();
 
     this.isSaving.set(true);
     const { name, description } = this.form.getRawValue();

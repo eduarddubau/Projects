@@ -1,7 +1,7 @@
 import {
   AfterViewInit, Component, ViewChild, inject,
   DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, signal
+  ChangeDetectorRef, effect
 } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableModule } from '@angular/material/table';
@@ -61,8 +61,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  isLoading = signal(true);
-  hasError = signal(false);
+  deleted = this.projectService.allDeletedProjects();
   selection = new SelectionModel<Project>(true, []);
 
   dataSource = new ProjectsDataSource();
@@ -70,23 +69,22 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   searchControl = new FormControl('');
   ageFilterControl = new FormControl<AgeFilter>('all');
 
-  ngOnInit() {
-    this.projectService.getDeletedProjects()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (projects) => {
-          this.dataSource.data = projects;
-          this.isLoading.set(false);
-          this.dataSource.triggerUpdate();
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.hasError.set(true);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        }
-      });
+  constructor() {
+    // The table reads a plain property, not a signal, so the resource's value has
+    // to be pushed across; every local edit below goes through the resource too,
+    // which keeps this the single place the table is filled.
+    effect(() => {
+      // value() throws while the resource is in its error state, and an effect
+      // that throws takes change detection down with it.
+      if (!this.deleted.hasValue()) return;
 
+      this.dataSource.data = this.deleted.value();
+      this.dataSource.triggerUpdate();
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngOnInit() {
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value),
       debounceTime(300),
@@ -168,7 +166,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
     const ids = projects.map(p => p.id);
     this.projectService.restoreProjects(ids).subscribe({
       next: ({ restoredCount }) => {
-        this.dataSource.data = this.dataSource.data.filter(p => !ids.includes(p.id));
+        this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
         projects.forEach(p => this.selection.deselect(p));
         this.dataSource.triggerUpdate();
         this.cdr.markForCheck();
@@ -226,7 +224,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
         const ids = projects.map(p => p.id);
         this.projectService.purgeProjects(ids).subscribe({
           next: ({ purgedCount }) => {
-            this.dataSource.data = this.dataSource.data.filter(p => !ids.includes(p.id));
+            this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
             projects.forEach(p => this.selection.deselect(p));
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();

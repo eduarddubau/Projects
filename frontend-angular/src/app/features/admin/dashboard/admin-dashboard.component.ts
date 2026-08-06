@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -9,7 +9,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatDividerModule } from '@angular/material/divider';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { DashboardService } from '@core/services/dashboard.service';
-import { AdminDashboard } from '@core/models/admin-dashboard';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -28,29 +27,12 @@ import { AdminDashboard } from '@core/models/admin-dashboard';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent {
   private dashboardService = inject(DashboardService);
-  private cdr = inject(ChangeDetectorRef);
 
-  isLoading = signal(true);
-  hasError = signal(false);
-  stats = signal<AdminDashboard | null>(null);
+  stats = this.dashboardService.adminDashboard();
 
   recentProjectColumns = ['name', 'createdBy', 'createdAt'];
   recentUserColumns = ['name', 'email', 'createdAt'];
 
-  ngOnInit() {
-    this.dashboardService.getAdminDashboard().subscribe({
-      next: (data) => {
-        this.stats.set(data);
-        this.isLoading.set(false);
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.hasError.set(true);
-        this.isLoading.set(false);
-        this.cdr.markForCheck();
-      }
-    });
-  }
 }

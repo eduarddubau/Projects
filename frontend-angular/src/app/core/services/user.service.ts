@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '@core/tokens/app.tokens';
 import { AdminUser } from '@core/models/admin-user';
@@ -9,8 +9,14 @@ export class UserService {
   private http = inject(HttpClient);
   private apiUrl = inject(API_URL);
 
-  getAllUsers(): Observable<AdminUser[]> {
-    return this.http.get<AdminUser[]>(`${this.apiUrl}/users`);
+  // Resource factories: call from a component's field initializer so each
+  // resource lives and dies with that component. No injection context elsewhere.
+  allUsers() {
+    return httpResource<AdminUser[]>(() => `${this.apiUrl}/users`, { defaultValue: [] });
+  }
+
+  allDeletedUsers() {
+    return httpResource<AdminUser[]>(() => `${this.apiUrl}/users/trash`, { defaultValue: [] });
   }
 
   getUserById(id: string): Observable<AdminUser> {
@@ -27,10 +33,6 @@ export class UserService {
 
   restoreUser(id: string): Observable<AdminUser> {
     return this.http.post<AdminUser>(`${this.apiUrl}/users/${id}/restore`, {});
-  }
-
-  getDeletedUsers(): Observable<AdminUser[]> {
-    return this.http.get<AdminUser[]>(`${this.apiUrl}/users/trash`);
   }
 
   anonymizeUser(id: string): Observable<void> {

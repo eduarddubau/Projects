@@ -11,17 +11,18 @@
     </div>
   </header>
 
-  @if (isLoading()) {
+  @if (dashboard.isLoading()) {
     <div class="state-container">
       <mat-spinner diameter="40"></mat-spinner>
       <p>{{ t('userDashboard.loading') }}</p>
     </div>
-  } @else if (hasError()) {
+  } @else if (dashboard.error()) {
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
       <p>{{ t('userDashboard.loadFailed') }}</p>
     </div>
-  } @else if (dashboard(); as d) {
+  } @else if (dashboard.hasValue()) {
+    @let d = dashboard.value();
     <section class="overview">
       <app-weather-widget (loaded)="onWeatherLoaded($event)"></app-weather-widget>
 

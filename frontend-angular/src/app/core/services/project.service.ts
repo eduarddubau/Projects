@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Signal } from '@angular/core';
 import { API_URL } from '@core/tokens/app.tokens';
 import { Project } from '@core/models/project';
 
@@ -9,14 +10,32 @@ export class ProjectService {
   private http = inject(HttpClient);
   private apiUrl = inject(API_URL);
 
-  // Standard user
-  getMyProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>(`${this.apiUrl}/projects`);
+  // Read endpoints are resource factories: call them from a component's field
+  // initializer so each resource lives and dies with that component. There is no
+  // injection context anywhere else, so calling one from a handler throws.
+  myProjects() {
+    return httpResource<Project[]>(() => `${this.apiUrl}/projects`, { defaultValue: [] });
   }
 
-  getMyProjectById(id: string): Observable<Project> {
-    return this.http.get<Project>(`${this.apiUrl}/projects/${id}`);
+  // Returning undefined keeps the resource idle until the id is known.
+  myProject(id: Signal<string | undefined>) {
+    return httpResource<Project>(() =>
+      id() ? `${this.apiUrl}/projects/${id()}` : undefined);
   }
+
+  myDeletedProjects() {
+    return httpResource<Project[]>(() => `${this.apiUrl}/projects/trash`, { defaultValue: [] });
+  }
+
+  allProjects() {
+    return httpResource<Project[]>(() => `${this.apiUrl}/projects/admin`, { defaultValue: [] });
+  }
+
+  allDeletedProjects() {
+    return httpResource<Project[]>(() => `${this.apiUrl}/projects/admin/trash`, { defaultValue: [] });
+  }
+
+  // Standard user
 
   createProject(payload: { name: string; description?: string }): Observable<Project> {
     return this.http.post<Project>(`${this.apiUrl}/projects`, payload);
@@ -34,15 +53,8 @@ export class ProjectService {
     return this.http.post<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
   }
 
-  getMyDeletedProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>(`${this.apiUrl}/projects/trash`);
-  }
 
   // Admin
-  getAllProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>(`${this.apiUrl}/projects/admin`);
-  }
-
   getAnyProjectById(id: string): Observable<Project> {
     return this.http.get<Project>(`${this.apiUrl}/projects/admin/${id}`);
   }
@@ -53,10 +65,6 @@ export class ProjectService {
 
   restoreProjects(ids: string[]): Observable<{ restoredCount: number }> {
     return this.http.post<{ restoredCount: number }>(`${this.apiUrl}/projects/admin/restore`, ids);
-  }
-
-  getDeletedProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>(`${this.apiUrl}/projects/admin/trash`);
   }
 
   purgeProjects(ids: string[]): Observable<{ purgedCount: number }> {

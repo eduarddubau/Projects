@@ -1,7 +1,7 @@
 import {
   AfterViewInit, Component, ViewChild, inject,
   DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, signal
+  ChangeDetectorRef, effect
 } from '@angular/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -54,12 +54,25 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  isLoading = signal(true);
-  hasError = signal(false);
+  deleted = this.userService.allDeletedUsers();
 
   dataSource = new MatTableDataSource<AdminUser>([]);
   displayedColumns = ['index', 'name', 'email', 'deletedAt', 'actions'];
   searchControl = new FormControl('');
+
+  constructor() {
+    // The table reads a plain property, not a signal, so the resource's value has
+    // to be pushed across; every local edit below goes through the resource too,
+    // which keeps this the single place the table is filled.
+    effect(() => {
+      // value() throws while the resource is in its error state, and an effect
+      // that throws takes change detection down with it.
+      if (!this.deleted.hasValue()) return;
+
+      this.dataSource.data = this.deleted.value();
+      this.cdr.markForCheck();
+    });
+  }
 
   ngOnInit() {
     this.dataSource.filterPredicate = (user, filter) =>
@@ -72,21 +85,6 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
         default: return '';
       }
     };
-
-    this.userService.getDeletedUsers()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (users) => {
-          this.dataSource.data = users;
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.hasError.set(true);
-          this.isLoading.set(false);
-          this.cdr.markForCheck();
-        }
-      });
 
     this.searchControl.valueChanges.pipe(
       startWith(this.searchControl.value),
@@ -111,7 +109,7 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
   restoreUser(user: AdminUser): void {
     this.userService.restoreUser(user.id).subscribe({
       next: () => {
-        this.dataSource.data = this.dataSource.data.filter(u => u.id !== user.id);
+        this.deleted.update((list) => list.filter((u) => u.id !== user.id));
         this.cdr.markForCheck();
         this.snackBar.open(
           this.transloco.translate('admin.trashUsers.restoredNamed', {
@@ -152,7 +150,7 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
 
         this.userService.anonymizeUser(user.id).subscribe({
           next: () => {
-            this.dataSource.data = this.dataSource.data.filter(u => u.id !== user.id);
+            this.deleted.update((list) => list.filter((u) => u.id !== user.id));
             this.cdr.markForCheck();
             this.snackBar.open(
               this.transloco.translate('admin.trashUsers.erased'),
