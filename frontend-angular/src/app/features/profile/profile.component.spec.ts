@@ -72,12 +72,22 @@ describe('ProfileComponent', () => {
 
     const component = fixture.componentInstance;
     component.startEdit();
-    component.form.setValue({ firstName: 'Grace', lastName: 'Hopper', nickname: '' });
+    component.form.setValue({
+      firstName: 'Grace',
+      lastName: 'Hopper',
+      email: sampleProfile.email,
+      nickname: '',
+    });
     component.save();
 
     const putReq = httpMock.expectOne(`${apiUrl}/profile`);
     expect(putReq.request.method).toBe('PUT');
-    expect(putReq.request.body).toEqual({ firstName: 'Grace', lastName: 'Hopper', nickname: null });
+    expect(putReq.request.body).toEqual({
+      firstName: 'Grace',
+      lastName: 'Hopper',
+      email: sampleProfile.email,
+      nickname: null,
+    });
     putReq.flush({ ...sampleProfile, firstName: 'Grace', lastName: 'Hopper' });
     fixture.detectChanges();
 
@@ -92,7 +102,12 @@ describe('ProfileComponent', () => {
 
     const component = fixture.componentInstance;
     component.startEdit();
-    component.form.setValue({ firstName: 'Dev', lastName: 'User2', nickname: '  Eddy  ' });
+    component.form.setValue({
+      firstName: 'Dev',
+      lastName: 'User2',
+      email: sampleProfile.email,
+      nickname: '  Eddy  ',
+    });
     component.save();
 
     const putReq = httpMock.expectOne(`${apiUrl}/profile`);
@@ -108,7 +123,12 @@ describe('ProfileComponent', () => {
 
     const component = fixture.componentInstance;
     component.startEdit();
-    component.form.setValue({ firstName: 'Dev', lastName: 'User2', nickname: '   ' });
+    component.form.setValue({
+      firstName: 'Dev',
+      lastName: 'User2',
+      email: sampleProfile.email,
+      nickname: '   ',
+    });
     component.save();
 
     const putReq = httpMock.expectOne(`${apiUrl}/profile`);
