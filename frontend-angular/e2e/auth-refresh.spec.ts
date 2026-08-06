@@ -20,7 +20,7 @@ test.describe('Auth token lifecycle', () => {
     const revoke = page.waitForRequest(
       (r) => r.url().includes('/api/auth/logout') && r.method() === 'POST'
     );
-    await page.getByRole('button', { name: 'Dev dev2@example.com' }).click();
+    await page.getByRole('button', { name: 'dev2 dev2@example.com' }).click();
     await page.getByRole('menuitem', { name: 'Sign Out' }).click();
     await revoke;
     await page.waitForURL((url) => url.pathname === '/');

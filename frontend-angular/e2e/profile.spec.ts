@@ -1,8 +1,19 @@
 import { test, expect } from '@playwright/test';
 
-// Uses dev3: other specs reference that account by email only, so the
-// temporary rename in this spec cannot break them.
+// Uses dev3, whose display name the user-dashboard spec also reads. The edit
+// test below therefore restores through the API in afterEach rather than through
+// the UI at the end of the test: a mid-test failure would otherwise leave the
+// account renamed for every later run, which is exactly what happened once.
 test.describe('My Profile', () => {
+  test.afterEach(async ({ page }) => {
+    const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
+    if (!token) return;
+    await page.request.put('/api/profile', {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { firstName: 'Dev', lastName: 'User3', email: 'dev3@example.com', nickname: 'dev3' },
+    });
+  });
+
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
     await page.locator('input[formcontrolname="email"]').fill('dev3@example.com');
@@ -23,26 +34,21 @@ test.describe('My Profile', () => {
     await expect(card.getByText('Account ID')).toBeVisible();
   });
 
-  test('edits the name and the header picks it up', async ({ page }) => {
-    const newFirstName = `E2e${Date.now()}`;
+  test('edits the profile and the header picks it up', async ({ page }) => {
+    const newNickname = `E2e${Date.now()}`;
 
     await page.getByRole('button', { name: 'Edit' }).click();
-    await page.getByLabel('First Name').fill(newFirstName);
-    await page.getByLabel('Last Name').fill('Renamed');
+    await page.getByLabel('First Name').fill('Renamed');
+    await page.getByLabel('Nickname').fill(newNickname);
     await page.getByRole('button', { name: 'Save changes' }).click();
 
     await expect(page.getByText('Profile updated.')).toBeVisible();
-    await expect(page.getByRole('heading', { name: `${newFirstName} Renamed` })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Renamed User3' })).toBeVisible();
 
-    // The post-save token refresh feeds the new name into the header.
-    await expect(page.getByRole('button', { name: `${newFirstName} dev3@example.com` })).toBeVisible();
-
-    // Restore the seeded name so repeated runs start from the same state.
-    await page.getByRole('button', { name: 'Edit' }).click();
-    await page.getByLabel('First Name').fill('Dev');
-    await page.getByLabel('Last Name').fill('User3');
-    await page.getByRole('button', { name: 'Save changes' }).click();
-    await expect(page.getByRole('heading', { name: 'Dev User3' })).toBeVisible();
+    // The header renders the nickname in preference to the first name, so the
+    // nickname is what proves the post-save token refresh reached it. Editing the
+    // first name alone cannot: the header would never have shown it.
+    await expect(page.getByRole('button', { name: `${newNickname} dev3@example.com` })).toBeVisible();
   });
 
   test('rejects an empty first name', async ({ page }) => {

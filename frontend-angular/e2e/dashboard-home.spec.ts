@@ -9,7 +9,7 @@ test.describe('Dashboard as home', () => {
 
     // Post-login default destination is the dashboard.
     await page.waitForURL(/\/dashboard$/);
-    await expect(page.locator('.page-title')).toContainText('Dev');
+    await expect(page.locator('.page-title')).toContainText('dev2');
 
     // Visiting the marketing landing while signed in bounces to the dashboard.
     await page.goto('/');

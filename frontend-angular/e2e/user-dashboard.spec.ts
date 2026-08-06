@@ -12,17 +12,22 @@ test.describe('User dashboard', () => {
 
     await page.getByRole('link', { name: 'Dashboard' }).click();
     await page.waitForURL(/\/dashboard$/);
-    // The H1 is a time-of-day greeting that includes the user's first name.
-    await expect(page.locator('.page-title')).toContainText('Dev');
+    // Wait on a tile rather than the greeting: the tiles only render once the
+    // dashboard request resolves, and the greeting's name is dev3's display name,
+    // which the profile spec mutates.
+    await expect(page.locator('.kpi').first()).toBeVisible();
   });
 
-  test('shows the personalized header and stat tiles', async ({ page }) => {
-    await expect(page.locator('.role-chip', { hasText: 'Member' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'View profile' })).toBeVisible();
+  test('shows the personalized greeting and kpi tiles', async ({ page }) => {
+    // The name in the greeting is itself the profile link; the separate "View
+    // profile" link and the role chip went with the dashboard refactor. Asserting
+    // the link, not its text, keeps this independent of the profile spec.
+    await expect(page.locator('.page-title .name-link')).toHaveAttribute('href', '/profile');
 
-    await expect(page.locator('.stat-card', { hasText: 'Active Projects' })).toBeVisible();
-    await expect(page.locator('.stat-card', { hasText: 'In Trash' })).toBeVisible();
-    await expect(page.locator('.stat-card', { hasText: 'Last activity' })).toBeVisible();
+    // Two tiles, not three: "Last activity" is no longer surfaced as a tile.
+    await expect(page.locator('.kpi', { hasText: 'Active Projects' })).toBeVisible();
+    await expect(page.locator('.kpi', { hasText: 'In Trash' })).toBeVisible();
+    await expect(page.locator('.kpi')).toHaveCount(2);
   });
 
   test('opens a recent project from the list', async ({ page }) => {
@@ -36,7 +41,7 @@ test.describe('User dashboard', () => {
   });
 
   test('links to the profile page', async ({ page }) => {
-    await page.getByRole('link', { name: 'View profile' }).click();
+    await page.locator('.page-title .name-link').click();
 
     await expect(page.getByRole('heading', { name: 'My Profile' })).toBeVisible();
   });
