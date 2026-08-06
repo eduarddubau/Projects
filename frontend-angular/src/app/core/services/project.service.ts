@@ -23,7 +23,7 @@ export class ProjectService {
   }
 
   updateProject(id: string, payload: { name: string; description?: string }): Observable<Project> {
-    return this.http.patch<Project>(`${this.apiUrl}/projects/${id}`, payload);
+    return this.http.put<Project>(`${this.apiUrl}/projects/${id}`, payload);
   }
 
   deleteMyProject(id: string): Observable<void> {
@@ -31,7 +31,7 @@ export class ProjectService {
   }
 
   restoreMyProject(id: string): Observable<Project> {
-    return this.http.patch<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
+    return this.http.post<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
   }
 
   getMyDeletedProjects(): Observable<Project[]> {

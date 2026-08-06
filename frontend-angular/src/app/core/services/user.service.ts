@@ -26,7 +26,7 @@ export class UserService {
   }
 
   restoreUser(id: string): Observable<AdminUser> {
-    return this.http.patch<AdminUser>(`${this.apiUrl}/users/${id}/restore`, {});
+    return this.http.post<AdminUser>(`${this.apiUrl}/users/${id}/restore`, {});
   }
 
   getDeletedUsers(): Observable<AdminUser[]> {

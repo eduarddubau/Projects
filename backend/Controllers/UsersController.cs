@@ -73,7 +73,7 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id:guid}/restore")]
+    [HttpPost("{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponseDto>> RestoreUser(Guid id, CancellationToken ct)

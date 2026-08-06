@@ -47,7 +47,7 @@ public class ProjectsController : ControllerBase
         return CreatedAtAction(nameof(GetMyProjectById), new { id = response.Id }, response);
     }
 
-    [HttpPatch("{id:guid}")]
+    [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProjectResponseDto>> UpdateMyProject(Guid id, UpdateProjectRequest dto, CancellationToken ct)
@@ -71,7 +71,7 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id:guid}/restore")]
+    [HttpPost("{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProjectResponseDto>> RestoreMyProjectById(Guid id, CancellationToken ct)

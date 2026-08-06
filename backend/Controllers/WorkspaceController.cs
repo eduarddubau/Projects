@@ -73,7 +73,7 @@ public class WorkspaceController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id:guid}/restore")]
+    [HttpPost("{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<WorkspaceResponseDto>> RestoreWorkspace(Guid id, CancellationToken ct)
