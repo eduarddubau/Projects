@@ -11,7 +11,9 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine({
-  allowedHosts: ['localhost', '127.0.0.1', 'api', '0.0.0.0'],
+  // 'proxy' is the nginx service name: it forwards the original Host, so every
+  // hostname the app is reached by has to be listed here.
+  allowedHosts: ['localhost', '127.0.0.1', 'api', '0.0.0.0', 'proxy'],
 });
 
 /**

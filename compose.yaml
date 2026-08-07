@@ -90,6 +90,25 @@ services:
       api:
         condition: service_healthy
 
+  # Single origin for the browser: / to the Angular dev server, /api and /health
+  # to the API. Mirrors the production topology, where there is no dev server to
+  # proxy anything. Port 8000 rather than 80 because rootless podman cannot bind
+  # privileged ports without lowering net.ipv4.ip_unprivileged_port_start.
+  proxy:
+    image: nginx:stable-alpine
+    container_name: nginx-proxy
+    ports:
+      - "8000:80"
+    volumes:
+      # Whole directory: default.conf is picked up by conf.d/*.conf, and
+      # proxy_headers.inc rides along for the locations that include it.
+      - ./nginx:/etc/nginx/conf.d:ro,z
+    depends_on:
+      frontend:
+        condition: service_started
+      api:
+        condition: service_healthy
+
   e2e:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     container_name: frontend-e2e
