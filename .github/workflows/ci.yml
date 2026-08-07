@@ -26,11 +26,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # No global.json in the repo, so the version has to be stated here or the
-      # runner uses whatever SDK its image happens to ship.
+      # Version comes from global.json so CI, the dev container and the host
+      # all resolve the SDK from one declaration.
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
 
       # Restore, build and test are separate steps so a failure names its own
       # stage in the job UI instead of surfacing as one opaque red block.
@@ -44,3 +44,40 @@ jobs:
       # job needs no database service.
       - name: Test
         run: dotnet test fullstack-app.sln --configuration Release --no-build
+
+  frontend:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend-angular
+    steps:
+      - uses: actions/checkout@v7
+
+      # Node 24 matches the frontend service in compose.yaml. The cache path is
+      # relative to the repo root and must name the frontend lockfile — there is
+      # a second, unrelated one at the root.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend-angular/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Cheapest gate, so it runs first: a formatting failure is a two-second
+      # fix and there is no point spending test minutes behind it.
+      - name: Check formatting
+        run: npm run format:check
+
+      # Explicit rather than relying on the builder's CI auto-detection; a run
+      # that falls into watch mode hangs until the job timeout.
+      - name: Test
+        run: npm run test -- --watch=false
+
+      # ng build defaults to the production configuration, so this also enforces
+      # the bundle budgets in angular.json.
+      - name: Build
+        run: npm run build
