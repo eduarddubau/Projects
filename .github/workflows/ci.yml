@@ -81,3 +81,124 @@ jobs:
       # the bundle budgets in angular.json.
       - name: Build
         run: npm run build
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Gated behind the fast jobs: no point spending ten minutes booting a stack
+    # when the unit suites already went red.
+    needs: [backend, frontend]
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: app_db
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: ci-postgres-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U admin -d app_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Inline on purpose, matching GitHub's own service-container examples. These
+    # guard a database that exists only inside this job on an isolated VM and is
+    # destroyed with it, so they protect nothing and are not secrets. Putting them
+    # in GitHub Secrets would mask them out of failure logs, break CI for anyone
+    # who forks the repo, and dilute the real secrets that deployment will need.
+    env:
+      ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=app_db;Username=admin;Password=ci-postgres-password
+      # DbSeeder only creates dev1..dev3 when the environment is Development, and
+      # every spec logs in as one of them. Set explicitly rather than inherited
+      # from launchSettings, which --no-launch-profile skips.
+      ASPNETCORE_ENVIRONMENT: Development
+      # HS512 requires at least 64 characters.
+      Jwt__Key: ci-only-signing-key-not-a-secret-padded-to-the-required-length-0000
+      Jwt__Issuer: fullstack-app
+      Jwt__Audience: fullstack-app
+      Jwt__DurationInMinutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend-angular/package-lock.json
+
+      # proxy.conf.json sends /api and /health to http://api:8080 — a compose
+      # service name. Making the name resolve here reproduces that topology
+      # instead of forking the proxy config for CI.
+      - name: Resolve the api hostname to the runner
+        run: echo "127.0.0.1 api" | sudo tee -a /etc/hosts
+
+      - name: Install frontend dependencies
+        working-directory: frontend-angular
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend-angular
+        run: npx playwright install --with-deps chromium
+
+      - name: Build API
+        run: dotnet build fullstack-app.sln --configuration Release
+
+      # Migrates and seeds on startup. Backgrounded, with output kept so a
+      # failure to boot can be read in the artifact rather than guessed at.
+      - name: Start API
+        working-directory: backend
+        run: |
+          nohup dotnet run --configuration Release --no-build --no-launch-profile \
+            --urls http://0.0.0.0:8080 > "$RUNNER_TEMP/api.log" 2>&1 &
+
+      - name: Start dev server
+        working-directory: frontend-angular
+        run: nohup npx ng serve --host 0.0.0.0 > "$RUNNER_TEMP/frontend.log" 2>&1 &
+
+      # Both are backgrounded, so nothing so far proves either one came up.
+      - name: Wait for the stack
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:8080/health >/dev/null && break
+            if [ "$i" -eq 60 ]; then
+              echo "::error::API never became healthy"; cat "$RUNNER_TEMP/api.log"; exit 1
+            fi
+            sleep 2
+          done
+          echo "API healthy after ${i} attempts"
+
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:4200 >/dev/null && break
+            if [ "$i" -eq 90 ]; then
+              echo "::error::Dev server never answered"; cat "$RUNNER_TEMP/frontend.log"; exit 1
+            fi
+            sleep 2
+          done
+          echo "Dev server answering after ${i} attempts"
+
+      # playwright.config.ts reads CI to decide retries; GitHub sets it.
+      - name: Run Playwright
+        working-directory: frontend-angular
+        run: npx playwright test
+
+      - name: Upload report, traces and stack logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-failure
+          path: |
+            frontend-angular/playwright-report/
+            frontend-angular/test-results/
+            ${{ runner.temp }}/api.log
+            ${{ runner.temp }}/frontend.log
+          retention-days: 7
+          if-no-files-found: ignore
