@@ -1,0 +1,28 @@
+.ws-trigger-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ws-name {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+.ws-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ws-check {
+  margin-left: auto;
+}

@@ -475,6 +475,12 @@
       "alreadyMember": "This user is already a member of the workspace.",
       "mustHaveOwner": "A workspace must have at least one owner.",
       "personalNotRenamable": "Your personal workspace cannot be renamed."
+    },
+    "switcher": {
+      "label": "Switch workspace",
+      "personalTag": "Personal",
+      "createNew": "Create new workspace",
+      "manageWorkspaces": "Manage workspaces"
     }
   },
   "invitations": {

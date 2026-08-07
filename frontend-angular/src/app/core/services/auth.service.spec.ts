@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { API_URL } from '@core/tokens/app.tokens';
 import { AuthResponse } from '@core/models/auth-response';
 import { StorageKeys } from '@core/utils/storage-keys';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 
 const apiUrl = 'http://api.test';
 
@@ -94,5 +95,33 @@ describe('AuthService', () => {
 
     expect(localStorage.getItem(StorageKeys.AUTH_TOKEN)).toBeNull();
     expect(localStorage.getItem(StorageKeys.REFRESH_TOKEN)).toBeNull();
+  });
+
+  // Without this the cached list outlives the session: the next account to sign
+  // in on the same tab sees the previous one's workspaces, because ensureLoaded
+  // short-circuits on a _loaded flag that was never reset.
+  it('logout() clears the workspace context', () => {
+    const context = TestBed.inject(WorkspaceContextService);
+
+    context.ensureLoaded().subscribe();
+    httpMock.expectOne(`${apiUrl}/workspaces`).flush([
+      {
+        id: 'p1',
+        name: 'Personal',
+        isPersonal: true,
+        myRole: 'Owner',
+        memberCount: 1,
+        projectCount: 0,
+        createdAt: '2026-01-01T00:00:00Z',
+        isDeleted: false,
+      },
+    ]);
+    context.setCurrent('p1');
+
+    service.logout();
+
+    expect(context.workspaces()).toEqual([]);
+    expect(context.currentWorkspaceId()).toBeNull();
+    expect(localStorage.getItem(StorageKeys.CURRENT_WORKSPACE_ID)).toBeNull();
   });
 });

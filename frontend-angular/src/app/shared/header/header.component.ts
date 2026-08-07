@@ -9,11 +9,18 @@ import { TranslocoDirective, TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '@core/services/auth.service';
 import { HealthService } from '@core/services/health.service';
 import { ThemeService } from '@core/services/theme.service';
-import { PaletteService, PALETTES, PALETTE_PREVIEWS, Palette } from '@core/services/palette.service';
+import {
+  PaletteService,
+  PALETTES,
+  PALETTE_PREVIEWS,
+  Palette,
+} from '@core/services/palette.service';
 import { HealthStatus } from '@core/models/health-status';
 import { APP_NAME } from '@core/tokens/app.tokens';
 import { LanguageSwitcherComponent } from '@shared/language-switcher/language-switcher.component';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { WorkspaceSwitcherComponent } from '@shared/workspace-switcher/workspace-switcher.component';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 
 @Component({
   selector: 'app-header',
@@ -28,6 +35,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
     TranslocoDirective,
     TranslocoPipe,
     LanguageSwitcherComponent,
+    WorkspaceSwitcherComponent,
   ],
   templateUrl: './header.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +46,7 @@ export class HeaderComponent {
   private healthService = inject(HealthService);
   private themeService = inject(ThemeService);
   private paletteService = inject(PaletteService);
+  private workspaceContext = inject(WorkspaceContextService);
 
   appName = APP_NAME;
   currentUser = this.authService.currentUser;
@@ -57,6 +66,16 @@ export class HeaderComponent {
   theme = this.themeService.theme;
   palette = this.paletteService.palette;
   schemes = PALETTES.map((id) => ({ id, preview: PALETTE_PREVIEWS[id] }));
+
+  // The mobile menu lists workspaces itself rather than embedding the switcher:
+  // that component's trigger is a mat-button, and Material only wires keyboard
+  // navigation for submenus opened from a mat-menu-item.
+  workspaces = this.workspaceContext.workspaces;
+  currentWorkspaceId = this.workspaceContext.currentWorkspaceId;
+
+  selectWorkspace(id: string): void {
+    this.workspaceContext.setCurrent(id);
+  }
 
   setPalette(palette: Palette): void {
     this.paletteService.set(palette);

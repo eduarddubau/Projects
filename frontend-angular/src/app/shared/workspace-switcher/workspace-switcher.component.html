@@ -1,0 +1,39 @@
+@if (isAuthenticated() && workspaces().length) {
+  <button
+    mat-button
+    class="ws-trigger"
+    [matMenuTriggerFor]="wsMenu"
+    [matTooltip]="'workspaces.switcher.label' | transloco"
+    matTooltipPosition="below"
+    [attr.aria-label]="'workspaces.switcher.label' | transloco"
+  >
+    <span class="ws-trigger-row">
+      <mat-icon class="ws-icon">workspaces</mat-icon>
+      @if (currentWorkspace(); as w) {
+        <span class="ws-name">
+          {{ w.isPersonal ? ('workspaces.personal' | transloco) : w.name }}
+        </span>
+      }
+      <mat-icon class="ws-arrow">expand_more</mat-icon>
+    </span>
+  </button>
+
+  <mat-menu #wsMenu="matMenu" class="ws-menu">
+    @for (w of workspaces(); track w.id) {
+      <button mat-menu-item class="ws-item" (click)="select(w.id)">
+        <!-- Wrapped so the check isn't reprojected into the leading icon slot. -->
+        <span class="ws-row">
+          <span class="ws-item-name">
+            {{ w.isPersonal ? ('workspaces.personal' | transloco) : w.name }}
+          </span>
+          @if (w.isPersonal) {
+            <span class="role-chip">{{ 'workspaces.switcher.personalTag' | transloco }}</span>
+          }
+          @if (w.id === currentWorkspace()?.id) {
+            <mat-icon class="ws-check">check</mat-icon>
+          }
+        </span>
+      </button>
+    }
+  </mat-menu>
+}

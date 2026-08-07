@@ -15,7 +15,9 @@
   border-bottom: var(--app-hairline);
 }
 
-.spacer { flex: 1 1 auto; }
+.spacer {
+  flex: 1 1 auto;
+}
 
 .brand {
   display: flex;
@@ -66,7 +68,9 @@
     font-weight: 500;
     text-decoration: none;
     color: var(--mat-sys-on-surface-variant);
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
 
     &:hover {
       color: var(--mat-sys-on-surface);
@@ -82,11 +86,24 @@
 }
 
 // Hamburger is hidden on desktop; inline nav hidden on mobile.
-.nav-hamburger { display: none; }
+.nav-hamburger {
+  display: none;
+}
 
 @media (max-width: 720px) {
-  .nav-inline { display: none; }
-  .nav-hamburger { display: inline-flex; }
+  .nav-inline {
+    display: none;
+  }
+  .nav-hamburger {
+    display: inline-flex;
+  }
+  // Scoped to the bar on purpose. mat-menu content is projected into an overlay
+  // but keeps this template's encapsulation attribute, so an unscoped rule would
+  // also hide the workspace list inside #mobileMenu — at exactly the widths where
+  // that menu is the only way to reach it.
+  .app-header app-workspace-switcher {
+    display: none;
+  }
 
   .profile-button .user-text-stack,
   .profile-button .arrow-icon {
@@ -113,13 +130,25 @@
 }
 
 @keyframes pulse-red {
-  0%   { transform: scale(0.95); box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 70%, transparent); }
-  70%  { transform: scale(1);    box-shadow: 0 0 0 10px transparent; }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 transparent; }
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-error) 70%, transparent);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px transparent;
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
 .theme-toggle {
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    color 0.3s ease;
 
   &.mode-light {
     color: #f59e0b;
@@ -137,15 +166,25 @@
 // The @switch recreates the icon on every cycle, so entry keyframes replay.
 @media (prefers-reduced-motion: no-preference) {
   @keyframes sunrise {
-    from { transform: rotate(-100deg) scale(0.4); opacity: 0; }
+    from {
+      transform: rotate(-100deg) scale(0.4);
+      opacity: 0;
+    }
   }
 
   @keyframes moonrise {
-    from { transform: rotate(60deg) translateY(35%) scale(0.5); opacity: 0; }
+    from {
+      transform: rotate(60deg) translateY(35%) scale(0.5);
+      opacity: 0;
+    }
   }
 
-  .theme-toggle .sun { animation: sunrise 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
-  .theme-toggle .moon { animation: moonrise 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+  .theme-toggle .sun {
+    animation: sunrise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .theme-toggle .moon {
+    animation: moonrise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 }
 
 .auth-actions {

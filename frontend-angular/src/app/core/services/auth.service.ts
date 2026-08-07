@@ -9,6 +9,7 @@ import { AuthResponse } from '@core/models/auth-response';
 import { LoginCredentials } from '@core/models/login-credentials';
 import { RegisterCredentials } from '@core/models/register-credentials';
 import { User } from '@core/models/user';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { StorageKeys } from '@core/utils/storage-keys';
 
 interface DecodedToken {
@@ -27,6 +28,7 @@ export class AuthService {
   private router = inject(Router);
   private apiUrl = inject(API_URL);
   private platformId = inject(PLATFORM_ID);
+  private workspaceContext = inject(WorkspaceContextService);
 
   currentUser = signal<User | null>(this.getInitialUser());
   isAuthenticated = computed(() => !!this.currentUser());
@@ -146,6 +148,10 @@ export class AuthService {
     }
     this.clearSession();
     this.currentUser.set(null);
+    // One direction only: auth clears the workspace context, never the reverse.
+    // Without this the cached list survives a sign-out and the next account sees
+    // the previous one's workspaces until a hard reload.
+    this.workspaceContext.clear();
     this.router.navigate([redirectTo]);
   }
 

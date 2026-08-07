@@ -475,6 +475,12 @@
       "alreadyMember": "Acest utilizator este deja membru al spațiului de lucru.",
       "mustHaveOwner": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar.",
       "personalNotRenamable": "Spațiul de lucru personal nu poate fi redenumit."
+    },
+    "switcher": {
+      "label": "Schimbă spațiul de lucru",
+      "personalTag": "Personal",
+      "createNew": "Crează un spațiu de lucru nou",
+      "manageWorkspaces": "Gestionează spațiile de lucru"
     }
   },
   "invitations": {
