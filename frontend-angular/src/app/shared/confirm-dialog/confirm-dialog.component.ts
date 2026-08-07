@@ -15,7 +15,7 @@ export interface ConfirmDialogData {
   selector: 'app-confirm-dialog',
   templateUrl: './confirm-dialog.component.html',
   imports: [MatDialogModule, MatButtonModule, TranslocoDirective],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ConfirmDialogComponent {
   data = inject<ConfirmDialogData>(MAT_DIALOG_DATA);

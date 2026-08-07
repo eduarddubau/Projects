@@ -59,7 +59,9 @@ describe('ProfileComponent', () => {
   });
 
   it('shows the error state when loading fails', async () => {
-    httpMock.expectOne(`${apiUrl}/profile`).flush('boom', { status: 500, statusText: 'Server Error' });
+    httpMock
+      .expectOne(`${apiUrl}/profile`)
+      .flush('boom', { status: 500, statusText: 'Server Error' });
     await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';

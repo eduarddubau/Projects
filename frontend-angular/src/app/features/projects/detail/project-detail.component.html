@@ -36,7 +36,7 @@
           <form [formGroup]="form" class="edit-form" (ngSubmit)="save()">
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>{{ t('projects.form.name') }}</mat-label>
-              <input matInput formControlName="name" maxlength="100" required>
+              <input matInput formControlName="name" maxlength="100" required />
               @if (form.controls.name.hasError('required')) {
                 <mat-error>{{ t('projects.form.nameRequired') }}</mat-error>
               }
@@ -57,7 +57,12 @@
               <button mat-button type="button" (click)="cancelEdit()" [disabled]="isSaving()">
                 {{ t('common.actions.cancel') }}
               </button>
-              <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSaving()">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="form.invalid || isSaving()"
+              >
                 {{ t('common.actions.saveChanges') }}
               </button>
             </div>
@@ -71,13 +76,15 @@
             <dd>{{ p.createdByDisplayName || '—' }}</dd>
 
             <dt>{{ t('projects.detail.createdAt') }}</dt>
-            <dd>{{ p.createdAt | date:'medium':undefined:dateLocale() }}</dd>
+            <dd>{{ p.createdAt | date: 'medium' : undefined : dateLocale() }}</dd>
 
             <dt>{{ t('projects.detail.updatedBy') }}</dt>
             <dd>{{ p.updatedByDisplayName || '—' }}</dd>
 
             <dt>{{ t('projects.detail.updatedAt') }}</dt>
-            <dd>{{ p.updatedAt ? (p.updatedAt | date:'medium':undefined:dateLocale()) : '—' }}</dd>
+            <dd>
+              {{ p.updatedAt ? (p.updatedAt | date: 'medium' : undefined : dateLocale()) : '—' }}
+            </dd>
 
             <dt>{{ t('projects.detail.projectId') }}</dt>
             <dd class="mono">{{ p.id }}</dd>

@@ -23,7 +23,11 @@ export class UserService {
     return this.http.get<AdminUser>(`${this.apiUrl}/users/${id}`);
   }
 
-  createUser(payload: { firstName: string; lastName: string; email: string }): Observable<AdminUser> {
+  createUser(payload: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  }): Observable<AdminUser> {
     return this.http.post<AdminUser>(`${this.apiUrl}/users`, payload);
   }
 

@@ -6,12 +6,7 @@
         <mat-icon class="weather-loc-icon">location_on</mat-icon>{{ w.city }}
       </span>
     </div>
-    <img
-      class="weather-icon"
-      [src]="'weather/' + w.icon + '.svg'"
-      alt=""
-      width="64"
-      height="64" />
+    <img class="weather-icon" [src]="'weather/' + w.icon + '.svg'" alt="" width="64" height="64" />
     <div class="weather-detail">
       <span class="weather-condition">{{ t('weather.conditions.' + w.conditionKey) }}</span>
       <span class="weather-stats">

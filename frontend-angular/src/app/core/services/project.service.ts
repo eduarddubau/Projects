@@ -19,8 +19,7 @@ export class ProjectService {
 
   // Returning undefined keeps the resource idle until the id is known.
   myProject(id: Signal<string | undefined>) {
-    return httpResource<Project>(() =>
-      id() ? `${this.apiUrl}/projects/${id()}` : undefined);
+    return httpResource<Project>(() => (id() ? `${this.apiUrl}/projects/${id()}` : undefined));
   }
 
   myDeletedProjects() {
@@ -32,7 +31,9 @@ export class ProjectService {
   }
 
   allDeletedProjects() {
-    return httpResource<Project[]>(() => `${this.apiUrl}/projects/admin/trash`, { defaultValue: [] });
+    return httpResource<Project[]>(() => `${this.apiUrl}/projects/admin/trash`, {
+      defaultValue: [],
+    });
   }
 
   // Standard user
@@ -52,7 +53,6 @@ export class ProjectService {
   restoreMyProject(id: string): Observable<Project> {
     return this.http.post<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
   }
-
 
   // Admin
   getAnyProjectById(id: string): Observable<Project> {

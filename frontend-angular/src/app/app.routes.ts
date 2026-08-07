@@ -6,17 +6,18 @@ import { guestGuard } from '@core/guards/guest.guard';
 export const routes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
+    loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
   },
   {
     path: 'login',
-    loadComponent: () => import('./features/login/login.component').then(m => m.LoginComponent),
-    canActivate: [guestGuard]
+    loadComponent: () => import('./features/login/login.component').then((m) => m.LoginComponent),
+    canActivate: [guestGuard],
   },
   {
     path: 'register',
-    loadComponent: () => import('./features/register/register.component').then(m => m.RegisterComponent),
-    canActivate: [guestGuard]
+    loadComponent: () =>
+      import('./features/register/register.component').then((m) => m.RegisterComponent),
+    canActivate: [guestGuard],
   },
   {
     path: 'projects',
@@ -24,35 +25,44 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./features/projects/projects.component').then(m => m.ProjectsComponent)
+        loadComponent: () =>
+          import('./features/projects/projects.component').then((m) => m.ProjectsComponent),
       },
       {
         path: 'trash',
-        loadComponent: () => import('./features/projects/trash/trash.component').then(m => m.TrashComponent),
+        loadComponent: () =>
+          import('./features/projects/trash/trash.component').then((m) => m.TrashComponent),
       },
       {
         path: ':id',
-        loadComponent: () => import('./features/projects/detail/project-detail.component').then(m => m.ProjectDetailComponent),
-      }
-    ]
+        loadComponent: () =>
+          import('./features/projects/detail/project-detail.component').then(
+            (m) => m.ProjectDetailComponent,
+          ),
+      },
+    ],
   },
   {
     path: 'dashboard',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/user-dashboard/user-dashboard.component').then(m => m.UserDashboardComponent)
+    loadComponent: () =>
+      import('./features/user-dashboard/user-dashboard.component').then(
+        (m) => m.UserDashboardComponent,
+      ),
   },
   {
     path: 'profile',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+    loadComponent: () =>
+      import('./features/profile/profile.component').then((m) => m.ProfileComponent),
   },
   {
     path: 'admin',
     canActivate: [adminGuard],
-    loadChildren: () => import('./features/admin/admin.routes').then(m => m.adminRoutes)
+    loadChildren: () => import('./features/admin/admin.routes').then((m) => m.adminRoutes),
   },
   {
     path: '**',
-    redirectTo: ''
-  }
+    redirectTo: '',
+  },
 ];

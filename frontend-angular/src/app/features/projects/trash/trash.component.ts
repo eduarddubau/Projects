@@ -1,7 +1,13 @@
 import {
-  AfterViewInit, Component, ViewChild, inject, effect,
-  DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef
+  AfterViewInit,
+  Component,
+  ViewChild,
+  inject,
+  effect,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  OnInit,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -41,10 +47,10 @@ import { Project } from '@core/models/project';
     ReactiveFormsModule,
     DatePipe,
     AuroraComponent,
-    TranslocoDirective
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
 export class TrashComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -78,18 +84,20 @@ export class TrashComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((searchTerm) => {
-      this.dataSource.state = { searchQuery: searchTerm?.trim().toLowerCase() ?? '' };
-      if (this.dataSource.paginator) {
-        this.dataSource.paginator.pageIndex = 0;
-      }
-      this.cdr.markForCheck();
-    });
+    this.searchControl.valueChanges
+      .pipe(
+        startWith(this.searchControl.value),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((searchTerm) => {
+        this.dataSource.state = { searchQuery: searchTerm?.trim().toLowerCase() ?? '' };
+        if (this.dataSource.paginator) {
+          this.dataSource.paginator.pageIndex = 0;
+        }
+        this.cdr.markForCheck();
+      });
   }
 
   ngAfterViewInit(): void {
@@ -109,11 +117,12 @@ export class TrashComponent implements OnInit, AfterViewInit {
           { duration: 3000 },
         );
       },
-      error: () => this.snackBar.open(
-        this.transloco.translate('projects.notifications.restoreFailed'),
-        this.transloco.translate('common.actions.close'),
-        { duration: 5000 },
-      )
+      error: () =>
+        this.snackBar.open(
+          this.transloco.translate('projects.notifications.restoreFailed'),
+          this.transloco.translate('common.actions.close'),
+          { duration: 5000 },
+        ),
     });
   }
 }

@@ -3,19 +3,22 @@ import { Routes } from '@angular/router';
 export const adminRoutes: Routes = [
   {
     path: '',
-    loadComponent: () => import('./admin-layout.component').then(m => m.AdminLayoutComponent),
+    loadComponent: () => import('./admin-layout.component').then((m) => m.AdminLayoutComponent),
     children: [
       {
         path: '',
-        loadComponent: () => import('./dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
+        loadComponent: () =>
+          import('./dashboard/admin-dashboard.component').then((m) => m.AdminDashboardComponent),
       },
       {
         path: 'projects',
-        loadComponent: () => import('./projects/admin-projects.component').then(m => m.AdminProjectsComponent),
+        loadComponent: () =>
+          import('./projects/admin-projects.component').then((m) => m.AdminProjectsComponent),
       },
       {
         path: 'users',
-        loadComponent: () => import('./users/admin-users.component').then(m => m.AdminUsersComponent),
+        loadComponent: () =>
+          import('./users/admin-users.component').then((m) => m.AdminUsersComponent),
       },
       {
         path: 'trash',
@@ -23,18 +26,22 @@ export const adminRoutes: Routes = [
           {
             path: '',
             pathMatch: 'full',
-            redirectTo: 'projects'
+            redirectTo: 'projects',
           },
           {
             path: 'projects',
-            loadComponent: () => import('./trash/projects/trash-projects.component').then(m => m.TrashProjectsComponent),
+            loadComponent: () =>
+              import('./trash/projects/trash-projects.component').then(
+                (m) => m.TrashProjectsComponent,
+              ),
           },
           {
             path: 'users',
-            loadComponent: () => import('./trash/users/trash-users.component').then(m => m.TrashUsersComponent),
-          }
-        ]
-      }
-    ]
-  }
+            loadComponent: () =>
+              import('./trash/users/trash-users.component').then((m) => m.TrashUsersComponent),
+          },
+        ],
+      },
+    ],
+  },
 ];

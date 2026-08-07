@@ -43,21 +43,43 @@
           </div>
           <div class="preview-main">
             <div class="preview-stats">
-              <div class="tile"><span class="num">128</span><span class="lbl">{{ t('preview.projects') }}</span></div>
-              <div class="tile"><span class="num">36</span><span class="lbl">{{ t('preview.members') }}</span></div>
-              <div class="tile"><span class="num">99.9%</span><span class="lbl">{{ t('preview.uptime') }}</span></div>
+              <div class="tile">
+                <span class="num">128</span><span class="lbl">{{ t('preview.projects') }}</span>
+              </div>
+              <div class="tile">
+                <span class="num">36</span><span class="lbl">{{ t('preview.members') }}</span>
+              </div>
+              <div class="tile">
+                <span class="num">99.9%</span><span class="lbl">{{ t('preview.uptime') }}</span>
+              </div>
             </div>
             <div class="preview-rows">
-              <div class="row"><span class="cdot c1"></span><span class="bar" style="width: 58%"></span><span class="pchip ok">{{ t('preview.active') }}</span></div>
-              <div class="row"><span class="cdot c2"></span><span class="bar" style="width: 42%"></span><span class="pchip ok">{{ t('preview.active') }}</span></div>
-              <div class="row"><span class="cdot c3"></span><span class="bar" style="width: 66%"></span><span class="pchip warn">{{ t('preview.review') }}</span></div>
-              <div class="row"><span class="cdot c4"></span><span class="bar" style="width: 35%"></span><span class="pchip ok">{{ t('preview.active') }}</span></div>
+              <div class="row">
+                <span class="cdot c1"></span><span class="bar" style="width: 58%"></span
+                ><span class="pchip ok">{{ t('preview.active') }}</span>
+              </div>
+              <div class="row">
+                <span class="cdot c2"></span><span class="bar" style="width: 42%"></span
+                ><span class="pchip ok">{{ t('preview.active') }}</span>
+              </div>
+              <div class="row">
+                <span class="cdot c3"></span><span class="bar" style="width: 66%"></span
+                ><span class="pchip warn">{{ t('preview.review') }}</span>
+              </div>
+              <div class="row">
+                <span class="cdot c4"></span><span class="bar" style="width: 35%"></span
+                ><span class="pchip ok">{{ t('preview.active') }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="float-chip chip-a"><mat-icon>verified_user</mat-icon><span>{{ t('preview.jwtSecured') }}</span></div>
-      <div class="float-chip chip-b"><mat-icon>restore_from_trash</mat-icon><span>{{ t('preview.projectRestored') }}</span></div>
+      <div class="float-chip chip-a">
+        <mat-icon>verified_user</mat-icon><span>{{ t('preview.jwtSecured') }}</span>
+      </div>
+      <div class="float-chip chip-b">
+        <mat-icon>restore_from_trash</mat-icon><span>{{ t('preview.projectRestored') }}</span>
+      </div>
     </div>
   </section>
 
@@ -70,7 +92,9 @@
     <div class="feature-grid">
       @for (feature of features; track feature.key) {
         <div class="feature-card">
-          <span class="feature-icon"><mat-icon>{{ feature.icon }}</mat-icon></span>
+          <span class="feature-icon"
+            ><mat-icon>{{ feature.icon }}</mat-icon></span
+          >
           <h3>{{ t('features.cards.' + feature.key + '.title') }}</h3>
           <p>{{ t('features.cards.' + feature.key + '.description') }}</p>
         </div>

@@ -44,7 +44,7 @@
             <div class="name-fields">
               <mat-form-field appearance="outline">
                 <mat-label>{{ t('profile.form.firstName') }}</mat-label>
-                <input matInput formControlName="firstName" maxlength="50" required>
+                <input matInput formControlName="firstName" maxlength="50" required />
                 @if (form.controls.firstName.hasError('required')) {
                   <mat-error>{{ t('profile.form.firstNameRequired') }}</mat-error>
                 }
@@ -55,7 +55,7 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>{{ t('profile.form.lastName') }}</mat-label>
-                <input matInput formControlName="lastName" maxlength="50" required>
+                <input matInput formControlName="lastName" maxlength="50" required />
                 @if (form.controls.lastName.hasError('required')) {
                   <mat-error>{{ t('profile.form.lastNameRequired') }}</mat-error>
                 }
@@ -67,7 +67,7 @@
 
             <mat-form-field appearance="outline">
               <mat-label>{{ t('profile.form.email') }}</mat-label>
-              <input matInput formControlName="email" type="email" maxlength="254" required>
+              <input matInput formControlName="email" type="email" maxlength="254" required />
               <mat-hint>{{ t('profile.form.emailHint') }}</mat-hint>
               @if (form.controls.email.hasError('required')) {
                 <mat-error>{{ t('profile.form.emailRequired') }}</mat-error>
@@ -78,19 +78,23 @@
 
             <mat-form-field appearance="outline">
               <mat-label>{{ t('profile.form.nickname') }}</mat-label>
-              <input matInput formControlName="nickname" maxlength="30">
+              <input matInput formControlName="nickname" maxlength="30" />
               <mat-hint>{{ t('profile.form.nicknameHint') }}</mat-hint>
               @if (form.controls.nickname.hasError('maxlength')) {
                 <mat-error>{{ t('profile.form.nicknameMaxLength') }}</mat-error>
               }
             </mat-form-field>
 
-
             <div class="form-actions">
               <button mat-button type="button" (click)="cancelEdit()" [disabled]="isSaving()">
                 {{ t('common.actions.cancel') }}
               </button>
-              <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || isSaving()">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="form.invalid || isSaving()"
+              >
                 {{ t('common.actions.saveChanges') }}
               </button>
             </div>
@@ -98,10 +102,12 @@
         } @else {
           <dl class="detail-grid">
             <dt>{{ t('profile.memberSince') }}</dt>
-            <dd>{{ p.createdAt | date:'mediumDate':undefined:dateLocale() }}</dd>
+            <dd>{{ p.createdAt | date: 'mediumDate' : undefined : dateLocale() }}</dd>
 
             <dt>{{ t('profile.lastUpdated') }}</dt>
-            <dd>{{ p.updatedAt ? (p.updatedAt | date:'medium':undefined:dateLocale()) : '—' }}</dd>
+            <dd>
+              {{ p.updatedAt ? (p.updatedAt | date: 'medium' : undefined : dateLocale()) : '—' }}
+            </dd>
 
             <dt>{{ t('profile.accountId') }}</dt>
             <dd class="mono">{{ p.id }}</dd>
@@ -115,7 +121,11 @@
                 <span class="appearance-label">{{ t('appearance.colorScheme') }}</span>
                 <span class="appearance-hint">{{ t('appearance.colorSchemeHint') }}</span>
               </div>
-              <div class="scheme-swatches" role="radiogroup" [attr.aria-label]="t('appearance.colorScheme')">
+              <div
+                class="scheme-swatches"
+                role="radiogroup"
+                [attr.aria-label]="t('appearance.colorScheme')"
+              >
                 @for (s of schemes; track s.id) {
                   <button
                     type="button"
@@ -126,8 +136,8 @@
                     [attr.aria-label]="t('appearance.schemes.' + s.id)"
                     [matTooltip]="t('appearance.schemes.' + s.id)"
                     [style.background]="s.preview"
-                    (click)="setPalette(s.id)">
-                  </button>
+                    (click)="setPalette(s.id)"
+                  ></button>
                 }
               </div>
             </div>
@@ -135,11 +145,21 @@
             <div class="appearance-row">
               <span class="appearance-label">{{ t('appearance.theme') }}</span>
               <div class="segmented" role="group" [attr.aria-label]="t('appearance.theme')">
-                <button type="button" class="seg" [class.selected]="theme() === 'light'" (click)="setTheme('light')">
+                <button
+                  type="button"
+                  class="seg"
+                  [class.selected]="theme() === 'light'"
+                  (click)="setTheme('light')"
+                >
                   <mat-icon>light_mode</mat-icon>
                   <span>{{ t('appearance.light') }}</span>
                 </button>
-                <button type="button" class="seg" [class.selected]="theme() === 'dark'" (click)="setTheme('dark')">
+                <button
+                  type="button"
+                  class="seg"
+                  [class.selected]="theme() === 'dark'"
+                  (click)="setTheme('dark')"
+                >
                   <mat-icon>dark_mode</mat-icon>
                   <span>{{ t('appearance.dark') }}</span>
                 </button>
@@ -150,7 +170,12 @@
               <span class="appearance-label">{{ t('appearance.language') }}</span>
               <div class="segmented" role="group" [attr.aria-label]="t('appearance.language')">
                 @for (l of languages; track l.id) {
-                  <button type="button" class="seg" [class.selected]="lang() === l.id" (click)="setLanguage(l.id)">
+                  <button
+                    type="button"
+                    class="seg"
+                    [class.selected]="lang() === l.id"
+                    (click)="setLanguage(l.id)"
+                  >
                     <img class="seg-flag" [src]="l.flag" alt="" width="18" height="18" />
                     <span>{{ l.label }}</span>
                   </button>

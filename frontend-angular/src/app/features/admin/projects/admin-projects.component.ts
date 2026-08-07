@@ -1,7 +1,13 @@
 import {
-  AfterViewInit, Component, ViewChild, inject,
-  DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, effect
+  AfterViewInit,
+  Component,
+  ViewChild,
+  inject,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  OnInit,
+  ChangeDetectorRef,
+  effect,
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -40,10 +46,10 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
     RouterLink,
     ReactiveFormsModule,
     DatePipe,
-    TranslocoDirective
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
 export class AdminProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -78,12 +84,14 @@ export class AdminProjectsComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => this.applyFilters());
+    this.searchControl.valueChanges
+      .pipe(
+        startWith(this.searchControl.value),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.applyFilters());
   }
 
   ngAfterViewInit(): void {
@@ -95,7 +103,7 @@ export class AdminProjectsComponent implements OnInit, AfterViewInit {
 
   private applyFilters(): void {
     this.dataSource.state = {
-      searchQuery: this.searchControl.value?.trim().toLowerCase() ?? ''
+      searchQuery: this.searchControl.value?.trim().toLowerCase() ?? '',
     };
     if (this.dataSource.paginator) {
       this.dataSource.paginator.pageIndex = 0;
@@ -105,15 +113,18 @@ export class AdminProjectsComponent implements OnInit, AfterViewInit {
   }
 
   confirmDelete(project: Project): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
-      data: {
-        title: this.transloco.translate('admin.projects.confirmDelete.title'),
-        message: this.transloco.translate('admin.projects.confirmDelete.message', { name: project.name }),
-        confirmLabel: this.transloco.translate('common.actions.delete'),
-        warn: true
-      }
-    })
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '420px',
+        data: {
+          title: this.transloco.translate('admin.projects.confirmDelete.title'),
+          message: this.transloco.translate('admin.projects.confirmDelete.message', {
+            name: project.name,
+          }),
+          confirmLabel: this.transloco.translate('common.actions.delete'),
+          warn: true,
+        },
+      })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed: boolean | undefined) => {
@@ -130,11 +141,12 @@ export class AdminProjectsComponent implements OnInit, AfterViewInit {
               { duration: 3000 },
             );
           },
-          error: () => this.snackBar.open(
-            this.transloco.translate('admin.projects.deleteFailed'),
-            this.transloco.translate('common.actions.close'),
-            { duration: 5000 },
-          )
+          error: () =>
+            this.snackBar.open(
+              this.transloco.translate('admin.projects.deleteFailed'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 5000 },
+            ),
         });
       });
   }

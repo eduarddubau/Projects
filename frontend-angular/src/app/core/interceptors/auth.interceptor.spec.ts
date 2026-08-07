@@ -53,7 +53,9 @@ describe('authInterceptor', () => {
     let succeeded = false;
     http.get('/api/data').subscribe(() => (succeeded = true));
 
-    httpMock.expectOne('/api/data').flush('unauthorized', { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/data')
+      .flush('unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     const retry = httpMock.expectOne('/api/data');
     expect(retry.request.headers.get('Authorization')).toBe('Bearer access-2');
@@ -77,7 +79,9 @@ describe('authInterceptor', () => {
     let errored = false;
     http.get('/api/data').subscribe({ error: () => (errored = true) });
 
-    httpMock.expectOne('/api/data').flush('unauthorized', { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/data')
+      .flush('unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     httpMock.expectNone('/api/data'); // no retry
     expect(errored).toBe(true);
@@ -88,7 +92,9 @@ describe('authInterceptor', () => {
     let errored = false;
     http.get('/api/data').subscribe({ error: () => (errored = true) });
 
-    httpMock.expectOne('/api/data').flush('unauthorized', { status: 401, statusText: 'Unauthorized' });
+    httpMock
+      .expectOne('/api/data')
+      .flush('unauthorized', { status: 401, statusText: 'Unauthorized' });
 
     expect(auth.loggedOut).toBe(true);
     expect(errored).toBe(true);

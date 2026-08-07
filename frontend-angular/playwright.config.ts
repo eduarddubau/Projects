@@ -12,12 +12,12 @@ export default defineConfig({
   use: {
     baseURL: process.env['E2E_BASE_URL'] ?? 'http://localhost:4200',
     trace: 'retain-on-failure',
-    screenshot: 'only-on-failure'
+    screenshot: 'only-on-failure',
   },
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }
-    }
-  ]
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
 });

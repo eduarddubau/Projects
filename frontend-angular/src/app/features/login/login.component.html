@@ -9,10 +9,15 @@
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
-
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ t('email') }}</mat-label>
-        <input matInput formControlName="email" type="email" [placeholder]="t('emailPlaceholder')" autocomplete="username">
+        <input
+          matInput
+          formControlName="email"
+          type="email"
+          [placeholder]="t('emailPlaceholder')"
+          autocomplete="username"
+        />
         @if (loginForm.get('email')?.hasError('required')) {
           <mat-error>{{ t('validation.emailRequired') }}</mat-error>
         }
@@ -23,9 +28,20 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ t('password') }}</mat-label>
-        <input matInput formControlName="password" [type]="showPassword ? 'text' : 'password'" autocomplete="current-password">
+        <input
+          matInput
+          formControlName="password"
+          [type]="showPassword ? 'text' : 'password'"
+          autocomplete="current-password"
+        />
 
-        <button mat-icon-button matSuffix (click)="showPassword = !showPassword" type="button" [attr.aria-label]="t('togglePassword')">
+        <button
+          mat-icon-button
+          matSuffix
+          (click)="showPassword = !showPassword"
+          type="button"
+          [attr.aria-label]="t('togglePassword')"
+        >
           <mat-icon>{{ showPassword ? 'visibility' : 'visibility_off' }}</mat-icon>
         </button>
 
@@ -37,9 +53,10 @@
       <button mat-flat-button type="submit" [disabled]="loginForm.invalid" class="submit-button">
         {{ t('signIn') }}
       </button>
-
     </form>
 
-    <p class="auth-alt">{{ t('noAccount') }} <a routerLink="/register">{{ t('signUp') }}</a></p>
+    <p class="auth-alt">
+      {{ t('noAccount') }} <a routerLink="/register">{{ t('signUp') }}</a>
+    </p>
   </div>
 </div>

@@ -23,9 +23,9 @@ import { APP_NAME } from '@core/tokens/app.tokens';
     MatButtonModule,
     MatIconModule,
     MatSnackBarModule,
-    TranslocoDirective
+    TranslocoDirective,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   appName = APP_NAME;
@@ -40,12 +40,12 @@ export class LoginComponent {
   loginForm = new FormGroup({
     email: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.email]
+      validators: [Validators.required, Validators.email],
     }),
     password: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(8)]
-    })
+      validators: [Validators.required, Validators.minLength(8)],
+    }),
   });
 
   onSubmit(): void {
@@ -64,7 +64,7 @@ export class LoginComponent {
             this.transloco.translate('common.actions.close'),
             { duration: 3000 },
           );
-        }
+        },
       });
     } else {
       this.loginForm.markAllAsTouched();

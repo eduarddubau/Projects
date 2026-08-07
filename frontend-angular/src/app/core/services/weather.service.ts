@@ -9,8 +9,7 @@ import { CurrentWeather, describeWeather } from '@core/models/weather';
 // is the one thing that would justify moving this behind our own API.
 const GEO_URL = 'https://ipwho.is/';
 const METEO_URL = 'https://api.open-meteo.com/v1/forecast';
-const CURRENT_FIELDS =
-  'temperature_2m,relative_humidity_2m,wind_speed_10m,is_day,weather_code';
+const CURRENT_FIELDS = 'temperature_2m,relative_humidity_2m,wind_speed_10m,is_day,weather_code';
 
 const REQUEST_TIMEOUT_MS = 8000;
 const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -56,8 +55,7 @@ export class WeatherService {
         if (!geo?.success) {
           return throwError(() => new Error(geo?.message ?? 'IP geolocation failed'));
         }
-        const url =
-          `${METEO_URL}?latitude=${geo.latitude}&longitude=${geo.longitude}&current=${CURRENT_FIELDS}`;
+        const url = `${METEO_URL}?latitude=${geo.latitude}&longitude=${geo.longitude}&current=${CURRENT_FIELDS}`;
         return this.http.get<MeteoResponse>(url).pipe(
           timeout(REQUEST_TIMEOUT_MS),
           map((weather) => this.toCurrentWeather(geo, weather)),

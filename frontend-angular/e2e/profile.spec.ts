@@ -48,7 +48,9 @@ test.describe('My Profile', () => {
     // The header renders the nickname in preference to the first name, so the
     // nickname is what proves the post-save token refresh reached it. Editing the
     // first name alone cannot: the header would never have shown it.
-    await expect(page.getByRole('button', { name: `${newNickname} dev3@example.com` })).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: `${newNickname} dev3@example.com` }),
+    ).toBeVisible();
   });
 
   test('rejects an empty first name', async ({ page }) => {

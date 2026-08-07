@@ -1,7 +1,13 @@
 import {
-  AfterViewInit, Component, ViewChild, inject,
-  DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, effect
+  AfterViewInit,
+  Component,
+  ViewChild,
+  inject,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  OnInit,
+  ChangeDetectorRef,
+  effect,
 } from '@angular/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -42,10 +48,10 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
     RouterLink,
     ReactiveFormsModule,
     DatePipe,
-    TranslocoDirective
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
 export class AdminUsersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -86,25 +92,31 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
       `${user.firstName} ${user.lastName} ${user.email}`.toLowerCase().includes(filter);
     this.dataSource.sortingDataAccessor = (user, column) => {
       switch (column) {
-        case 'name': return `${user.firstName} ${user.lastName}`.toLowerCase();
-        case 'email': return user.email.toLowerCase();
-        case 'createdAt': return user.createdAt;
-        default: return '';
+        case 'name':
+          return `${user.firstName} ${user.lastName}`.toLowerCase();
+        case 'email':
+          return user.email.toLowerCase();
+        case 'createdAt':
+          return user.createdAt;
+        default:
+          return '';
       }
     };
 
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((term) => {
-      this.dataSource.filter = term?.trim().toLowerCase() ?? '';
-      if (this.dataSource.paginator) {
-        this.dataSource.paginator.firstPage();
-      }
-      this.cdr.markForCheck();
-    });
+    this.searchControl.valueChanges
+      .pipe(
+        startWith(this.searchControl.value),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((term) => {
+        this.dataSource.filter = term?.trim().toLowerCase() ?? '';
+        if (this.dataSource.paginator) {
+          this.dataSource.paginator.firstPage();
+        }
+        this.cdr.markForCheck();
+      });
   }
 
   ngAfterViewInit(): void {
@@ -118,17 +130,18 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
   }
 
   confirmDelete(user: AdminUser): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
-      data: {
-        title: this.transloco.translate('admin.users.confirmDelete.title'),
-        message: this.transloco.translate('admin.users.confirmDelete.message', {
-          name: `${user.firstName} ${user.lastName}`,
-        }),
-        confirmLabel: this.transloco.translate('common.actions.delete'),
-        warn: true
-      }
-    })
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '420px',
+        data: {
+          title: this.transloco.translate('admin.users.confirmDelete.title'),
+          message: this.transloco.translate('admin.users.confirmDelete.message', {
+            name: `${user.firstName} ${user.lastName}`,
+          }),
+          confirmLabel: this.transloco.translate('common.actions.delete'),
+          warn: true,
+        },
+      })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed: boolean | undefined) => {
@@ -146,11 +159,12 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
               { duration: 3000 },
             );
           },
-          error: () => this.snackBar.open(
-            this.transloco.translate('admin.users.deleteFailed'),
-            this.transloco.translate('common.actions.close'),
-            { duration: 5000 },
-          )
+          error: () =>
+            this.snackBar.open(
+              this.transloco.translate('admin.users.deleteFailed'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 5000 },
+            ),
         });
       });
   }

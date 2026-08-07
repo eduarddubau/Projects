@@ -5,12 +5,12 @@ import { test, expect, type Page } from '@playwright/test';
 // consumes) shared seed data. Returns the unique run id used to name the rows.
 async function seedDeletedProjects(
   page: Page,
-  projects: { name: string; deletedDaysAgo: number }[]
+  projects: { name: string; deletedDaysAgo: number }[],
 ): Promise<void> {
   const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
   const resp = await page.request.post('/api/test-seed/deleted-projects', {
     headers: { Authorization: `Bearer ${token}` },
-    data: { projects }
+    data: { projects },
   });
   expect(resp.ok()).toBeTruthy();
 }
@@ -32,7 +32,7 @@ test.describe('Admin Projects Trash', () => {
     const runId = `load-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
     await seedDeletedProjects(page, [
       { name: `Trash ${runId} Recent`, deletedDaysAgo: 5 },
-      { name: `Trash ${runId} Ancient`, deletedDaysAgo: 95 }
+      { name: `Trash ${runId} Ancient`, deletedDaysAgo: 95 },
     ]);
     await page.reload();
     await page.getByPlaceholder('Search by name...').fill(runId);
@@ -48,7 +48,7 @@ test.describe('Admin Projects Trash', () => {
     const stale = `Trash ${runId} Stale 35d`;
     await seedDeletedProjects(page, [
       { name: recent, deletedDaysAgo: 5 },
-      { name: stale, deletedDaysAgo: 35 }
+      { name: stale, deletedDaysAgo: 35 },
     ]);
     await page.reload();
     await page.getByPlaceholder('Search by name...').fill(runId);
@@ -66,12 +66,12 @@ test.describe('Admin Projects Trash', () => {
     const ancientNames = [
       `Trash ${runId} Ancient A`,
       `Trash ${runId} Ancient B`,
-      `Trash ${runId} Ancient C`
+      `Trash ${runId} Ancient C`,
     ];
     await seedDeletedProjects(page, [
       // A within-window row that must NOT be purgeable, plus three past >90 days.
       { name: `Trash ${runId} Recent`, deletedDaysAgo: 5 },
-      ...ancientNames.map((name) => ({ name, deletedDaysAgo: 95 }))
+      ...ancientNames.map((name) => ({ name, deletedDaysAgo: 95 })),
     ]);
     await page.reload();
 
@@ -83,8 +83,10 @@ test.describe('Admin Projects Trash', () => {
     const purgeableRows = page.locator('tr', { hasText: `Trash ${runId} Ancient` });
     await expect(purgeableRows).toHaveCount(3);
 
-    await page.getByRole('table', { name: 'Deleted Projects' })
-      .getByRole('checkbox', { name: 'Select all rows on this page' }).click();
+    await page
+      .getByRole('table', { name: 'Deleted Projects' })
+      .getByRole('checkbox', { name: 'Select all rows on this page' })
+      .click();
     await expect(page.getByRole('button', { name: 'Purge Selected (3)' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Purge Selected (3)' }).click();

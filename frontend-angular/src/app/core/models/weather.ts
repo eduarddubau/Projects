@@ -57,7 +57,10 @@ const WMO: Record<number, CodeDescriptor> = {
 };
 
 /** Maps a WMO code to its condition i18n key and a day/night-aware icon name. */
-export function describeWeather(code: number, isDay: boolean): { conditionKey: string; icon: string } {
+export function describeWeather(
+  code: number,
+  isDay: boolean,
+): { conditionKey: string; icon: string } {
   const descriptor = WMO[code] ?? { key: 'unknown', day: 'overcast-day', night: 'overcast-night' };
   const icon = !isDay && descriptor.night ? descriptor.night : descriptor.day;
   return { conditionKey: descriptor.key, icon };

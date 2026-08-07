@@ -1,7 +1,13 @@
 import {
-  AfterViewInit, Component, ViewChild, inject,
-  DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, effect
+  AfterViewInit,
+  Component,
+  ViewChild,
+  inject,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  OnInit,
+  ChangeDetectorRef,
+  effect,
 } from '@angular/core';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableModule } from '@angular/material/table';
@@ -45,10 +51,10 @@ type AgeFilter = 'all' | '30' | '60' | '90';
     MatButtonModule,
     ReactiveFormsModule,
     DatePipe,
-    TranslocoDirective
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
 export class TrashProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -85,17 +91,18 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => this.applyFilters());
+    this.searchControl.valueChanges
+      .pipe(
+        startWith(this.searchControl.value),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.applyFilters());
 
-    this.ageFilterControl.valueChanges.pipe(
-      startWith(this.ageFilterControl.value),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe(() => this.applyFilters());
+    this.ageFilterControl.valueChanges
+      .pipe(startWith(this.ageFilterControl.value), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.applyFilters());
   }
 
   ngAfterViewInit(): void {
@@ -109,7 +116,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
     const ageFilter = this.ageFilterControl.value;
     this.dataSource.state = {
       searchQuery: this.searchControl.value?.trim().toLowerCase() ?? '',
-      minAgeDays: ageFilter && ageFilter !== 'all' ? Number(ageFilter) : undefined
+      minAgeDays: ageFilter && ageFilter !== 'all' ? Number(ageFilter) : undefined,
     };
     if (this.dataSource.paginator) {
       this.dataSource.paginator.pageIndex = 0;
@@ -123,17 +130,17 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   }
 
   private get purgeableSelected(): Project[] {
-    return this.selection.selected.filter(p => p.isPurgeable);
+    return this.selection.selected.filter((p) => p.isPurgeable);
   }
 
   canPurgeSelected(): boolean {
     const selected = this.selection.selected;
-    return selected.length > 0 && selected.every(p => p.isPurgeable);
+    return selected.length > 0 && selected.every((p) => p.isPurgeable);
   }
 
   isAllSelected(): boolean {
     const rows = this.rowsInView;
-    return rows.length > 0 && rows.every(p => this.selection.isSelected(p));
+    return rows.length > 0 && rows.every((p) => this.selection.isSelected(p));
   }
 
   toggleSelection(row: Project): void {
@@ -144,7 +151,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   toggleSelectAll(): void {
     const rows = this.rowsInView;
     if (this.isAllSelected()) {
-      rows.forEach(p => this.selection.deselect(p));
+      rows.forEach((p) => this.selection.deselect(p));
     } else {
       this.selection.select(...rows);
     }
@@ -163,32 +170,38 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   }
 
   private restoreMany(projects: Project[]): void {
-    const ids = projects.map(p => p.id);
+    const ids = projects.map((p) => p.id);
     this.projectService.restoreProjects(ids).subscribe({
       next: ({ restoredCount }) => {
         this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
-        projects.forEach(p => this.selection.deselect(p));
+        projects.forEach((p) => this.selection.deselect(p));
         this.dataSource.triggerUpdate();
         this.cdr.markForCheck();
         this.snackBar.open(
           this.transloco.translate(
-            restoredCount === 1 ? 'admin.trashProjects.restoredOne' : 'admin.trashProjects.restoredMany',
+            restoredCount === 1
+              ? 'admin.trashProjects.restoredOne'
+              : 'admin.trashProjects.restoredMany',
             { count: restoredCount },
           ),
           this.transloco.translate('common.actions.close'),
-          { duration: 3000 }
+          { duration: 3000 },
         );
       },
-      error: () => this.snackBar.open(
-        this.transloco.translate('admin.trashProjects.restoreFailed'),
-        this.transloco.translate('common.actions.close'),
-        { duration: 5000 },
-      )
+      error: () =>
+        this.snackBar.open(
+          this.transloco.translate('admin.trashProjects.restoreFailed'),
+          this.transloco.translate('common.actions.close'),
+          { duration: 5000 },
+        ),
     });
   }
 
   confirmPurge(project: Project): void {
-    this.purge([project], this.transloco.translate('admin.trashProjects.purgeMessageNamed', { name: project.name }));
+    this.purge(
+      [project],
+      this.transloco.translate('admin.trashProjects.purgeMessageNamed', { name: project.name }),
+    );
   }
 
   confirmPurgeSelected(): void {
@@ -198,50 +211,58 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
     this.purge(
       purgeable,
       this.transloco.translate(
-        purgeable.length === 1 ? 'admin.trashProjects.purgeMessageOne' : 'admin.trashProjects.purgeMessageMany',
+        purgeable.length === 1
+          ? 'admin.trashProjects.purgeMessageOne'
+          : 'admin.trashProjects.purgeMessageMany',
         { count: purgeable.length },
-      )
+      ),
     );
   }
 
   private purge(projects: Project[], message: string): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      width: '420px',
-      data: {
-        title: this.transloco.translate(
-          projects.length > 1 ? 'admin.trashProjects.purgeTitleMany' : 'admin.trashProjects.purgeTitleOne',
-        ),
-        message,
-        confirmLabel: this.transloco.translate('common.actions.purge'),
-        warn: true
-      }
-    })
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '420px',
+        data: {
+          title: this.transloco.translate(
+            projects.length > 1
+              ? 'admin.trashProjects.purgeTitleMany'
+              : 'admin.trashProjects.purgeTitleOne',
+          ),
+          message,
+          confirmLabel: this.transloco.translate('common.actions.purge'),
+          warn: true,
+        },
+      })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed: boolean | undefined) => {
         if (!confirmed) return;
 
-        const ids = projects.map(p => p.id);
+        const ids = projects.map((p) => p.id);
         this.projectService.purgeProjects(ids).subscribe({
           next: ({ purgedCount }) => {
             this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
-            projects.forEach(p => this.selection.deselect(p));
+            projects.forEach((p) => this.selection.deselect(p));
             this.dataSource.triggerUpdate();
             this.cdr.markForCheck();
             this.snackBar.open(
               this.transloco.translate(
-                purgedCount === 1 ? 'admin.trashProjects.purgedOne' : 'admin.trashProjects.purgedMany',
+                purgedCount === 1
+                  ? 'admin.trashProjects.purgedOne'
+                  : 'admin.trashProjects.purgedMany',
                 { count: purgedCount },
               ),
               this.transloco.translate('common.actions.close'),
-              { duration: 3000 }
+              { duration: 3000 },
             );
           },
-          error: () => this.snackBar.open(
-            this.transloco.translate('admin.trashProjects.purgeFailed'),
-            this.transloco.translate('common.actions.close'),
-            { duration: 5000 },
-          )
+          error: () =>
+            this.snackBar.open(
+              this.transloco.translate('admin.trashProjects.purgeFailed'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 5000 },
+            ),
         });
       });
   }

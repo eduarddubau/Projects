@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Language switching', () => {
-  test('switches to Romanian, persists via cookie across reload (SSR), and back', async ({ page, context }) => {
+  test('switches to Romanian, persists via cookie across reload (SSR), and back', async ({
+    page,
+    context,
+  }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { name: /Manage your projects/ })).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');

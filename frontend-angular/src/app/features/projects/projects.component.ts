@@ -1,7 +1,14 @@
 import {
-  AfterViewInit, Component, ViewChild, inject,
-  DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, effect, afterNextRender
+  AfterViewInit,
+  Component,
+  ViewChild,
+  inject,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  OnInit,
+  ChangeDetectorRef,
+  effect,
+  afterNextRender,
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -25,7 +32,10 @@ import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { ProjectsDataSource } from './projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
-import { ProjectFormDialogComponent, ProjectFormResult } from './project-form-dialog/project-form-dialog.component';
+import {
+  ProjectFormDialogComponent,
+  ProjectFormResult,
+} from './project-form-dialog/project-form-dialog.component';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 
@@ -46,10 +56,10 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     ReactiveFormsModule,
     DatePipe,
     AuroraComponent,
-    TranslocoDirective
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
 export class ProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -95,18 +105,20 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((searchTerm) => {
-      this.dataSource.state = { searchQuery: searchTerm?.trim().toLowerCase() ?? '' };
-      if (this.dataSource.paginator) {
-        this.dataSource.paginator.pageIndex = 0;
-      }
-      this.cdr.markForCheck();
-    });
+    this.searchControl.valueChanges
+      .pipe(
+        startWith(this.searchControl.value),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((searchTerm) => {
+        this.dataSource.state = { searchQuery: searchTerm?.trim().toLowerCase() ?? '' };
+        if (this.dataSource.paginator) {
+          this.dataSource.paginator.pageIndex = 0;
+        }
+        this.cdr.markForCheck();
+      });
   }
 
   ngAfterViewInit(): void {
@@ -117,7 +129,8 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   }
 
   openCreateDialog(): void {
-    this.dialog.open(ProjectFormDialogComponent, { width: '480px', data: {} })
+    this.dialog
+      .open(ProjectFormDialogComponent, { width: '480px', data: {} })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result: ProjectFormResult | undefined) => {
@@ -132,11 +145,12 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
               { duration: 3000 },
             );
           },
-          error: (err) => this.snackBar.open(
-            this.transloco.translate(serverErrorKey(err, 'projects.notifications.createFailed')),
-            this.transloco.translate('common.actions.close'),
-            { duration: 5000 },
-          )
+          error: (err) =>
+            this.snackBar.open(
+              this.transloco.translate(serverErrorKey(err, 'projects.notifications.createFailed')),
+              this.transloco.translate('common.actions.close'),
+              { duration: 5000 },
+            ),
         });
       });
   }
@@ -146,15 +160,18 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   }
 
   confirmDelete(project: Project): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: this.transloco.translate('projects.confirmDelete.title'),
-        message: this.transloco.translate('projects.confirmDelete.message', { name: project.name }),
-        confirmLabel: this.transloco.translate('common.actions.delete'),
-        warn: true
-      }
-    })
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: this.transloco.translate('projects.confirmDelete.title'),
+          message: this.transloco.translate('projects.confirmDelete.message', {
+            name: project.name,
+          }),
+          confirmLabel: this.transloco.translate('common.actions.delete'),
+          warn: true,
+        },
+      })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed: boolean | undefined) => {
@@ -169,11 +186,12 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
               { duration: 3000 },
             );
           },
-          error: () => this.snackBar.open(
-            this.transloco.translate('projects.notifications.deleteFailed'),
-            this.transloco.translate('common.actions.close'),
-            { duration: 5000 },
-          )
+          error: () =>
+            this.snackBar.open(
+              this.transloco.translate('projects.notifications.deleteFailed'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 5000 },
+            ),
         });
       });
   }

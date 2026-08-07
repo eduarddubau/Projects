@@ -15,15 +15,15 @@ export class InvitationService {
   }
 
   invite(workspaceId: string, email: string, role: WorkspaceRole): Observable<InviteResult> {
-    return this.http.post<InviteResult>(
-      `${this.apiUrl}/workspaces/${workspaceId}/invitations`,
-      { email, role }
-    );
+    return this.http.post<InviteResult>(`${this.apiUrl}/workspaces/${workspaceId}/invitations`, {
+      email,
+      role,
+    });
   }
 
   revoke(workspaceId: string, invitationId: string): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/workspaces/${workspaceId}/invitations/${invitationId}`
+      `${this.apiUrl}/workspaces/${workspaceId}/invitations/${invitationId}`,
     );
   }
 

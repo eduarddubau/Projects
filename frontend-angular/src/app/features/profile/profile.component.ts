@@ -1,6 +1,11 @@
 import {
-  Component, computed, inject, signal,
-  ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef
+  Component,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  DestroyRef,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -18,7 +23,12 @@ import { ProfileService } from '@core/services/profile.service';
 import { AuthService } from '@core/services/auth.service';
 import { LANGUAGES, Lang, LanguageService } from '@core/services/language.service';
 import { ThemeService, Theme } from '@core/services/theme.service';
-import { PaletteService, PALETTES, PALETTE_PREVIEWS, Palette } from '@core/services/palette.service';
+import {
+  PaletteService,
+  PALETTES,
+  PALETTE_PREVIEWS,
+  Palette,
+} from '@core/services/palette.service';
 import { Profile } from '@core/models/profile';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 
@@ -37,9 +47,9 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatTooltipModule,
     DatePipe,
     AuroraComponent,
-    TranslocoDirective
+    TranslocoDirective,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {
   private profileService = inject(ProfileService);
@@ -54,7 +64,7 @@ export class ProfileComponent {
   private paletteService = inject(PaletteService);
 
   /** Locale for the date pipes; 'ro' locale data is registered in provideI18n. */
-  dateLocale = computed(() => this.languageService.lang() === 'ro' ? 'ro' : 'en-US');
+  dateLocale = computed(() => (this.languageService.lang() === 'ro' ? 'ro' : 'en-US'));
 
   // Appearance settings mirror the header controls, gathered in one place.
   theme = this.themeService.theme;
@@ -85,9 +95,8 @@ export class ProfileComponent {
     firstName: ['', [Validators.required, Validators.maxLength(50)]],
     lastName: ['', [Validators.required, Validators.maxLength(50)]],
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
-    nickname: ['', [Validators.maxLength(30)]]
+    nickname: ['', [Validators.maxLength(30)]],
   });
-
 
   setPalette(palette: Palette): void {
     this.paletteService.set(palette);
@@ -124,7 +133,8 @@ export class ProfileComponent {
     this.isSaving.set(true);
     const { firstName, lastName, email, nickname } = this.form.getRawValue();
 
-    this.profileService.updateProfile({ firstName, lastName, email, nickname: nickname.trim() || null })
+    this.profileService
+      .updateProfile({ firstName, lastName, email, nickname: nickname.trim() || null })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updated) => {
@@ -149,7 +159,7 @@ export class ProfileComponent {
             this.transloco.translate('common.actions.close'),
             { duration: 5000 },
           );
-        }
+        },
       });
   }
 }

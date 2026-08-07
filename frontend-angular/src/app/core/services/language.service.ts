@@ -1,5 +1,11 @@
 import {
-  ApplicationRef, DOCUMENT, Injectable, PLATFORM_ID, REQUEST, inject, signal,
+  ApplicationRef,
+  DOCUMENT,
+  Injectable,
+  PLATFORM_ID,
+  REQUEST,
+  inject,
+  signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -40,7 +46,8 @@ export class LanguageService {
 
   constructor() {
     this.apply(this.lang());
-    this.transloco.selectTranslate('app.title')
+    this.transloco
+      .selectTranslate('app.title')
       .pipe(takeUntilDestroyed())
       .subscribe((title) => {
         this.title.setTitle(title);
@@ -146,9 +153,7 @@ export class LanguageService {
     const cookie = this.request?.headers.get('cookie') ?? '';
     const acceptLanguage = this.request?.headers.get('accept-language') ?? '';
     return (
-      this.parseLang(COOKIE_PATTERN.exec(cookie)?.[1]) ??
-      this.acceptedLang(acceptLanguage) ??
-      'en'
+      this.parseLang(COOKIE_PATTERN.exec(cookie)?.[1]) ?? this.acceptedLang(acceptLanguage) ?? 'en'
     );
   }
 

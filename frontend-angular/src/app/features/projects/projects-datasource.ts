@@ -50,7 +50,7 @@ export class ProjectsDataSource extends DataSource<Project> {
   connect(): Observable<Project[]> {
     return this._updateStream.pipe(
       startWith(undefined),
-      map(() => this._getProcessedData([...this.data]))
+      map(() => this._getProcessedData([...this.data])),
     );
   }
 
@@ -114,9 +114,10 @@ export class ProjectsDataSource extends DataSource<Project> {
   }
 
   private _getFilteredData(data: Project[]): Project[] {
-    return data.filter(item => {
+    return data.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(this._state.searchQuery.toLowerCase());
-      const matchesAge = this._state.minAgeDays == null || this._isOlderThan(item, this._state.minAgeDays);
+      const matchesAge =
+        this._state.minAgeDays == null || this._isOlderThan(item, this._state.minAgeDays);
       return matchesSearch && matchesAge;
     });
   }
@@ -141,11 +142,16 @@ export class ProjectsDataSource extends DataSource<Project> {
     return [...data].sort((a, b) => {
       const isAsc = this.sort?.direction === 'asc';
       switch (this.sort?.active) {
-        case 'name':        return compare(a.name, b.name, isAsc);
-        case 'createdAt':   return compare(a.createdAt, b.createdAt, isAsc);
-        case 'createdBy':   return compare(a.createdByDisplayName ?? '', b.createdByDisplayName ?? '', isAsc);
-        case 'deletedAt':   return compare(a.deletedAt ?? '', b.deletedAt ?? '', isAsc);
-        default:            return 0;
+        case 'name':
+          return compare(a.name, b.name, isAsc);
+        case 'createdAt':
+          return compare(a.createdAt, b.createdAt, isAsc);
+        case 'createdBy':
+          return compare(a.createdByDisplayName ?? '', b.createdByDisplayName ?? '', isAsc);
+        case 'deletedAt':
+          return compare(a.deletedAt ?? '', b.deletedAt ?? '', isAsc);
+        default:
+          return 0;
       }
     });
   }

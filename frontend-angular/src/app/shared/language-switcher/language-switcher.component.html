@@ -4,11 +4,16 @@
   [matMenuTriggerFor]="langMenu"
   [matTooltip]="'language.label' | transloco"
   matTooltipPosition="below"
-  [attr.aria-label]="'language.label' | transloco">
+  [attr.aria-label]="'language.label' | transloco"
+>
   <!-- @switch recreates the node on change so the pop animation replays. -->
   @switch (lang()) {
-    @case ('ro') { <img class="flag" src="flags/ro.svg" alt="" width="22" height="22" /> }
-    @default { <img class="flag" src="flags/en.svg" alt="" width="22" height="22" /> }
+    @case ('ro') {
+      <img class="flag" src="flags/ro.svg" alt="" width="22" height="22" />
+    }
+    @default {
+      <img class="flag" src="flags/en.svg" alt="" width="22" height="22" />
+    }
   }
 </button>
 
@@ -18,7 +23,8 @@
       mat-menu-item
       class="lang-item"
       [class.lang-active]="l.id === lang()"
-      (click)="setLanguage(l.id)">
+      (click)="setLanguage(l.id)"
+    >
       <!-- Wrapped so the check icon isn't reprojected into the leading icon slot. -->
       <span class="lang-row">
         <img class="flag" [src]="l.flag" alt="" width="20" height="20" />

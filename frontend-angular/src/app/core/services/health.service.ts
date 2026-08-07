@@ -13,21 +13,25 @@ export class HealthService {
   public status$: Observable<HealthStatus> = timer(0, 5000).pipe(
     switchMap(() =>
       this.http.get(this.healthUrl, { responseType: 'text' }).pipe(
-        map(() => ({ state: 'online' } as HealthStatus)),
+        map(() => ({ state: 'online' }) as HealthStatus),
         catchError((err: HttpErrorResponse) => {
-          const status: HealthStatus = err.status === 0
-            ? { state: 'offline', errorKey: 'header.health.networkError' }
-            : {
-                state: 'offline',
-                errorKey: 'header.health.apiError',
-                errorParams: { status: err.status, statusText: this.getFriendlyStatus(err.status) },
-              };
+          const status: HealthStatus =
+            err.status === 0
+              ? { state: 'offline', errorKey: 'header.health.networkError' }
+              : {
+                  state: 'offline',
+                  errorKey: 'header.health.apiError',
+                  errorParams: {
+                    status: err.status,
+                    statusText: this.getFriendlyStatus(err.status),
+                  },
+                };
 
           return of(status);
-        })
-      )
+        }),
+      ),
     ),
-    shareReplay({ bufferSize: 1, refCount: true })
+    shareReplay({ bufferSize: 1, refCount: true }),
   );
 
   private getFriendlyStatus(status: number): string {
@@ -37,7 +41,7 @@ export class HealthService {
       403: 'Forbidden',
       404: 'Not Found',
       500: 'Internal Server Error',
-      503: 'Service Unavailable'
+      503: 'Service Unavailable',
     };
     return statusMap[status] || 'Unknown Error';
   }

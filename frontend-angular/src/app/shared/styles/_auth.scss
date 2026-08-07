@@ -17,18 +17,22 @@
     inset: 0;
     pointer-events: none;
     background:
-      radial-gradient(640px 440px at 12% -6%,
+      radial-gradient(
+        640px 440px at 12% -6%,
         color-mix(in srgb, var(--mat-sys-primary) 15%, transparent) 0%,
         color-mix(in srgb, var(--mat-sys-primary) 11%, transparent) 28%,
         color-mix(in srgb, var(--mat-sys-primary) 5%, transparent) 48%,
         color-mix(in srgb, var(--mat-sys-primary) 2%, transparent) 64%,
-        transparent 82%),
-      radial-gradient(700px 480px at 94% 104%,
+        transparent 82%
+      ),
+      radial-gradient(
+        700px 480px at 94% 104%,
         color-mix(in srgb, var(--mat-sys-tertiary) 12%, transparent) 0%,
         color-mix(in srgb, var(--mat-sys-tertiary) 8%, transparent) 30%,
         color-mix(in srgb, var(--mat-sys-tertiary) 3%, transparent) 52%,
         color-mix(in srgb, var(--mat-sys-tertiary) 1%, transparent) 68%,
-        transparent 84%);
+        transparent 84%
+      );
 
     &::after {
       content: '';

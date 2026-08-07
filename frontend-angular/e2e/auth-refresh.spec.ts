@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Auth token lifecycle', () => {
-  test('login stores both tokens; logout revokes them server-side and clears storage', async ({ page }) => {
+  test('login stores both tokens; logout revokes them server-side and clears storage', async ({
+    page,
+  }) => {
     await page.goto('/login');
     await page.locator('input[formcontrolname="email"]').fill('dev2@example.com');
     await page.locator('input[formcontrolname="password"]').fill('Password123!');
@@ -18,7 +20,7 @@ test.describe('Auth token lifecycle', () => {
 
     // Logout calls the revoke endpoint and clears both tokens.
     const revoke = page.waitForRequest(
-      (r) => r.url().includes('/api/auth/logout') && r.method() === 'POST'
+      (r) => r.url().includes('/api/auth/logout') && r.method() === 'POST',
     );
     await page.getByRole('button', { name: 'dev2 dev2@example.com' }).click();
     await page.getByRole('menuitem', { name: 'Sign Out' }).click();

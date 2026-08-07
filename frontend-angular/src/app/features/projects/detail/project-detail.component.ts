@@ -1,6 +1,11 @@
 import {
-  Component, computed, inject, signal,
-  ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef
+  Component,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -37,9 +42,9 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatProgressSpinnerModule,
     DatePipe,
     AuroraComponent,
-    TranslocoDirective
+    TranslocoDirective,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectDetailComponent {
   private route = inject(ActivatedRoute);
@@ -54,7 +59,7 @@ export class ProjectDetailComponent {
   private languageService = inject(LanguageService);
 
   /** Locale for the date:'medium' pipes; 'ro' locale data is registered in provideI18n. */
-  dateLocale = computed(() => this.languageService.lang() === 'ro' ? 'ro' : 'en-US');
+  dateLocale = computed(() => (this.languageService.lang() === 'ro' ? 'ro' : 'en-US'));
 
   isEditing = signal(false);
   isSaving = signal(false);
@@ -66,9 +71,8 @@ export class ProjectDetailComponent {
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
-    description: ['', Validators.maxLength(500)]
+    description: ['', Validators.maxLength(500)],
   });
-
 
   startEdit(): void {
     if (!this.project.hasValue()) return;
@@ -83,15 +87,18 @@ export class ProjectDetailComponent {
   }
 
   confirmDelete(project: Project): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: this.transloco.translate('projects.confirmDelete.title'),
-        message: this.transloco.translate('projects.confirmDelete.message', { name: project.name }),
-        confirmLabel: this.transloco.translate('common.actions.delete'),
-        warn: true
-      }
-    })
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: this.transloco.translate('projects.confirmDelete.title'),
+          message: this.transloco.translate('projects.confirmDelete.message', {
+            name: project.name,
+          }),
+          confirmLabel: this.transloco.translate('common.actions.delete'),
+          warn: true,
+        },
+      })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed: boolean | undefined) => {
@@ -106,11 +113,12 @@ export class ProjectDetailComponent {
             );
             this.router.navigate(['/projects']);
           },
-          error: () => this.snackBar.open(
-            this.transloco.translate('projects.notifications.deleteFailed'),
-            this.transloco.translate('common.actions.close'),
-            { duration: 5000 },
-          )
+          error: () =>
+            this.snackBar.open(
+              this.transloco.translate('projects.notifications.deleteFailed'),
+              this.transloco.translate('common.actions.close'),
+              { duration: 5000 },
+            ),
         });
       });
   }
@@ -122,7 +130,8 @@ export class ProjectDetailComponent {
     this.isSaving.set(true);
     const { name, description } = this.form.getRawValue();
 
-    this.projectService.updateProject(project.id, { name, description: description || undefined })
+    this.projectService
+      .updateProject(project.id, { name, description: description || undefined })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (updated) => {
@@ -144,7 +153,7 @@ export class ProjectDetailComponent {
             this.transloco.translate('common.actions.close'),
             { duration: 5000 },
           );
-        }
+        },
       });
   }
 }

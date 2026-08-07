@@ -1,5 +1,11 @@
 import { Component, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -44,11 +50,11 @@ const IDENTITY_ERROR_KEYS: Record<string, string> = {
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatIcon,
-    TranslocoDirective
+    TranslocoDirective,
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {
   private fb = inject(FormBuilder);
@@ -62,17 +68,23 @@ export class RegisterComponent {
   hideConfirmPassword = signal(true);
   isLoading = signal(false);
 
-  registerForm = this.fb.nonNullable.group({
-    firstName: ['', Validators.required],
-    lastName:  ['', Validators.required],
-    email:     ['', [Validators.required, Validators.email]],
-    password:  ['', [
-      Validators.required,
-      Validators.minLength(8),
-      Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/)
-    ]],
-    confirmPassword: ['', Validators.required]
-  }, { validators: passwordMatchValidator });
+  registerForm = this.fb.nonNullable.group(
+    {
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/),
+        ],
+      ],
+      confirmPassword: ['', Validators.required],
+    },
+    { validators: passwordMatchValidator },
+  );
 
   constructor() {
     this.clearServerErrorOnChange('email');
@@ -84,12 +96,12 @@ export class RegisterComponent {
   }
 
   togglePassword(event: MouseEvent) {
-    this.hidePassword.update(v => !v);
+    this.hidePassword.update((v) => !v);
     event.stopPropagation();
   }
 
   toggleConfirmPassword(event: MouseEvent) {
-    this.hideConfirmPassword.update(v => !v);
+    this.hideConfirmPassword.update((v) => !v);
     event.stopPropagation();
   }
 
@@ -112,7 +124,7 @@ export class RegisterComponent {
       error: (err) => {
         this.isLoading.set(false);
         this.handleBackendErrors(err);
-      }
+      },
     });
   }
 
@@ -122,9 +134,14 @@ export class RegisterComponent {
     // Identity error codes that map to the email field
     const emailCodes = ['DuplicateUserName', 'DuplicateEmail', 'InvalidEmail'];
     // Identity error codes that map to the password field
-    const passwordCodes = ['PasswordTooShort', 'PasswordRequiresUpper',
-                          'PasswordRequiresLower', 'PasswordRequiresDigit',
-                          'PasswordRequiresNonAlphanumeric', 'PasswordRequiresUniqueChars'];
+    const passwordCodes = [
+      'PasswordTooShort',
+      'PasswordRequiresUpper',
+      'PasswordRequiresLower',
+      'PasswordRequiresDigit',
+      'PasswordRequiresNonAlphanumeric',
+      'PasswordRequiresUniqueChars',
+    ];
 
     const firstMatch = (codes: string[]): ServerFieldError | undefined => {
       for (const code of codes) {
@@ -136,7 +153,7 @@ export class RegisterComponent {
       return undefined;
     };
 
-    const emailError    = firstMatch(emailCodes);
+    const emailError = firstMatch(emailCodes);
     const passwordError = firstMatch(passwordCodes);
 
     if (emailError) {
@@ -152,12 +169,15 @@ export class RegisterComponent {
     // Fallback: show the first error message from any key
     const unexpected = this.transloco.translate('common.errors.unexpected');
     const fallback = Object.values(errors).flat().at(0) ?? unexpected;
-    this.snackBar.open(fallback, this.transloco.translate('common.actions.close'), { duration: 5000 });
+    this.snackBar.open(fallback, this.transloco.translate('common.actions.close'), {
+      duration: 5000,
+    });
   }
 
   private clearServerErrorOnChange(controlName: string): void {
-    this.registerForm.get(controlName)?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.registerForm
+      .get(controlName)
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         const ctrl = this.registerForm.get(controlName);
         if (!ctrl?.hasError('serverError')) return;
@@ -169,7 +189,7 @@ export class RegisterComponent {
 }
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-  const password        = control.get('password')?.value;
+  const password = control.get('password')?.value;
   const confirmPassword = control.get('confirmPassword')?.value;
   return password && confirmPassword && password !== confirmPassword
     ? { passwordMismatch: true }

@@ -1,6 +1,10 @@
 import {
-  Component, computed, inject, signal,
-  ChangeDetectionStrategy, ChangeDetectorRef
+  Component,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -32,9 +36,9 @@ import { WeatherWidgetComponent } from '@shared/weather-widget/weather-widget.co
     MatTableModule,
     AuroraComponent,
     WeatherWidgetComponent,
-    TranslocoDirective
+    TranslocoDirective,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserDashboardComponent {
   private dashboardService = inject(DashboardService);
@@ -44,7 +48,7 @@ export class UserDashboardComponent {
   private languageService = inject(LanguageService);
 
   /** Locale for the date pipes; 'ro' locale data is registered in provideI18n. */
-  dateLocale = computed(() => this.languageService.lang() === 'ro' ? 'ro' : 'en-US');
+  dateLocale = computed(() => (this.languageService.lang() === 'ro' ? 'ro' : 'en-US'));
 
   dashboard = this.dashboardService.myDashboard();
 

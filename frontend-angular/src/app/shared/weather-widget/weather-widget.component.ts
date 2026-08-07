@@ -1,6 +1,12 @@
 import {
-  Component, ChangeDetectionStrategy, ChangeDetectorRef, DestroyRef,
-  OnInit, inject, output, signal
+  Component,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  DestroyRef,
+  OnInit,
+  inject,
+  output,
+  signal,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -29,7 +35,8 @@ export class WeatherWidgetComponent implements OnInit {
   loaded = output<CurrentWeather>();
 
   ngOnInit(): void {
-    this.weatherService.getCurrentWeather()
+    this.weatherService
+      .getCurrentWeather()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (weather) => {

@@ -120,8 +120,12 @@ a.kpi:focus-visible {
     height: 18px;
     font-size: 18px;
 
-    &.projects { color: var(--mat-sys-primary); }
-    &.deleted { color: var(--mat-sys-error); }
+    &.projects {
+      color: var(--mat-sys-primary);
+    }
+    &.deleted {
+      color: var(--mat-sys-error);
+    }
   }
 }
 

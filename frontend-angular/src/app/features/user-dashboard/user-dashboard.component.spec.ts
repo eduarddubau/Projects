@@ -92,7 +92,9 @@ describe('UserDashboardComponent', () => {
   });
 
   it('shows the error state when loading fails', async () => {
-    httpMock.expectOne(`${apiUrl}/dashboard`).flush('boom', { status: 500, statusText: 'Server Error' });
+    httpMock
+      .expectOne(`${apiUrl}/dashboard`)
+      .flush('boom', { status: 500, statusText: 'Server Error' });
     await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';

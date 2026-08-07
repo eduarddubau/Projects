@@ -7,14 +7,21 @@
   </div>
 
   <div class="table-card">
-
     <div class="table-toolbar">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControl]="searchControl" [placeholder]="t('admin.trashProjects.searchPlaceholder')" [attr.aria-label]="t('admin.trashProjects.searchAria')">
+        <input
+          matInput
+          [formControl]="searchControl"
+          [placeholder]="t('admin.trashProjects.searchPlaceholder')"
+          [attr.aria-label]="t('admin.trashProjects.searchAria')"
+        />
       </mat-form-field>
 
-      <mat-button-toggle-group [formControl]="ageFilterControl" [attr.aria-label]="t('admin.trashProjects.ageFilterAria')">
+      <mat-button-toggle-group
+        [formControl]="ageFilterControl"
+        [attr.aria-label]="t('admin.trashProjects.ageFilterAria')"
+      >
         <mat-button-toggle value="all">{{ t('admin.trashProjects.ageAll') }}</mat-button-toggle>
         <mat-button-toggle value="30">{{ t('admin.trashProjects.age30') }}</mat-button-toggle>
         <mat-button-toggle value="60">{{ t('admin.trashProjects.age60') }}</mat-button-toggle>
@@ -22,12 +29,21 @@
       </mat-button-toggle-group>
 
       <div class="toolbar-actions">
-        <button mat-stroked-button [disabled]="selection.isEmpty()" (click)="confirmRestoreSelected()">
+        <button
+          mat-stroked-button
+          [disabled]="selection.isEmpty()"
+          (click)="confirmRestoreSelected()"
+        >
           <mat-icon>restore</mat-icon>
           {{ t('admin.trashProjects.restoreSelected', { count: selection.selected.length }) }}
         </button>
 
-        <button mat-stroked-button class="button-danger" [disabled]="!canPurgeSelected()" (click)="confirmPurgeSelected()">
+        <button
+          mat-stroked-button
+          class="button-danger"
+          [disabled]="!canPurgeSelected()"
+          (click)="confirmPurgeSelected()"
+        >
           <mat-icon>delete_forever</mat-icon>
           {{ t('admin.trashProjects.purgeSelected', { count: selection.selected.length }) }}
         </button>
@@ -47,23 +63,29 @@
     }
 
     <div [hidden]="deleted.isLoading() || deleted.error()">
-
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('admin.trashProjects.tableAria')">
-
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        class="full-width-table"
+        [attr.aria-label]="t('admin.trashProjects.tableAria')"
+      >
         <ng-container matColumnDef="select">
           <th mat-header-cell *matHeaderCellDef>
             <mat-checkbox
               [checked]="isAllSelected()"
               [indeterminate]="selection.hasValue() && !isAllSelected()"
               (change)="toggleSelectAll()"
-              [aria-label]="t('admin.trashProjects.selectAllAria')">
+              [aria-label]="t('admin.trashProjects.selectAllAria')"
+            >
             </mat-checkbox>
           </th>
           <td mat-cell *matCellDef="let row">
             <mat-checkbox
               [checked]="selection.isSelected(row)"
               (change)="toggleSelection(row)"
-              [aria-label]="t('admin.trashProjects.selectRowAria', { name: row.name })">
+              [aria-label]="t('admin.trashProjects.selectRowAria', { name: row.name })"
+            >
             </mat-checkbox>
           </td>
         </ng-container>
@@ -71,7 +93,7 @@
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef>#</th>
           <td mat-cell *matCellDef="let row; let i = index">
-            {{ (paginator.pageIndex * paginator.pageSize) + (i + 1) }}
+            {{ paginator.pageIndex * paginator.pageSize + (i + 1) }}
           </td>
         </ng-container>
 
@@ -81,13 +103,17 @@
         </ng-container>
 
         <ng-container matColumnDef="createdBy">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.createdBy') }}</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('projects.table.createdBy') }}
+          </th>
           <td mat-cell *matCellDef="let row">{{ row.createdByDisplayName ?? '—' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="deletedAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.deletedAt') }}</th>
-          <td mat-cell *matCellDef="let row">{{ row.deletedAt | date:'yyyy-MM-dd' }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('projects.table.deletedAt') }}
+          </th>
+          <td mat-cell *matCellDef="let row">{{ row.deletedAt | date: 'yyyy-MM-dd' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
@@ -129,10 +155,9 @@
       <mat-paginator
         #paginator
         [pageSizeOptions]="[5, 10, 20]"
-        [attr.aria-label]="t('projects.table.selectPage')">
+        [attr.aria-label]="t('projects.table.selectPage')"
+      >
       </mat-paginator>
-
     </div>
-
   </div>
 </div>

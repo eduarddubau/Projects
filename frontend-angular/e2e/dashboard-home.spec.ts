@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Dashboard as home', () => {
-  test('login lands on the dashboard; landing and logo route there when signed in', async ({ page }) => {
+  test('login lands on the dashboard; landing and logo route there when signed in', async ({
+    page,
+  }) => {
     await page.goto('/login');
     await page.locator('input[formcontrolname="email"]').fill('dev2@example.com');
     await page.locator('input[formcontrolname="password"]').fill('Password123!');

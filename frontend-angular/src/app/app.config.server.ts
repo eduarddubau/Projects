@@ -10,8 +10,8 @@ const serverConfig: ApplicationConfig = {
     provideServerRendering(withRoutes(serverRoutes)),
     {
       provide: API_URL,
-      useValue: env.apiUrl
-    }
+      useValue: env.apiUrl,
+    },
   ],
 };
 

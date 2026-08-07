@@ -9,25 +9,40 @@
     </div>
 
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
-
       <div class="row">
         <mat-form-field appearance="outline">
           <mat-label>{{ t('firstName') }}</mat-label>
-          <input matInput formControlName="firstName" [placeholder]="t('firstNamePlaceholder')" autocomplete="given-name">
+          <input
+            matInput
+            formControlName="firstName"
+            [placeholder]="t('firstNamePlaceholder')"
+            autocomplete="given-name"
+          />
           <mat-icon matSuffix>person</mat-icon>
           <mat-error>{{ t('validation.firstNameRequired') }}</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>{{ t('lastName') }}</mat-label>
-          <input matInput formControlName="lastName" [placeholder]="t('lastNamePlaceholder')" autocomplete="family-name">
+          <input
+            matInput
+            formControlName="lastName"
+            [placeholder]="t('lastNamePlaceholder')"
+            autocomplete="family-name"
+          />
           <mat-error>{{ t('validation.lastNameRequired') }}</mat-error>
         </mat-form-field>
       </div>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ t('email') }}</mat-label>
-        <input matInput type="email" formControlName="email" [placeholder]="t('emailPlaceholder')" autocomplete="email">
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          [placeholder]="t('emailPlaceholder')"
+          autocomplete="email"
+        />
         <mat-icon matSuffix>email</mat-icon>
         @if (registerForm.get('email')?.hasError('required')) {
           <mat-error>{{ t('validation.emailRequired') }}</mat-error>
@@ -40,9 +55,20 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ t('password') }}</mat-label>
-        <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" autocomplete="new-password">
-        <mat-icon matSuffix class="requirements-hint" [matTooltip]="t('passwordRequirements')"
-                  tabindex="0" [attr.aria-label]="t('passwordRequirementsAria')">info_outline</mat-icon>
+        <input
+          matInput
+          [type]="hidePassword() ? 'password' : 'text'"
+          formControlName="password"
+          autocomplete="new-password"
+        />
+        <mat-icon
+          matSuffix
+          class="requirements-hint"
+          [matTooltip]="t('passwordRequirements')"
+          tabindex="0"
+          [attr.aria-label]="t('passwordRequirementsAria')"
+          >info_outline</mat-icon
+        >
         <button mat-icon-button matSuffix type="button" (click)="togglePassword($event)">
           <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
@@ -59,26 +85,38 @@
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>{{ t('confirmPassword') }}</mat-label>
-        <input matInput [type]="hideConfirmPassword() ? 'password' : 'text'" formControlName="confirmPassword" autocomplete="new-password">
+        <input
+          matInput
+          [type]="hideConfirmPassword() ? 'password' : 'text'"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+        />
         <button mat-icon-button matSuffix type="button" (click)="toggleConfirmPassword($event)">
           <mat-icon>{{ hideConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
-        @if (registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched) {
+        @if (
+          registerForm.hasError('passwordMismatch') && registerForm.get('confirmPassword')?.touched
+        ) {
           <mat-error>{{ t('validation.passwordMismatch') }}</mat-error>
         }
       </mat-form-field>
 
-      <button mat-flat-button type="submit" class="submit-button"
-              [disabled]="registerForm.invalid || isLoading()">
+      <button
+        mat-flat-button
+        type="submit"
+        class="submit-button"
+        [disabled]="registerForm.invalid || isLoading()"
+      >
         @if (isLoading()) {
           <mat-spinner diameter="20"></mat-spinner>
         } @else {
           <span>{{ t('createAccount') }}</span>
         }
       </button>
-
     </form>
 
-    <p class="auth-alt">{{ t('haveAccount') }} <a routerLink="/login">{{ t('signIn') }}</a></p>
+    <p class="auth-alt">
+      {{ t('haveAccount') }} <a routerLink="/login">{{ t('signIn') }}</a>
+    </p>
   </div>
 </div>

@@ -86,7 +86,7 @@
           </ng-container>
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>{{ t('createdAt') }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
+            <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'yyyy-MM-dd' }}</td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="recentProjectColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: recentProjectColumns"></tr>
@@ -114,7 +114,7 @@
           </ng-container>
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>{{ t('createdAt') }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
+            <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'yyyy-MM-dd' }}</td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="recentUserColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: recentUserColumns"></tr>

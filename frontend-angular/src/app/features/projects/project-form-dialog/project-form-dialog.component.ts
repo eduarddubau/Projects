@@ -26,9 +26,9 @@ export interface ProjectFormResult {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    TranslocoDirective
+    TranslocoDirective,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectFormDialogComponent {
   private fb = inject(FormBuilder);
@@ -39,7 +39,7 @@ export class ProjectFormDialogComponent {
 
   form = this.fb.nonNullable.group({
     name: [this.data.project?.name ?? '', [Validators.required, Validators.maxLength(100)]],
-    description: [this.data.project?.description ?? '', Validators.maxLength(500)]
+    description: [this.data.project?.description ?? '', Validators.maxLength(500)],
   });
 
   submit(): void {

@@ -17,18 +17,22 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
       height: 520px;
       pointer-events: none;
       background:
-        radial-gradient(680px 420px at 10% -12%,
+        radial-gradient(
+          680px 420px at 10% -12%,
           color-mix(in srgb, var(--mat-sys-primary) 11%, transparent) 0%,
           color-mix(in srgb, var(--mat-sys-primary) 8%, transparent) 28%,
           color-mix(in srgb, var(--mat-sys-primary) 4%, transparent) 48%,
           color-mix(in srgb, var(--mat-sys-primary) 1%, transparent) 64%,
-          transparent 82%),
-        radial-gradient(760px 460px at 94% -16%,
+          transparent 82%
+        ),
+        radial-gradient(
+          760px 460px at 94% -16%,
           color-mix(in srgb, var(--mat-sys-tertiary) 9%, transparent) 0%,
           color-mix(in srgb, var(--mat-sys-tertiary) 6%, transparent) 30%,
           color-mix(in srgb, var(--mat-sys-tertiary) 3%, transparent) 52%,
           color-mix(in srgb, var(--mat-sys-tertiary) 1%, transparent) 68%,
-          transparent 84%);
+          transparent 84%
+        );
       mask-image: linear-gradient(to bottom, black 35%, transparent 94%);
 
       &::after {

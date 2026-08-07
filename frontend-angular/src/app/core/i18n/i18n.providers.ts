@@ -1,5 +1,9 @@
 import {
-  EnvironmentProviders, Provider, inject, isDevMode, provideAppInitializer,
+  EnvironmentProviders,
+  Provider,
+  inject,
+  isDevMode,
+  provideAppInitializer,
 } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeRo from '@angular/common/locales/ro';

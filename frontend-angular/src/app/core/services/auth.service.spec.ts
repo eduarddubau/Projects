@@ -52,7 +52,7 @@ describe('AuthService', () => {
     localStorage.setItem(StorageKeys.REFRESH_TOKEN, 'refresh-old');
     let newAccess: string | undefined;
 
-    service.refresh().subscribe(token => (newAccess = token));
+    service.refresh().subscribe((token) => (newAccess = token));
 
     const req = httpMock.expectOne(`${apiUrl}/auth/refresh`);
     expect(req.request.body).toEqual({ refreshToken: 'refresh-old' });

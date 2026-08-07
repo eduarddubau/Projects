@@ -2,11 +2,20 @@
 
 <div class="page-container dashboard-container" *transloco="let t">
   <header class="dash-header">
-    <a routerLink="/profile" class="dash-avatar-link" [attr.aria-label]="t('userDashboard.account.viewProfile')">
+    <a
+      routerLink="/profile"
+      class="dash-avatar-link"
+      [attr.aria-label]="t('userDashboard.account.viewProfile')"
+    >
       <span class="avatar-circle dash-avatar" aria-hidden="true">{{ initials() }}</span>
     </a>
     <div class="dash-heading">
-      <h1 class="page-title">{{ t(greetingKey()) }}@if (displayName(); as name) {, <a routerLink="/profile" class="name-link">{{ name }}</a>}</h1>
+      <h1 class="page-title">
+        {{ t(greetingKey()) }}
+        @if (displayName(); as name) {
+          , <a routerLink="/profile" class="name-link">{{ name }}</a>
+        }
+      </h1>
       <p class="page-subtitle">{{ t(taglineKey()) }}</p>
     </div>
   </header>
@@ -62,14 +71,20 @@
               <td mat-cell *matCellDef="let row">{{ row.name }}</td>
             </ng-container>
             <ng-container matColumnDef="lastActivity">
-              <th mat-header-cell *matHeaderCellDef>{{ t('userDashboard.recent.lastActivity') }}</th>
+              <th mat-header-cell *matHeaderCellDef>
+                {{ t('userDashboard.recent.lastActivity') }}
+              </th>
               <td mat-cell *matCellDef="let row">
-                {{ lastActivity(row) | date:'mediumDate':undefined:dateLocale() }}
+                {{ lastActivity(row) | date: 'mediumDate' : undefined : dateLocale() }}
               </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="recentColumns"></tr>
-            <tr mat-row class="clickable-row" *matRowDef="let row; columns: recentColumns"
-                (click)="openProject(row)"></tr>
+            <tr
+              mat-row
+              class="clickable-row"
+              *matRowDef="let row; columns: recentColumns"
+              (click)="openProject(row)"
+            ></tr>
           </table>
         } @else {
           <p class="empty-hint">{{ t('userDashboard.recent.empty') }}</p>

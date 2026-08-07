@@ -72,7 +72,7 @@ export class AuthService {
       firstName: decoded.given_name,
       lastName: decoded.family_name,
       nickname: decoded.nickname,
-      isAdmin: roles.includes('Admin')
+      isAdmin: roles.includes('Admin'),
     };
   }
 
@@ -103,25 +103,25 @@ export class AuthService {
     this.refresh$ = this.http
       .post<AuthResponse>(`${this.apiUrl}/auth/refresh`, { refreshToken })
       .pipe(
-        tap(response => this.setSession(response)),
-        map(response => response.token),
+        tap((response) => this.setSession(response)),
+        map((response) => response.token),
         finalize(() => (this.refresh$ = null)),
-        shareReplay(1)
+        shareReplay(1),
       );
 
     return this.refresh$;
   }
 
   login(credentials: LoginCredentials) {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials).pipe(
-      tap(response => this.setSession(response))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials)
+      .pipe(tap((response) => this.setSession(response)));
   }
 
   register(credentials: RegisterCredentials) {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, credentials).pipe(
-      tap(response => this.setSession(response))
-    );
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/register`, credentials)
+      .pipe(tap((response) => this.setSession(response)));
   }
 
   private setSession(response: AuthResponse) {

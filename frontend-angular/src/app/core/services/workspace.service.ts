@@ -25,7 +25,10 @@ export class WorkspaceService {
     return this.http.post<Workspace>(`${this.apiUrl}/workspaces`, payload);
   }
 
-  updateWorkspace(id: string, payload: { name: string; description?: string }): Observable<Workspace> {
+  updateWorkspace(
+    id: string,
+    payload: { name: string; description?: string },
+  ): Observable<Workspace> {
     return this.http.put<Workspace>(`${this.apiUrl}/workspaces/${id}`, payload);
   }
 
@@ -41,10 +44,14 @@ export class WorkspaceService {
     return this.http.get<WorkspaceMember[]>(`${this.apiUrl}/workspaces/${workspaceId}/members`);
   }
 
-  changeMemberRole(workspaceId: string, userId: string, role: WorkspaceRole): Observable<WorkspaceMember> {
+  changeMemberRole(
+    workspaceId: string,
+    userId: string,
+    role: WorkspaceRole,
+  ): Observable<WorkspaceMember> {
     return this.http.patch<WorkspaceMember>(
       `${this.apiUrl}/workspaces/${workspaceId}/members/${userId}/role`,
-      { role }
+      { role },
     );
   }
 

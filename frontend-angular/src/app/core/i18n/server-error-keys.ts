@@ -28,4 +28,3 @@ export function serverErrorParams(err: unknown): Record<string, string> | undefi
   const params = err instanceof HttpErrorResponse ? err.error?.params : undefined;
   return params && typeof params === 'object' ? params : undefined;
 }
-

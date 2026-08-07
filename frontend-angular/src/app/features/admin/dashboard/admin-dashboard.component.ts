@@ -23,9 +23,9 @@ import { DashboardService } from '@core/services/dashboard.service';
     MatProgressSpinnerModule,
     MatTableModule,
     MatDividerModule,
-    TranslocoDirective
+    TranslocoDirective,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminDashboardComponent {
   private dashboardService = inject(DashboardService);
@@ -34,5 +34,4 @@ export class AdminDashboardComponent {
 
   recentProjectColumns = ['name', 'createdBy', 'createdAt'];
   recentUserColumns = ['name', 'email', 'createdAt'];
-
 }

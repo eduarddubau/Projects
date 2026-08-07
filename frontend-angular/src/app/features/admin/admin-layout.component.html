@@ -3,14 +3,16 @@
     #drawer
     class="admin-sidenav"
     [mode]="isHandset() ? 'over' : 'side'"
-    [opened]="!isHandset()">
+    [opened]="!isHandset()"
+  >
     <mat-nav-list>
       <a
         mat-list-item
         routerLink="/admin"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
-        (click)="closeIfHandset(drawer)">
+        (click)="closeIfHandset(drawer)"
+      >
         <mat-icon matListItemIcon>dashboard</mat-icon>
         <span matListItemTitle>{{ t('dashboard') }}</span>
       </a>
@@ -18,7 +20,8 @@
         mat-list-item
         routerLink="/admin/projects"
         routerLinkActive="active"
-        (click)="closeIfHandset(drawer)">
+        (click)="closeIfHandset(drawer)"
+      >
         <mat-icon matListItemIcon>folder</mat-icon>
         <span matListItemTitle>{{ t('projects') }}</span>
       </a>
@@ -26,7 +29,8 @@
         mat-list-item
         routerLink="/admin/users"
         routerLinkActive="active"
-        (click)="closeIfHandset(drawer)">
+        (click)="closeIfHandset(drawer)"
+      >
         <mat-icon matListItemIcon>people</mat-icon>
         <span matListItemTitle>{{ t('users') }}</span>
       </a>
@@ -38,7 +42,8 @@
         mat-list-item
         routerLink="/admin/trash/projects"
         routerLinkActive="active"
-        (click)="closeIfHandset(drawer)">
+        (click)="closeIfHandset(drawer)"
+      >
         <mat-icon matListItemIcon>delete</mat-icon>
         <span matListItemTitle>{{ t('projects') }}</span>
       </a>
@@ -46,7 +51,8 @@
         mat-list-item
         routerLink="/admin/trash/users"
         routerLinkActive="active"
-        (click)="closeIfHandset(drawer)">
+        (click)="closeIfHandset(drawer)"
+      >
         <mat-icon matListItemIcon>person_off</mat-icon>
         <span matListItemTitle>{{ t('users') }}</span>
       </a>

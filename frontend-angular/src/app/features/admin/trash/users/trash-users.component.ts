@@ -1,7 +1,13 @@
 import {
-  AfterViewInit, Component, ViewChild, inject,
-  DestroyRef, ChangeDetectionStrategy, OnInit,
-  ChangeDetectorRef, effect
+  AfterViewInit,
+  Component,
+  ViewChild,
+  inject,
+  DestroyRef,
+  ChangeDetectionStrategy,
+  OnInit,
+  ChangeDetectorRef,
+  effect,
 } from '@angular/core';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
@@ -38,10 +44,10 @@ import { serverErrorKey, serverErrorParams } from '@core/i18n/server-error-keys'
     MatButtonModule,
     ReactiveFormsModule,
     DatePipe,
-    TranslocoDirective
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }]
+  providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
 export class TrashUsersComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -79,25 +85,31 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
       `${user.firstName} ${user.lastName} ${user.email}`.toLowerCase().includes(filter);
     this.dataSource.sortingDataAccessor = (user, column) => {
       switch (column) {
-        case 'name': return `${user.firstName} ${user.lastName}`.toLowerCase();
-        case 'email': return user.email.toLowerCase();
-        case 'deletedAt': return user.deletedAt ?? '';
-        default: return '';
+        case 'name':
+          return `${user.firstName} ${user.lastName}`.toLowerCase();
+        case 'email':
+          return user.email.toLowerCase();
+        case 'deletedAt':
+          return user.deletedAt ?? '';
+        default:
+          return '';
       }
     };
 
-    this.searchControl.valueChanges.pipe(
-      startWith(this.searchControl.value),
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((term) => {
-      this.dataSource.filter = term?.trim().toLowerCase() ?? '';
-      if (this.dataSource.paginator) {
-        this.dataSource.paginator.firstPage();
-      }
-      this.cdr.markForCheck();
-    });
+    this.searchControl.valueChanges
+      .pipe(
+        startWith(this.searchControl.value),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((term) => {
+        this.dataSource.filter = term?.trim().toLowerCase() ?? '';
+        if (this.dataSource.paginator) {
+          this.dataSource.paginator.firstPage();
+        }
+        this.cdr.markForCheck();
+      });
   }
 
   ngAfterViewInit(): void {
@@ -119,30 +131,32 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
           { duration: 3000 },
         );
       },
-      error: (err) => this.snackBar.open(
-        this.transloco.translate(
-          serverErrorKey(err, 'admin.trashUsers.restoreFailed'),
-          serverErrorParams(err)
+      error: (err) =>
+        this.snackBar.open(
+          this.transloco.translate(
+            serverErrorKey(err, 'admin.trashUsers.restoreFailed'),
+            serverErrorParams(err),
+          ),
+          this.transloco.translate('common.actions.close'),
+          { duration: 10000 },
         ),
-        this.transloco.translate('common.actions.close'),
-        { duration: 10000 },
-      )
     });
   }
 
   confirmErase(user: AdminUser): void {
-    this.dialog.open(ConfirmDialogComponent, {
-      width: '460px',
-      data: {
-        title: this.transloco.translate('admin.trashUsers.eraseTitle'),
-        message: this.transloco.translate('admin.trashUsers.eraseMessage', {
-          name: `${user.firstName} ${user.lastName}`,
-          email: user.email,
-        }),
-        confirmLabel: this.transloco.translate('common.actions.erase'),
-        warn: true
-      }
-    })
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        width: '460px',
+        data: {
+          title: this.transloco.translate('admin.trashUsers.eraseTitle'),
+          message: this.transloco.translate('admin.trashUsers.eraseMessage', {
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.email,
+          }),
+          confirmLabel: this.transloco.translate('common.actions.erase'),
+          warn: true,
+        },
+      })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((confirmed: boolean | undefined) => {
@@ -158,14 +172,15 @@ export class TrashUsersComponent implements OnInit, AfterViewInit {
               { duration: 3000 },
             );
           },
-          error: (err) => this.snackBar.open(
-            this.transloco.translate(
-              serverErrorKey(err, 'admin.trashUsers.eraseFailed'),
-              serverErrorParams(err)
+          error: (err) =>
+            this.snackBar.open(
+              this.transloco.translate(
+                serverErrorKey(err, 'admin.trashUsers.eraseFailed'),
+                serverErrorParams(err),
+              ),
+              this.transloco.translate('common.actions.close'),
+              { duration: 10000 },
             ),
-            this.transloco.translate('common.actions.close'),
-            { duration: 10000 },
-          )
         });
       });
   }

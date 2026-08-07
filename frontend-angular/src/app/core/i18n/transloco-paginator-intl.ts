@@ -23,7 +23,8 @@ export class TranslocoPaginatorIntl extends MatPaginatorIntl {
       return this.transloco.translate('paginator.rangeOf', { start: start + 1, end, length });
     };
 
-    this.transloco.selectTranslateObject('paginator')
+    this.transloco
+      .selectTranslateObject('paginator')
       .pipe(takeUntilDestroyed())
       .subscribe((labels) => {
         this.itemsPerPageLabel = labels['itemsPerPage'];

@@ -13,11 +13,15 @@
   </div>
 
   <div class="table-card">
-
     <div class="table-toolbar">
       <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search-field">
         <mat-icon matPrefix>search</mat-icon>
-        <input matInput [formControl]="searchControl" [placeholder]="t('admin.users.searchPlaceholder')" [attr.aria-label]="t('admin.users.searchAria')">
+        <input
+          matInput
+          [formControl]="searchControl"
+          [placeholder]="t('admin.users.searchPlaceholder')"
+          [attr.aria-label]="t('admin.users.searchAria')"
+        />
       </mat-form-field>
     </div>
 
@@ -34,13 +38,17 @@
     }
 
     <div [hidden]="users.isLoading() || users.error()">
-
-      <table mat-table [dataSource]="dataSource" matSort class="full-width-table" [attr.aria-label]="t('admin.users.tableAria')">
-
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        class="full-width-table"
+        [attr.aria-label]="t('admin.users.tableAria')"
+      >
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef>#</th>
           <td mat-cell *matCellDef="let row; let i = index">
-            {{ (paginator.pageIndex * paginator.pageSize) + (i + 1) }}
+            {{ paginator.pageIndex * paginator.pageSize + (i + 1) }}
           </td>
         </ng-container>
 
@@ -55,23 +63,30 @@
         </ng-container>
 
         <ng-container matColumnDef="email">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('admin.dashboard.email') }}</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('admin.dashboard.email') }}
+          </th>
           <td mat-cell *matCellDef="let row">{{ row.email }}</td>
         </ng-container>
 
         <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('projects.table.createdAt') }}</th>
-          <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'yyyy-MM-dd' }}</td>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('projects.table.createdAt') }}
+          </th>
+          <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'yyyy-MM-dd' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>{{ t('projects.table.actions') }}</th>
           <td mat-cell *matCellDef="let row">
             <div class="actions-cell">
-              <button mat-stroked-button class="button-danger"
-                      [disabled]="isSelf(row)"
-                      [matTooltip]="isSelf(row) ? t('admin.users.selfDeleteTooltip') : ''"
-                      (click)="confirmDelete(row)">
+              <button
+                mat-stroked-button
+                class="button-danger"
+                [disabled]="isSelf(row)"
+                [matTooltip]="isSelf(row) ? t('admin.users.selfDeleteTooltip') : ''"
+                (click)="confirmDelete(row)"
+              >
                 <mat-icon>delete</mat-icon>
                 {{ t('common.actions.delete') }}
               </button>
@@ -100,10 +115,9 @@
       <mat-paginator
         #paginator
         [pageSizeOptions]="[5, 10, 20]"
-        [attr.aria-label]="t('projects.table.selectPage')">
+        [attr.aria-label]="t('projects.table.selectPage')"
+      >
       </mat-paginator>
-
     </div>
-
   </div>
 </div>

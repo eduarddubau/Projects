@@ -29,14 +29,23 @@ describe('WeatherWidgetComponent', () => {
 
   it('renders temperature, condition, city and the matching animated icon', () => {
     httpMock.expectOne(GEO_URL).flush({
-      success: true, city: 'Oradea', country: 'Romania', latitude: 47.05, longitude: 21.92,
+      success: true,
+      city: 'Oradea',
+      country: 'Romania',
+      latitude: 47.05,
+      longitude: 21.92,
     });
-    httpMock.expectOne((r) => isMeteo(r.url)).flush({
-      current: {
-        temperature_2m: 26.3, relative_humidity_2m: 64.7, wind_speed_10m: 11.6,
-        is_day: 1, weather_code: 1,
-      },
-    });
+    httpMock
+      .expectOne((r) => isMeteo(r.url))
+      .flush({
+        current: {
+          temperature_2m: 26.3,
+          relative_humidity_2m: 64.7,
+          wind_speed_10m: 11.6,
+          is_day: 1,
+          weather_code: 1,
+        },
+      });
     fixture.detectChanges();
 
     const text = host.textContent ?? '';

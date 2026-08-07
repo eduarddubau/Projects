@@ -35,7 +35,7 @@ test.describe('Admin Users', () => {
     const email = `delrestore-${Date.now()}@example.com`;
     const createResp = await page.request.post('/api/users', {
       headers: { Authorization: `Bearer ${token}` },
-      data: { email, firstName: 'Del', lastName: 'Restore' }
+      data: { email, firstName: 'Del', lastName: 'Restore' },
     });
     expect(createResp.ok()).toBeTruthy();
 
@@ -65,13 +65,15 @@ test.describe('Admin Users', () => {
     await expect(page.locator('tr', { hasText: email })).toHaveCount(0);
   });
 
-  test('permanently erases a deleted user (GDPR), removing them from trash for good', async ({ page }) => {
+  test('permanently erases a deleted user (GDPR), removing them from trash for good', async ({
+    page,
+  }) => {
     // Create a throwaway user via the API so we never erase a seeded account other specs rely on.
     const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
     const email = `erase-${Date.now()}@example.com`;
     const createResp = await page.request.post('/api/users', {
       headers: { Authorization: `Bearer ${token}` },
-      data: { email, firstName: 'Erase', lastName: 'Target' }
+      data: { email, firstName: 'Erase', lastName: 'Target' },
     });
     expect(createResp.ok()).toBeTruthy();
 
