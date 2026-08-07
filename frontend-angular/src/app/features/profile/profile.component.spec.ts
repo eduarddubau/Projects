@@ -13,7 +13,15 @@ import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
 const apiUrl = 'http://api.test';
 
 // The real ThemeService touches window.matchMedia, which jsdom lacks.
-const themeStub = { provide: ThemeService, useValue: { theme: signal('light'), set: () => {} } };
+const themeStub = {
+  provide: ThemeService,
+  useValue: {
+    theme: signal('light'),
+    set: () => {
+      /* Never called; present only to satisfy the interface. */
+    },
+  },
+};
 
 const sampleProfile: Profile = {
   id: '11111111-1111-1111-1111-111111111111',

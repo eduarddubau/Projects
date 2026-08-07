@@ -70,7 +70,11 @@ describe('WorkspaceContextService', () => {
     });
 
     it('retries after a failed load rather than caching the failure', () => {
-      service.ensureLoaded().subscribe({ error: () => {} });
+      service.ensureLoaded().subscribe({
+        error: () => {
+          /* The failure is the subject of this test. */
+        },
+      });
       httpMock
         .expectOne(`${apiUrl}/workspaces`)
         .flush('boom', { status: 500, statusText: 'Server Error' });

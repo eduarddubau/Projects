@@ -29,7 +29,6 @@ import {
   PALETTE_PREVIEWS,
   Palette,
 } from '@core/services/palette.service';
-import { Profile } from '@core/models/profile';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 
 @Component({
@@ -149,7 +148,11 @@ export class ProfileComponent {
           );
           // The header reads the name from the JWT claims; a refresh re-issues
           // the token so the new name survives reloads too.
-          this.authService.refresh().subscribe({ error: () => {} });
+          this.authService.refresh().subscribe({
+            error: () => {
+              /* The save already succeeded; a stale token corrects on next refresh. */
+            },
+          });
         },
         error: () => {
           this.isSaving.set(false);

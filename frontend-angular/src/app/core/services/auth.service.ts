@@ -140,11 +140,15 @@ export class AuthService {
   }
 
   // Explicit sign-out lands on the public home; session-expiry passes '/login'.
-  logout(redirectTo: string = '/') {
+  logout(redirectTo = '/') {
     // Revoke the token server-side, then clear the local session.
     const refreshToken = this.getRefreshToken();
     if (refreshToken) {
-      this.http.post(`${this.apiUrl}/auth/logout`, { refreshToken }).subscribe({ error: () => {} });
+      this.http.post(`${this.apiUrl}/auth/logout`, { refreshToken }).subscribe({
+        error: () => {
+          /* Sign-out completes locally whether or not the server hears about it. */
+        },
+      });
     }
     this.clearSession();
     this.currentUser.set(null);

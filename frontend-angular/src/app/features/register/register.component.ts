@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIcon } from '@angular/material/icon';
+import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '@core/services/auth.service';
@@ -128,7 +129,7 @@ export class RegisterComponent {
     });
   }
 
-  private handleBackendErrors(err: any): void {
+  private handleBackendErrors(err: HttpErrorResponse): void {
     const errors: Record<string, string[]> = err.error ?? {};
 
     // Identity error codes that map to the email field

@@ -34,7 +34,9 @@ export class WorkspaceSwitcherComponent {
           const target = this.context.resolve(null);
           if (target) this.context.setCurrent(target);
         },
-        error: () => {},
+        error: () => {
+          /* Nothing to switch between; the guard reports a real load failure. */
+        },
       });
     });
   }

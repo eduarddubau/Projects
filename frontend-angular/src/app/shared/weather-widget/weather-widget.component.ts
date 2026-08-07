@@ -44,8 +44,9 @@ export class WeatherWidgetComponent implements OnInit {
           this.loaded.emit(weather);
           this.cdr.markForCheck();
         },
-        // Non-essential ornament: on failure the widget stays absent, no fuss.
-        error: () => {},
+        error: () => {
+          /* Non-essential ornament: on failure the widget stays absent, no fuss. */
+        },
       });
   }
 }

@@ -72,6 +72,11 @@ jobs:
       - name: Check formatting
         run: npm run format:check
 
+      # --max-warnings=0 so a rule demoted to "warn" still fails the build
+      # instead of quietly accumulating.
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
       # Explicit rather than relying on the builder's CI auto-detection; a run
       # that falls into watch mode hangs until the job timeout.
       - name: Test

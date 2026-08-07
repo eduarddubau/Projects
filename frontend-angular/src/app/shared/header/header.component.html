@@ -146,7 +146,7 @@
   </mat-menu>
 
   <mat-menu #profileMenu="matMenu" xPosition="before" class="profile-menu">
-    <div class="menu-user-info" (click)="$event.stopPropagation()">
+    <div class="menu-user-info">
       <span class="avatar-circle" aria-hidden="true">{{ initials() }}</span>
       <span class="info-lines">
         <strong>{{ currentUser()?.firstName }} {{ currentUser()?.lastName }}</strong>
@@ -157,7 +157,6 @@
       class="menu-schemes"
       role="radiogroup"
       [attr.aria-label]="'appearance.colorScheme' | transloco"
-      (click)="$event.stopPropagation()"
     >
       @for (s of schemes; track s.id) {
         <button

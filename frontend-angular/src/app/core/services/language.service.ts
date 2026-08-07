@@ -17,7 +17,7 @@ import { ThemeService } from '@core/services/theme.service';
 
 export type Lang = 'en' | 'ro';
 
-export const LANGUAGES: ReadonlyArray<{ id: Lang; label: string; flag: string }> = [
+export const LANGUAGES: readonly { id: Lang; label: string; flag: string }[] = [
   { id: 'en', label: 'English', flag: 'flags/en.svg' },
   { id: 'ro', label: 'Română', flag: 'flags/ro.svg' },
 ];
