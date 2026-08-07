@@ -37,6 +37,11 @@
   // can never disagree about the version.
   "prettier.prettierPath": "./frontend-angular/node_modules/prettier",
 
+  // eslint.config.js sits under frontend-angular/ while the workspace root is a
+  // level above, and flat-config resolution keys off the working directory —
+  // "auto" resolves from the nearest config instead of the workspace folder.
+  "eslint.workingDirectories": [{ "mode": "auto" }],
+
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
   "[markdown]": {
