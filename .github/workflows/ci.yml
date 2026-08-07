@@ -1,0 +1,46 @@
+name: CI
+
+# Push-only: private repo, single maintainer, no fork PRs to guard. Adding
+# `pull_request` would double every run on a branch that already builds.
+on:
+  push:
+    branches: ['**']
+
+# A newer push to the same branch cancels the run it supersedes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  backend:
+    name: Backend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      # No global.json in the repo, so the version has to be stated here or the
+      # runner uses whatever SDK its image happens to ship.
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # Restore, build and test are separate steps so a failure names its own
+      # stage in the job UI instead of surfacing as one opaque red block.
+      - name: Restore
+        run: dotnet restore fullstack-app.sln
+
+      - name: Build
+        run: dotnet build fullstack-app.sln --configuration Release --no-restore
+
+      # backend.Tests is entirely EF InMemory — no UseNpgsql anywhere — so this
+      # job needs no database service.
+      - name: Test
+        run: dotnet test fullstack-app.sln --configuration Release --no-build

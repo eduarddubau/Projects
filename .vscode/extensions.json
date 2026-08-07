@@ -2,6 +2,7 @@
   "recommendations": [
     "esbenp.prettier-vscode",
     "angular.ng-template",
-    "ms-dotnettools.csdevkit"
+    "ms-dotnettools.csdevkit",
+    "github.vscode-github-actions"
   ]
 }
