@@ -481,6 +481,25 @@
       "personalTag": "Personal",
       "createNew": "Crează un spațiu de lucru nou",
       "manageWorkspaces": "Gestionează spațiile de lucru"
+    },
+    "roles": { "Owner": "Proprietar", "Member": "Membru" },
+    "list": {
+      "title": "Spații de lucru",
+      "subtitle": "Comută între spațiile tale de lucru sau creează unul nou.",
+      "newWorkspace": "Spațiu de lucru nou",
+      "empty": "Nu ai încă niciun spațiu de lucru.",
+      "memberCount": "Membri: {{count}}",
+      "current": "Curent",
+      "created": "Spațiul de lucru a fost creat.",
+      "createFailed": "Spațiul de lucru nu a putut fi creat. Încearcă din nou."
+    },
+    "form": {
+      "newTitle": "Spațiu de lucru nou",
+      "editTitle": "Editează spațiul de lucru",
+      "name": "Nume",
+      "nameRequired": "Numele este obligatoriu.",
+      "nameMaxLength": "Numele nu poate depăși 60 de caractere.",
+      "description": "Descriere"
     }
   },
   "invitations": {

@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy, effect, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -9,7 +11,15 @@ import { WorkspaceContextService } from '@core/services/workspace-context.servic
 
 @Component({
   selector: 'app-workspace-switcher',
-  imports: [MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule, TranslocoPipe],
+  imports: [
+    RouterLink,
+    MatButtonModule,
+    MatDividerModule,
+    MatIconModule,
+    MatMenuModule,
+    MatTooltipModule,
+    TranslocoPipe,
+  ],
   templateUrl: './workspace-switcher.component.html',
   styleUrl: './workspace-switcher.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

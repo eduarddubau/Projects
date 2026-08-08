@@ -1,0 +1,72 @@
+.ws-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+// Flat at rest: hairline border, no shadow. Elevation stays semantic.
+.ws-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1.25rem;
+  border: 1px solid var(--app-hairline);
+  border-radius: var(--app-radius-card);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--mat-sys-surface-container);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+
+  &.is-current {
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+.ws-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.ws-card-name {
+  font: var(--mat-sys-headline-medium);
+  font-size: 1.125rem;
+}
+
+.ws-card-desc {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.ws-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.ws-card-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--mat-sys-primary);
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}

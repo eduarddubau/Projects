@@ -1,0 +1,37 @@
+<ng-container *transloco="let t">
+  <h2 mat-dialog-title>
+    {{ isEditMode ? t('workspaces.form.editTitle') : t('workspaces.form.newTitle') }}
+  </h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-dialog-content>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ t('workspaces.form.name') }}</mat-label>
+        <input matInput formControlName="name" [maxlength]="nameMax" required />
+        @if (form.controls.name.hasError('required')) {
+          <mat-error>{{ t('workspaces.form.nameRequired') }}</mat-error>
+        }
+        @if (form.controls.name.hasError('maxlength')) {
+          <mat-error>{{ t('workspaces.form.nameMaxLength') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ t('workspaces.form.description') }}</mat-label>
+        <textarea
+          matInput
+          formControlName="description"
+          [maxlength]="descriptionMax"
+          rows="3"
+        ></textarea>
+      </mat-form-field>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button type="button" mat-button (click)="cancel()">{{ t('common.actions.cancel') }}</button>
+      <button type="submit" mat-flat-button [disabled]="form.invalid">
+        {{ isEditMode ? t('common.actions.save') : t('common.actions.create') }}
+      </button>
+    </mat-dialog-actions>
+  </form>
+</ng-container>

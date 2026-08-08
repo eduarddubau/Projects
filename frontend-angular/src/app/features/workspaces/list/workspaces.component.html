@@ -1,0 +1,63 @@
+<app-aurora></app-aurora>
+
+<div class="page-container" *transloco="let t">
+  <div class="page-header">
+    <h1 class="page-title">{{ t('workspaces.list.title') }}</h1>
+    <div class="header-actions">
+      <button mat-flat-button (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        {{ t('workspaces.list.newWorkspace') }}
+      </button>
+    </div>
+  </div>
+
+  <p class="page-subtitle">{{ t('workspaces.list.subtitle') }}</p>
+
+  @if (workspaces().length === 0) {
+    <div class="state-container">
+      <mat-icon>workspaces</mat-icon>
+      <p>{{ t('workspaces.list.empty') }}</p>
+    </div>
+  } @else {
+    <div class="ws-grid">
+      @for (w of workspaces(); track w.id) {
+        <button
+          type="button"
+          class="ws-card"
+          [class.is-current]="w.id === currentWorkspaceId()"
+          [attr.aria-current]="w.id === currentWorkspaceId() ? 'true' : null"
+          (click)="select(w.id)"
+        >
+          <span class="ws-card-head">
+            <span class="ws-card-name">
+              {{ w.isPersonal ? t('workspaces.personal') : w.name }}
+            </span>
+            <span class="role-chip">
+              {{
+                w.isPersonal
+                  ? t('workspaces.switcher.personalTag')
+                  : t('workspaces.roles.' + w.myRole)
+              }}
+            </span>
+          </span>
+
+          @if (w.description) {
+            <span class="ws-card-desc">{{ w.description }}</span>
+          }
+
+          <span class="ws-card-foot">
+            <span class="ws-card-members">
+              {{ t('workspaces.list.memberCount', { count: w.memberCount }) }}
+            </span>
+            @if (w.id === currentWorkspaceId()) {
+              <span class="ws-card-current">
+                <mat-icon>check</mat-icon>
+                {{ t('workspaces.list.current') }}
+              </span>
+            }
+          </span>
+        </button>
+      }
+    </div>
+  }
+</div>

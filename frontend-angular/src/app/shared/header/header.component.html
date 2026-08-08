@@ -102,9 +102,15 @@
           <span>{{ w.isPersonal ? ('workspaces.personal' | transloco) : w.name }}</span>
         </button>
       }
-      @if (workspaces().length) {
-        <mat-divider></mat-divider>
-      }
+      <button mat-menu-item routerLink="/workspaces" [queryParams]="{ new: 1 }">
+        <mat-icon>add</mat-icon>
+        <span>{{ t('workspaces.switcher.createNew') }}</span>
+      </button>
+      <button mat-menu-item routerLink="/workspaces">
+        <mat-icon>settings</mat-icon>
+        <span>{{ t('workspaces.switcher.manageWorkspaces') }}</span>
+      </button>
+      <mat-divider></mat-divider>
       <button mat-menu-item routerLink="/dashboard">
         <mat-icon>space_dashboard</mat-icon>
         <span>{{ t('menu.dashboard') }}</span>

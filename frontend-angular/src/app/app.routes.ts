@@ -43,6 +43,12 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'workspaces',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/workspaces/list/workspaces.component').then((m) => m.WorkspacesComponent),
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>

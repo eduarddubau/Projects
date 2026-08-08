@@ -481,6 +481,25 @@
       "personalTag": "Personal",
       "createNew": "Create new workspace",
       "manageWorkspaces": "Manage workspaces"
+    },
+    "roles": { "Owner": "Owner", "Member": "Member" },
+    "list": {
+      "title": "Workspaces",
+      "subtitle": "Switch between your workspaces or create a new one.",
+      "newWorkspace": "New workspace",
+      "empty": "You don't have any workspaces yet.",
+      "memberCount": "Members: {{count}}",
+      "current": "Current",
+      "created": "Workspace created.",
+      "createFailed": "Could not create the workspace. Please try again."
+    },
+    "form": {
+      "newTitle": "New workspace",
+      "editTitle": "Edit workspace",
+      "name": "Name",
+      "nameRequired": "A name is required.",
+      "nameMaxLength": "The name cannot exceed 60 characters.",
+      "description": "Description"
     }
   },
   "invitations": {
