@@ -1,0 +1,5 @@
+// mat-form-field is inline-flex by default, so without this the name and
+// description fields sit side by side instead of stacking.
+.full-width {
+  width: 100%;
+}

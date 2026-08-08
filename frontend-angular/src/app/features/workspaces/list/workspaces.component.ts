@@ -44,12 +44,17 @@ export class WorkspacesComponent {
   isSaving = signal(false);
 
   constructor() {
-    // Deep link from the switcher's "New workspace" item. The param is cleared
-    // with replaceUrl so a refresh doesn't reopen the dialog.
+    // Deep link from the switcher's "New workspace" item. afterNextRender keeps
+    // this browser-only — the dialog needs a DOM — but the subscription has to
+    // outlive the first render: navigating here while already on this page
+    // reuses the component, so a one-shot snapshot read would never fire again.
+    // The param is cleared with replaceUrl so a refresh can't reopen the dialog.
     afterNextRender(() => {
-      if (!this.route.snapshot.queryParamMap.has('new')) return;
-      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
-      this.openCreateDialog();
+      this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+        if (!params.has('new')) return;
+        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+        this.openCreateDialog();
+      });
     });
   }
 

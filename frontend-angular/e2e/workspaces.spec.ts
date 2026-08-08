@@ -61,6 +61,19 @@ test.describe('Workspaces', () => {
     await expect(page).toHaveURL(/\/workspaces$/);
   });
 
+  // Regression: navigating here from the switcher while already on this page
+  // reuses the component, so the original constructor-time snapshot read never
+  // fired again and the dialog silently refused to open.
+  test('the new-workspace item still works when already on the list', async ({ page }) => {
+    await page.goto('/workspaces');
+    await expect(page.locator('.ws-card').first()).toBeVisible();
+
+    await page.locator('.ws-trigger').click();
+    await page.getByRole('menuitem', { name: 'New workspace' }).click();
+
+    await expect(page.getByRole('dialog')).toBeVisible();
+  });
+
   test('creating a workspace adds it to the list and the switcher', async ({ page }) => {
     createdName = `E2E ${Date.now()}`;
 

@@ -11,9 +11,10 @@
   gap: 0.5rem;
   width: 100%;
   padding: 1.25rem;
-  border: 1px solid var(--app-hairline);
+  // --app-hairline is a whole `border` shorthand, not a colour.
+  border: var(--app-hairline);
   border-radius: var(--app-radius-card);
-  background: var(--mat-sys-surface);
+  background: var(--mat-sys-surface-container-lowest);
   color: var(--mat-sys-on-surface);
   font: inherit;
   text-align: start;
@@ -41,19 +42,21 @@
 }
 
 .ws-card-name {
-  font: var(--mat-sys-headline-medium);
-  font-size: 1.125rem;
+  font: var(--mat-sys-title-medium);
 }
 
 .ws-card-desc {
   color: var(--mat-sys-on-surface-variant);
 }
 
+// Pushed to the bottom so member counts line up across cards whose descriptions
+// differ in length — grid already makes the cards equal height.
 .ws-card-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.25rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
   color: var(--mat-sys-on-surface-variant);
   font-size: 0.875rem;
 }

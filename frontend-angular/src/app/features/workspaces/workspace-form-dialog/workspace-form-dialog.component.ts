@@ -24,6 +24,7 @@ export interface WorkspaceFormResult {
 @Component({
   selector: 'app-workspace-form-dialog',
   templateUrl: './workspace-form-dialog.component.html',
+  styleUrl: './workspace-form-dialog.component.scss',
   imports: [
     ReactiveFormsModule,
     MatDialogModule,
