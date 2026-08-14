@@ -1,0 +1,62 @@
+<ng-container *transloco="let t">
+  @if (link(); as url) {
+    <h2 mat-dialog-title>{{ t('invitations.invite.linkTitle') }}</h2>
+
+    <mat-dialog-content>
+      <p>{{ t('invitations.invite.linkHelp') }}</p>
+      <!-- Rendered, not only copied. Both clipboard paths can fail and this is
+           the one that cannot: select it and copy by hand. -->
+      <code class="invite-link">{{ url }}</code>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button type="button" mat-button (click)="copy()">
+        <mat-icon>content_copy</mat-icon>
+        {{ t('invitations.invite.copy') }}
+      </button>
+      <button type="button" mat-flat-button (click)="done()">
+        {{ t('common.actions.close') }}
+      </button>
+    </mat-dialog-actions>
+  } @else {
+    <h2 mat-dialog-title>{{ t('invitations.invite.title') }}</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-dialog-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ t('invitations.invite.email') }}</mat-label>
+          <input matInput type="email" formControlName="email" (blur)="trimEmail()" required />
+          @if (form.controls.email.hasError('required')) {
+            <mat-error>{{ t('invitations.invite.emailRequired') }}</mat-error>
+          }
+          @if (form.controls.email.hasError('email')) {
+            <mat-error>{{ t('invitations.invite.emailInvalid') }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ t('invitations.invite.role') }}</mat-label>
+          <mat-select formControlName="role">
+            <mat-option value="Member">{{ t('workspaces.roles.Member') }}</mat-option>
+            <mat-option value="Owner">{{ t('workspaces.roles.Owner') }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        @if (errorKey(); as key) {
+          <p class="invite-error">{{ t(key) }}</p>
+        }
+      </mat-dialog-content>
+
+      <mat-dialog-actions align="end">
+        <!-- disableClose only stops the backdrop and Escape; cancel() closes
+             programmatically, so it needs its own guard while a request is out. -->
+        <button type="button" mat-button (click)="cancel()" [disabled]="isSending()">
+          {{ t('common.actions.cancel') }}
+        </button>
+        <button type="submit" mat-flat-button [disabled]="form.invalid || isSending()">
+          {{ t('invitations.invite.send') }}
+        </button>
+      </mat-dialog-actions>
+    </form>
+  }
+</ng-container>

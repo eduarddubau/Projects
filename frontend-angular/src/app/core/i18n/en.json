@@ -523,6 +523,42 @@
     }
   },
   "invitations": {
+    "invite": {
+      "title": "Invite people",
+      "email": "Email address",
+      "emailRequired": "An email address is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "role": "Role",
+      "send": "Send invite",
+      "failed": "Could not send the invitation. Please try again.",
+      "linkTitle": "Invitation link",
+      "linkHelp": "Copy this link and send it to them. It is shown only once — after you close this dialog it cannot be recovered.",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "copyFailed": "Could not copy automatically. Select the link and copy it manually."
+    },
+    "pending": {
+      "title": "Pending invitations",
+      "tableLabel": "Pending invitations",
+      "email": "Email",
+      "role": "Role",
+      "expires": "Expires",
+      "expiresInDays": "in {{count}} days",
+      "expiresToday": "today",
+      "revoke": "Revoke",
+      "revokeAria": "Revoke the invitation for {{email}}",
+      "revoked": "Invitation revoked."
+    },
+    "accept": {
+      "title": "Accepting your invitation…",
+      "joinedTitle": "You're in",
+      "joined": "You are now a member of {{name}}.",
+      "openWorkspace": "Open members",
+      "failedTitle": "That did not work",
+      "missingToken": "This link is missing its invitation token.",
+      "failed": "Could not accept this invitation. Please try again.",
+      "backToWorkspaces": "Back to workspaces"
+    },
     "serverErrors": {
       "pendingExists": "This address already has a pending invitation to this workspace.",
       "invalid": "This invitation link is not valid, or it has expired or been revoked.",

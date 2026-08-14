@@ -8,12 +8,21 @@
         <p class="page-subtitle">{{ workspace()?.name }}</p>
       </div>
 
-      @if (workspace() && !workspace()!.isPersonal) {
-        <button mat-stroked-button (click)="leave()" [disabled]="isBusy()">
-          <mat-icon>logout</mat-icon>
-          {{ t('workspaces.members.leave') }}
-        </button>
-      }
+      <div class="page-actions">
+        <!-- Invite is the one filled button on this screen; leave stays stroked. -->
+        @if (canInvite()) {
+          <button mat-flat-button (click)="openInviteDialog()" [disabled]="isBusy()">
+            <mat-icon>person_add</mat-icon>
+            {{ t('invitations.invite.title') }}
+          </button>
+        }
+        @if (workspace() && !workspace()!.isPersonal) {
+          <button mat-stroked-button (click)="leave()" [disabled]="isBusy()">
+            <mat-icon>logout</mat-icon>
+            {{ t('workspaces.members.leave') }}
+          </button>
+        }
+      </div>
     </div>
 
     <!-- Error first: reading value() while the resource is in an error state
@@ -89,6 +98,59 @@
 
           <tr mat-header-row *matHeaderRowDef="columns"></tr>
           <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+      </div>
+    }
+
+    <!-- Same page rather than a separate screen: an invitation nobody can see is
+         an invitation nobody revokes. Its own table because the columns and the
+         actions genuinely differ from a member's. -->
+    @if (canInvite() && pending.value().length) {
+      <h2 class="section-title">{{ t('invitations.pending.title') }}</h2>
+
+      <div class="table-card">
+        <table
+          mat-table
+          [dataSource]="pending.value()"
+          [attr.aria-label]="t('invitations.pending.tableLabel')"
+        >
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>{{ t('invitations.pending.email') }}</th>
+            <td mat-cell *matCellDef="let i">{{ i.email }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>{{ t('invitations.pending.role') }}</th>
+            <td mat-cell *matCellDef="let i">{{ t('workspaces.roles.' + i.role) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="expires">
+            <th mat-header-cell *matHeaderCellDef>{{ t('invitations.pending.expires') }}</th>
+            <td mat-cell *matCellDef="let i">
+              {{
+                daysLeft(i.expiresAt) === 0
+                  ? t('invitations.pending.expiresToday')
+                  : t('invitations.pending.expiresInDays', { count: daysLeft(i.expiresAt) })
+              }}
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let i">
+              <button
+                mat-button
+                (click)="revoke(i.id)"
+                [disabled]="isBusy()"
+                [attr.aria-label]="t('invitations.pending.revokeAria', { email: i.email })"
+              >
+                {{ t('invitations.pending.revoke') }}
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="pendingColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: pendingColumns"></tr>
         </table>
       </div>
     }

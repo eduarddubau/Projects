@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   inject,
   input,
   signal,
@@ -20,11 +21,17 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { AuthService } from '@core/services/auth.service';
+import { InvitationService } from '@core/services/invitation.service';
 import { WorkspaceService } from '@core/services/workspace.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { WorkspaceRole } from '@core/models/workspace';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
+import {
+  InviteDialogComponent,
+  InviteDialogData,
+  InviteDialogResult,
+} from '../invite-dialog/invite-dialog.component';
 
 @Component({
   selector: 'app-workspace-members',
@@ -44,6 +51,7 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
 })
 export class MembersComponent {
   private api = inject(WorkspaceService);
+  private invitations = inject(InvitationService);
   private context = inject(WorkspaceContextService);
   private auth = inject(AuthService);
   private dialog = inject(MatDialog);
@@ -64,20 +72,61 @@ export class MembersComponent {
   isOwner = this.context.isOwner;
   isBusy = signal(false);
 
+  // Personal workspaces 409 on invite and the pending list is owner-only, so
+  // this gates the resource itself — not just the markup. httpResource fetches
+  // from an effect whether or not anything renders value().
+  canInvite = computed(() => this.isOwner() && !this.workspace()?.isPersonal);
+  pending = this.invitations.pendingResource(this.workspaceId, this.canInvite);
+
   columns = ['name', 'role', 'joined', 'actions'];
+  pendingColumns = ['email', 'role', 'expires', 'actions'];
 
   isMe(userId: string): boolean {
     return userId === this.auth.currentUser()?.id;
   }
 
   changeRole(userId: string, role: WorkspaceRole): void {
-    this.mutate(this.api.changeMemberRole(this.workspaceId(), userId, role), 'roleChanged');
+    this.mutate(
+      this.api.changeMemberRole(this.workspaceId(), userId, role),
+      'workspaces.members.roleChanged',
+    );
   }
 
   remove(userId: string, name: string): void {
     this.confirm('remove', name, () =>
-      this.mutate(this.api.removeMember(this.workspaceId(), userId), 'removed'),
+      this.mutate(this.api.removeMember(this.workspaceId(), userId), 'workspaces.members.removed'),
     );
+  }
+
+  openInviteDialog(): void {
+    this.dialog
+      .open<InviteDialogComponent, InviteDialogData, InviteDialogResult>(InviteDialogComponent, {
+        width: '480px',
+        data: { workspaceId: this.workspaceId() },
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (!result) return;
+        // A known address joins outright, so only that branch stales the member
+        // table; both branches change the pending list.
+        if (result === 'joined') this.members.reload();
+        this.pending.reload();
+      });
+  }
+
+  // No confirmation: re-inviting undoes it, and the products that do this well
+  // (Slack, Notion) do not confirm either.
+  revoke(invitationId: string): void {
+    this.mutate(
+      this.invitations.revoke(this.workspaceId(), invitationId),
+      'invitations.pending.revoked',
+      () => this.pending.reload(),
+    );
+  }
+
+  daysLeft(expiresAt: string): number {
+    return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86_400_000));
   }
 
   leave(): void {
@@ -87,7 +136,7 @@ export class MembersComponent {
     const name = this.workspace()?.name ?? '';
 
     this.confirm('leave', name, () =>
-      this.mutate(this.api.leaveWorkspace(id), 'left', () => {
+      this.mutate(this.api.leaveWorkspace(id), 'workspaces.members.left', () => {
         // The store repairs its own invariant; navigating is ours to do.
         this.context.remove(id);
         this.router.navigate(['/workspaces']);
@@ -118,6 +167,9 @@ export class MembersComponent {
    * `onSuccess` replaces the default reload rather than adding to it — leaving
    * navigates away, and refetching the members of a workspace you just left
    * would 403.
+   *
+   * `successKey` is a full dictionary path, not a `workspaces.members.*` suffix:
+   * this now serves invitation actions too.
    */
   private mutate(request: Observable<unknown>, successKey: string, onSuccess?: () => void): void {
     this.isBusy.set(true);
@@ -128,7 +180,7 @@ export class MembersComponent {
         // last-owner rule, so a local guess could show a state it rejected.
         if (onSuccess) onSuccess();
         else this.members.reload();
-        this.toast(`workspaces.members.${successKey}`);
+        this.toast(successKey);
       },
       error: (err) => {
         this.isBusy.set(false);

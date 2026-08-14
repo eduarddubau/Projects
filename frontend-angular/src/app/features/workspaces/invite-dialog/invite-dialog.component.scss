@@ -1,0 +1,22 @@
+.full-width {
+  width: 100%;
+}
+
+// A token is long and unbreakable; without this the dialog grows past the
+// viewport instead of wrapping.
+.invite-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border: var(--app-hairline);
+  border-radius: var(--app-radius-card);
+  background: var(--mat-sys-surface-container-lowest);
+  font-family: monospace;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+  // One click selects the whole link, which is the manual copy path.
+  user-select: all;
+}
+
+.invite-error {
+  color: var(--mat-sys-error);
+}

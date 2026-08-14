@@ -8,6 +8,7 @@ import { vi } from 'vitest';
 
 import { MembersComponent } from './members.component';
 import { API_URL } from '@core/tokens/app.tokens';
+import { Invitation } from '@core/models/invitation';
 import { Workspace, WorkspaceMember } from '@core/models/workspace';
 import { AuthService } from '@core/services/auth.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
@@ -52,6 +53,20 @@ function member(userId: string, overrides: Partial<WorkspaceMember> = {}): Works
 const mine = member('u-me', { userDisplayName: 'Dev One', role: 'Owner' });
 const other = member('u-other', { userDisplayName: 'Dev Two' });
 
+function invitation(id: string, overrides: Partial<Invitation> = {}): Invitation {
+  return {
+    id,
+    workspaceId: 'a1',
+    email: `${id}@example.com`,
+    role: 'Member',
+    createdAt: '2026-02-01T00:00:00Z',
+    // Far enough out that the "days left" text is stable whenever this runs.
+    expiresAt: new Date(Date.now() + 5 * 86_400_000).toISOString(),
+    invitedByDisplayName: 'Dev One',
+    ...overrides,
+  };
+}
+
 function dialogStub(confirmed: boolean) {
   return { open: () => ({ afterClosed: () => of(confirmed) }) };
 }
@@ -66,6 +81,7 @@ describe('MembersComponent', () => {
     ws: Workspace = workspace(),
     members: WorkspaceMember[] = [mine, other],
     confirmed = true,
+    invites: Invitation[] = [],
   ) {
     localStorage.clear();
     await TestBed.configureTestingModule({
@@ -99,6 +115,11 @@ describe('MembersComponent', () => {
     // release it is on the line after. Flush first, then let it settle.
     fixture.detectChanges();
     httpMock.expectOne(`${apiUrl}/workspaces/${ws.id}/members`).flush(members);
+    // match, not expectOne: the pending resource only fires for an owner of a
+    // shared workspace, and several tests are deliberately neither.
+    httpMock
+      .match(`${apiUrl}/workspaces/${ws.id}/invitations`)
+      .forEach((req) => req.flush(invites));
     await fixture.whenStable();
     fixture.detectChanges();
   }
@@ -214,6 +235,48 @@ describe('MembersComponent', () => {
     await setup(workspace({ isPersonal: true }), [mine]);
 
     expect(text()).not.toContain('Leave workspace');
+  });
+
+  // The gate lives in the resource's URL function, not in the template, because
+  // httpResource fetches from an effect whether or not anything renders it.
+  // Without it every plain member's page load collects a 403.
+  it('never asks for pending invitations when you are not an owner', async () => {
+    await setup(workspace({ myRole: 'Member' }));
+
+    httpMock.expectNone(`${apiUrl}/workspaces/a1/invitations`);
+    expect(text()).not.toContain('Pending invitations');
+  });
+
+  it('never asks for them on a personal workspace either', async () => {
+    await setup(workspace({ isPersonal: true }), [mine]);
+
+    httpMock.expectNone(`${apiUrl}/workspaces/a1/invitations`);
+  });
+
+  it('renders the pending invitations an owner has outstanding', async () => {
+    await setup(workspace(), [mine, other], true, [invitation('inv-1')]);
+
+    expect(text()).toContain('Pending invitations');
+    expect(text()).toContain('inv-1@example.com');
+    expect(text()).toContain('in 5 days');
+  });
+
+  it('revoking refetches the invitations and leaves the members alone', async () => {
+    await setup(workspace(), [mine, other], true, [invitation('inv-1')]);
+
+    fixture.componentInstance.revoke('inv-1');
+    httpMock
+      .expectOne({ url: `${apiUrl}/workspaces/a1/invitations/inv-1`, method: 'DELETE' })
+      .flush(null);
+
+    fixture.detectChanges();
+    httpMock.expectOne(`${apiUrl}/workspaces/a1/invitations`).flush([]);
+    // The member table is untouched: revoking is not a membership change.
+    httpMock.expectNone(membersUrl);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(text()).not.toContain('Pending invitations');
   });
 
   // The API refuses to strip the last owner; the page must not reload or edit

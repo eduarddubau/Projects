@@ -1,0 +1,30 @@
+<ng-container *transloco="let t">
+  <app-aurora />
+
+  <div class="page-container">
+    @if (isBusy()) {
+      <div class="state-container">
+        <mat-spinner diameter="40" />
+        <p>{{ t('invitations.accept.title') }}</p>
+      </div>
+    } @else if (workspace(); as w) {
+      <div class="state-container">
+        <mat-icon>check_circle</mat-icon>
+        <h1>{{ t('invitations.accept.joinedTitle') }}</h1>
+        <p>{{ t('invitations.accept.joined', { name: w.name }) }}</p>
+        <a mat-flat-button [routerLink]="['/w', w.id, 'members']">
+          {{ t('invitations.accept.openWorkspace') }}
+        </a>
+      </div>
+    } @else {
+      <div class="state-container">
+        <mat-icon>error_outline</mat-icon>
+        <h1>{{ t('invitations.accept.failedTitle') }}</h1>
+        <p>{{ t(errorKey() ?? 'invitations.accept.failed') }}</p>
+        <a mat-stroked-button routerLink="/workspaces">
+          {{ t('invitations.accept.backToWorkspaces') }}
+        </a>
+      </div>
+    }
+  </div>
+</ng-container>

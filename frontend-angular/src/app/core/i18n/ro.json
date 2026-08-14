@@ -523,6 +523,42 @@
     }
   },
   "invitations": {
+    "invite": {
+      "title": "Invită persoane",
+      "email": "Adresă de e-mail",
+      "emailRequired": "Adresa de e-mail este obligatorie.",
+      "emailInvalid": "Introdu o adresă de e-mail validă.",
+      "role": "Rol",
+      "send": "Trimite invitația",
+      "failed": "Invitația nu a putut fi trimisă. Încearcă din nou.",
+      "linkTitle": "Link de invitație",
+      "linkHelp": "Copiază acest link și trimite-l. Este afișat o singură dată — după ce închizi dialogul nu mai poate fi recuperat.",
+      "copy": "Copiază linkul",
+      "copied": "Linkul a fost copiat.",
+      "copyFailed": "Copierea automată nu a funcționat. Selectează linkul și copiază-l manual."
+    },
+    "pending": {
+      "title": "Invitații în așteptare",
+      "tableLabel": "Invitații în așteptare",
+      "email": "E-mail",
+      "role": "Rol",
+      "expires": "Expiră",
+      "expiresInDays": "în {{count}} zile",
+      "expiresToday": "astăzi",
+      "revoke": "Revocă",
+      "revokeAria": "Revocă invitația pentru {{email}}",
+      "revoked": "Invitația a fost revocată."
+    },
+    "accept": {
+      "title": "Se acceptă invitația…",
+      "joinedTitle": "Ai intrat",
+      "joined": "Ești acum membru în {{name}}.",
+      "openWorkspace": "Deschide membrii",
+      "failedTitle": "Nu a funcționat",
+      "missingToken": "Acestui link îi lipsește tokenul de invitație.",
+      "failed": "Invitația nu a putut fi acceptată. Încearcă din nou.",
+      "backToWorkspaces": "Înapoi la spații de lucru"
+    },
     "serverErrors": {
       "pendingExists": "Această adresă are deja o invitație în așteptare pentru acest spațiu de lucru.",
       "invalid": "Acest link de invitație nu este valid sau a expirat ori a fost revocat.",

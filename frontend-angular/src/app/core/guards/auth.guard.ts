@@ -10,5 +10,8 @@ export const authGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  return router.parseUrl(`/login?returnUrl=${state.url}`);
+  // Encoded because the target can carry its own query string — an invitation
+  // link is `/invitations/accept?token=…`, and an unencoded `&` in any such URL
+  // would split into a second parameter on /login and be silently dropped.
+  return router.parseUrl(`/login?returnUrl=${encodeURIComponent(state.url)}`);
 };

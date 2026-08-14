@@ -63,6 +63,16 @@ export const routes: Routes = [
     ],
   },
   {
+    // The API requires a signed-in caller, so authGuard bounces anonymous
+    // recipients through /login and returnUrl brings them back with the token.
+    path: 'invitations/accept',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/invitations/accept/accept-invitation.component').then(
+        (m) => m.AcceptInvitationComponent,
+      ),
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () =>

@@ -1,6 +1,19 @@
 // A row you cannot act on shows its role as plain text while the others show a
 // menu button. mat-button carries its own horizontal padding, so without this
 // the two branches sit at different x-offsets and the column looks ragged.
+// Neither of these exists in styles.scss; both are local to this page.
+.page-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  margin: 2rem 0 0.75rem;
+  font: var(--mat-sys-title-medium);
+}
+
 .role-static {
   display: inline-block;
   padding: 0 1rem;

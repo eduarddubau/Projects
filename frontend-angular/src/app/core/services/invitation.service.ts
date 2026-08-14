@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, Signal, inject } from '@angular/core';
+import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '@core/tokens/app.tokens';
 import { Workspace, WorkspaceRole } from '@core/models/workspace';
@@ -29,5 +29,16 @@ export class InvitationService {
 
   accept(token: string): Observable<Workspace> {
     return this.http.post<Workspace>(`${this.apiUrl}/invitations/accept`, { token });
+  }
+
+  /**
+   * Owner-only on the API, so the URL function returns undefined for everyone
+   * else — httpResource then skips the request instead of collecting a 403.
+   */
+  pendingResource(workspaceId: Signal<string>, enabled: Signal<boolean>) {
+    return httpResource<Invitation[]>(
+      () => (enabled() ? `${this.apiUrl}/workspaces/${workspaceId()}/invitations` : undefined),
+      { defaultValue: [] },
+    );
   }
 }
