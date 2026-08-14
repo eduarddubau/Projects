@@ -185,7 +185,7 @@ public class UserService : BaseService<User>, IUserService
 
         if (user is null) return false;
 
-        var soleOwned = await Context.Workspaces
+        var soleOwnedNames = await Context.Workspaces
             .Where(w => !w.IsPersonal
                     && w.Members.Any(m => m.UserId == id && m.Role == WorkspaceRole.Owner)
                     && !w.Members.Any(m => m.UserId != id && m.Role == WorkspaceRole.Owner))
@@ -193,9 +193,9 @@ public class UserService : BaseService<User>, IUserService
             .Select(w => w.Name)
             .ToListAsync(ct);
 
-        if (soleOwned.Count > 0)
+        if (soleOwnedNames.Count > 0)
         {
-            var names = string.Join(", ", soleOwned);
+            var names = string.Join(", ", soleOwnedNames);
 
             throw new BusinessRuleException(BusinessRuleCodes.SoleOwnerOfWorkspaces,
                 $"This user is the only owner of: {names}. Promote another owner or delete those workspaces first.",

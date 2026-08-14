@@ -232,7 +232,7 @@ public class InvitationService : IInvitationService
 
         // Live workspaces the user isn't already in. Everything excluded here is skipped
         // silently rather than refused — this is reconciliation, not a user action.
-        var joinable = await _context.Workspaces
+        var joinableIds = await _context.Workspaces
             .Where(w => workspaceIds.Contains(w.Id))
             .Where(w => !w.Members.Any(m => m.UserId == user.Id))
             .Select(w => w.Id)
@@ -250,7 +250,7 @@ public class InvitationService : IInvitationService
 
             // joined guards the (WorkspaceId, UserId) unique index against two pending
             // invites to the same workspace.
-            if (!joinable.Contains(invitation.WorkspaceId) || !joined.Add(invitation.WorkspaceId))
+            if (!joinableIds.Contains(invitation.WorkspaceId) || !joined.Add(invitation.WorkspaceId))
                 continue;
 
             _context.WorkspaceMembers.Add(new WorkspaceMember
