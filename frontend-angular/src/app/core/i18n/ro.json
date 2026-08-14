@@ -480,7 +480,8 @@
       "label": "Schimbă spațiul de lucru",
       "personalTag": "Personal",
       "createNew": "Crează un spațiu de lucru nou",
-      "manageWorkspaces": "Gestionează spațiile de lucru"
+      "manageWorkspaces": "Gestionează spațiile de lucru",
+      "members": "Membri"
     },
     "roles": { "Owner": "Proprietar", "Member": "Membru" },
     "list": {
@@ -492,6 +493,25 @@
       "current": "Curent",
       "created": "Spațiul de lucru a fost creat.",
       "createFailed": "Spațiul de lucru nu a putut fi creat. Încearcă din nou."
+    },
+    "members": {
+      "title": "Membri",
+      "tableLabel": "Membrii spațiului de lucru",
+      "name": "Nume",
+      "role": "Rol",
+      "joined": "Membru din",
+      "you": "Tu",
+      "leave": "Părăsește spațiul",
+      "leaveTitle": "Părăsești acest spațiu de lucru?",
+      "leaveMessage": "Vei pierde accesul la {{name}} și la tot ce conține.",
+      "removeTitle": "Elimini membrul?",
+      "removeMessage": "{{name}} va pierde accesul la acest spațiu de lucru.",
+      "removeAria": "Elimină pe {{name}}",
+      "roleChanged": "Rolul a fost actualizat.",
+      "removed": "Membrul a fost eliminat.",
+      "left": "Ai părăsit spațiul de lucru.",
+      "loadFailed": "Membrii nu au putut fi încărcați.",
+      "actionFailed": "Nu a funcționat. Încearcă din nou."
     },
     "form": {
       "newTitle": "Spațiu de lucru nou",

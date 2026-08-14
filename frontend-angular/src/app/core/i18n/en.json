@@ -480,7 +480,8 @@
       "label": "Switch workspace",
       "personalTag": "Personal",
       "createNew": "Create new workspace",
-      "manageWorkspaces": "Manage workspaces"
+      "manageWorkspaces": "Manage workspaces",
+      "members": "Members"
     },
     "roles": { "Owner": "Owner", "Member": "Member" },
     "list": {
@@ -492,6 +493,25 @@
       "current": "Current",
       "created": "Workspace created.",
       "createFailed": "Could not create the workspace. Please try again."
+    },
+    "members": {
+      "title": "Members",
+      "tableLabel": "Workspace members",
+      "name": "Name",
+      "role": "Role",
+      "joined": "Joined",
+      "you": "You",
+      "leave": "Leave workspace",
+      "leaveTitle": "Leave this workspace?",
+      "leaveMessage": "You will lose access to {{name}} and everything in it.",
+      "removeTitle": "Remove member?",
+      "removeMessage": "{{name}} will lose access to this workspace.",
+      "removeAria": "Remove {{name}}",
+      "roleChanged": "Role updated.",
+      "removed": "Member removed.",
+      "left": "You left the workspace.",
+      "loadFailed": "Could not load the members.",
+      "actionFailed": "That didn't work. Please try again."
     },
     "form": {
       "newTitle": "New workspace",

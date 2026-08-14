@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from '@core/guards/auth.guard';
 import { adminGuard } from '@core/guards/admin.guard';
 import { guestGuard } from '@core/guards/guest.guard';
+import { workspaceGuard } from '@core/guards/workspace.guard';
 
 export const routes: Routes = [
   {
@@ -47,6 +48,19 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./features/workspaces/list/workspaces.component').then((m) => m.WorkspacesComponent),
+  },
+  {
+    // authGuard first: guards run in sequence and stop at the first refusal, so
+    // reversed, a signed-out user would fire a 401 before being sent to /login.
+    path: 'w/:workspaceId',
+    canActivate: [authGuard, workspaceGuard],
+    children: [
+      {
+        path: 'members',
+        loadComponent: () =>
+          import('./features/workspaces/members/members.component').then((m) => m.MembersComponent),
+      },
+    ],
   },
   {
     path: 'dashboard',

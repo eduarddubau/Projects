@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, Signal, inject } from '@angular/core';
+import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '@core/tokens/app.tokens';
 import { Workspace, WorkspaceMember, WorkspaceRole } from '@core/models/workspace';
@@ -40,10 +40,6 @@ export class WorkspaceService {
     return this.http.post<Workspace>(`${this.apiUrl}/workspaces/${id}/restore`, {});
   }
 
-  getMembers(workspaceId: string): Observable<WorkspaceMember[]> {
-    return this.http.get<WorkspaceMember[]>(`${this.apiUrl}/workspaces/${workspaceId}/members`);
-  }
-
   changeMemberRole(
     workspaceId: string,
     userId: string,
@@ -61,5 +57,17 @@ export class WorkspaceService {
 
   leaveWorkspace(workspaceId: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/workspaces/${workspaceId}/members/leave`, {});
+  }
+
+  /**
+   * Reads only. Mutations go through the plain HttpClient methods below and then
+   * reload() this — httpResource keeps the previous rows visible while it
+   * refetches, so the table never blanks out mid-update.
+   */
+  membersResource(workspaceId: Signal<string>) {
+    return httpResource<WorkspaceMember[]>(
+      () => `${this.apiUrl}/workspaces/${workspaceId()}/members`,
+      { defaultValue: [] },
+    );
   }
 }

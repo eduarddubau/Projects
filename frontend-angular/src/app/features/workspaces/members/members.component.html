@@ -1,0 +1,96 @@
+<ng-container *transloco="let t">
+  <app-aurora />
+
+  <div class="page-container">
+    <div class="page-header">
+      <div>
+        <h1>{{ t('workspaces.members.title') }}</h1>
+        <p class="page-subtitle">{{ workspace()?.name }}</p>
+      </div>
+
+      @if (workspace() && !workspace()!.isPersonal) {
+        <button mat-stroked-button (click)="leave()" [disabled]="isBusy()">
+          <mat-icon>logout</mat-icon>
+          {{ t('workspaces.members.leave') }}
+        </button>
+      }
+    </div>
+
+    <!-- Error first: reading value() while the resource is in an error state
+         throws at runtime, so no branch above this one may touch it. Then the
+         spinner, gated on hasValue() rather than a length check — isLoading()
+         is true during a reload too, when the previous rows are still worth
+         showing instead of blanking the table. -->
+    @if (members.error()) {
+      <div class="state-container">{{ t('workspaces.members.loadFailed') }}</div>
+    } @else if (members.isLoading() && !members.hasValue()) {
+      <div class="state-container"><mat-spinner diameter="40" /></div>
+    } @else {
+      <div class="table-card">
+        <table
+          mat-table
+          [dataSource]="members.value()"
+          [attr.aria-label]="t('workspaces.members.tableLabel')"
+        >
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>{{ t('workspaces.members.name') }}</th>
+            <td mat-cell *matCellDef="let m">
+              {{ m.userDisplayName }}
+              @if (isMe(m.userId)) {
+                <span class="role-chip">{{ t('workspaces.members.you') }}</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>{{ t('workspaces.members.role') }}</th>
+            <td mat-cell *matCellDef="let m">
+              @if (isOwner() && !isMe(m.userId)) {
+                <button mat-button [matMenuTriggerFor]="roleMenu" [disabled]="isBusy()">
+                  {{ t('workspaces.roles.' + m.role) }}
+                  <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+                </button>
+                <mat-menu #roleMenu="matMenu">
+                  <button mat-menu-item (click)="changeRole(m.userId, 'Owner')">
+                    {{ t('workspaces.roles.Owner') }}
+                  </button>
+                  <button mat-menu-item (click)="changeRole(m.userId, 'Member')">
+                    {{ t('workspaces.roles.Member') }}
+                  </button>
+                </mat-menu>
+              } @else {
+                <span class="role-static">{{ t('workspaces.roles.' + m.role) }}</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="joined">
+            <th mat-header-cell *matHeaderCellDef>{{ t('workspaces.members.joined') }}</th>
+            <td mat-cell *matCellDef="let m">{{ m.joinedAt | date: 'mediumDate' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let m">
+              @if (isOwner() && !isMe(m.userId)) {
+                <button
+                  mat-icon-button
+                  (click)="remove(m.userId, m.userDisplayName)"
+                  [disabled]="isBusy()"
+                  [attr.aria-label]="
+                    t('workspaces.members.removeAria', { name: m.userDisplayName })
+                  "
+                >
+                  <mat-icon>person_remove</mat-icon>
+                </button>
+              }
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="columns"></tr>
+          <tr mat-row *matRowDef="let row; columns: columns"></tr>
+        </table>
+      </div>
+    }
+  </div>
+</ng-container>
