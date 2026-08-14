@@ -77,12 +77,16 @@ export class WorkspaceContextService {
     return isPlatformBrowser(this.platformId) ? localStorage.getItem(STORAGE_KEY) : null;
   }
 
+  private clearCurrent(): void {
+    this._currentWorkspaceId.set(null);
+    if (isPlatformBrowser(this.platformId)) localStorage.removeItem(STORAGE_KEY);
+  }
+
   clear(): void {
     this._workspaces.set([]);
-    this._currentWorkspaceId.set(null);
     this._loaded.set(false);
     this.load$ = null;
-    if (isPlatformBrowser(this.platformId)) localStorage.removeItem(STORAGE_KEY);
+    this.clearCurrent();
   }
 
   upsert(workspace: Workspace): void {
@@ -94,5 +98,15 @@ export class WorkspaceContextService {
 
   remove(id: string): void {
     this._workspaces.update((list) => list.filter((w) => w.id !== id));
+
+    if (this._currentWorkspaceId() !== id) return;
+
+    // Restoring the invariant is the store's job — "currentWorkspaceId names a
+    // workspace still in the list, or is null". Computed after the update above,
+    // or the fallback picks the workspace we just removed. Navigating is the
+    // caller's job; the store must not inject Router.
+    const next = this.fallbackId();
+    if (next) this.setCurrent(next);
+    else this.clearCurrent();
   }
 }

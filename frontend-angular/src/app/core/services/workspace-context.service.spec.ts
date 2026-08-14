@@ -231,15 +231,48 @@ describe('WorkspaceContextService', () => {
       expect(service.workspaces()).toEqual([personal]);
     });
 
-    // The dangling id is deliberate: the caller decides where to go next.
-    it('leaves the current id dangling when the current workspace is removed', () => {
+    it('leaves the current id alone when a different workspace is removed', () => {
+      load([personal, acme, other]);
+      service.setCurrent(acme.id);
+
+      service.remove(other.id);
+
+      expect(service.currentWorkspaceId()).toBe(acme.id);
+    });
+
+    // The store owns the invariant "currentWorkspaceId names a workspace still
+    // in the list, or is null". It used to be every caller's job to restore it,
+    // which meant one forgetful caller away from a current workspace of null.
+    it('repoints the current id when the current workspace is removed', () => {
       load();
       service.setCurrent(acme.id);
 
       service.remove(acme.id);
 
-      expect(service.currentWorkspaceId()).toBe(acme.id);
-      expect(service.currentWorkspace()).toBeNull();
+      expect(service.currentWorkspaceId()).toBe(personal.id);
+      expect(service.currentWorkspace()).toEqual(personal);
+      expect(localStorage.getItem(StorageKeys.CURRENT_WORKSPACE_ID)).toBe(personal.id);
+    });
+
+    // Computing the fallback before the list update would hand back the very
+    // workspace that was just removed.
+    it('never falls back to the workspace it just removed', () => {
+      load([acme, other]);
+      service.setCurrent(acme.id);
+
+      service.remove(acme.id);
+
+      expect(service.currentWorkspaceId()).toBe(other.id);
+    });
+
+    it('clears the current id, and the stored one, when the last workspace goes', () => {
+      load([acme]);
+      service.setCurrent(acme.id);
+
+      service.remove(acme.id);
+
+      expect(service.currentWorkspaceId()).toBeNull();
+      expect(localStorage.getItem(StorageKeys.CURRENT_WORKSPACE_ID)).toBeNull();
     });
   });
 });
