@@ -1,0 +1,34 @@
+// Not .table-card: that carries overflow:hidden for sticky headers.
+.settings-card {
+  background: var(--mat-sys-surface-container-lowest);
+  border: var(--app-hairline);
+  border-radius: var(--app-radius-card);
+  padding: 24px;
+  margin-bottom: 20px;
+
+  &.is-danger {
+    border-color: color-mix(in srgb, var(--mat-sys-error) 35%, transparent);
+  }
+}
+
+.section-title {
+  margin: 0;
+  font: var(--mat-sys-title-medium);
+}
+
+.section-hint {
+  margin: 4px 0 20px;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.9rem;
+  max-width: 64ch;
+}
+
+// mat-form-field is inline-flex; without this the two fields sit side by side.
+.full-width {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}

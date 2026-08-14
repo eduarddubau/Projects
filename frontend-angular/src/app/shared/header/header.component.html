@@ -107,6 +107,12 @@
           <mat-icon>group</mat-icon>
           <span>{{ t('workspaces.switcher.members') }}</span>
         </button>
+        @if (canManageWorkspace()) {
+          <button mat-menu-item [routerLink]="['/w', id, 'settings']">
+            <mat-icon>tune</mat-icon>
+            <span>{{ t('workspaces.switcher.settings') }}</span>
+          </button>
+        }
       }
       <button mat-menu-item routerLink="/workspaces" [queryParams]="{ new: 1 }">
         <mat-icon>add</mat-icon>

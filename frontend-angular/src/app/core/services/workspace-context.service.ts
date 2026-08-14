@@ -30,6 +30,11 @@ export class WorkspaceContextService {
 
   readonly isOwner = computed(() => this.myRole() === 'Owner');
 
+  readonly canManageCurrent = computed(() => {
+    const w = this.currentWorkspace();
+    return !!w && w.myRole === 'Owner' && !w.isPersonal;
+  });
+
   private load$: Observable<Workspace[]> | null = null;
 
   ensureLoaded(): Observable<Workspace[]> {

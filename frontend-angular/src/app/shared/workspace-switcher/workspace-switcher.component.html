@@ -43,6 +43,16 @@
         <mat-icon>group</mat-icon>
         <span>{{ 'workspaces.switcher.members' | transloco }}</span>
       </button>
+
+      <!-- Hidden rather than disabled: a member and a personal workspace can
+           never reach these settings, and "tune" because the item two rows down
+           already owns the settings glyph. -->
+      @if (canManage()) {
+        <button mat-menu-item [routerLink]="['/w', w.id, 'settings']">
+          <mat-icon>tune</mat-icon>
+          <span>{{ 'workspaces.switcher.settings' | transloco }}</span>
+        </button>
+      }
     }
     <button mat-menu-item routerLink="/workspaces" [queryParams]="{ new: 1 }">
       <mat-icon>add</mat-icon>

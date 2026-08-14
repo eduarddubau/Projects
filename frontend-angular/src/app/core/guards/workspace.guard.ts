@@ -1,7 +1,8 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, PRIMARY_OUTLET, Router, UrlSegment } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { WorkspaceContextService } from '../services/workspace-context.service';
+import { withWorkspaceId } from '@core/utils/workspace-url';
 
 export const workspaceGuard: CanActivateFn = (route, state) => {
   const context = inject(WorkspaceContextService);
@@ -26,11 +27,8 @@ export const workspaceGuard: CanActivateFn = (route, state) => {
       }
 
       // Swap the id in place so the rest of the path survives: /w/bogus/members
-      // has to land on /w/{best}/members, not /w/{best}. Query params and the
-      // fragment hang off the tree, not the segments, so they ride along.
-      const tree = router.parseUrl(state.url);
-      tree.root.children[PRIMARY_OUTLET].segments[1] = new UrlSegment(best, {});
-      return tree;
+      // has to land on /w/{best}/members, not /w/{best}.
+      return withWorkspaceId(router, state.url, best) ?? router.parseUrl('/workspaces');
     }),
   );
 };

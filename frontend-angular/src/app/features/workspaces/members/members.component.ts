@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  computed,
   inject,
   input,
   signal,
@@ -75,7 +74,7 @@ export class MembersComponent {
   // Personal workspaces 409 on invite and the pending list is owner-only, so
   // this gates the resource itself — not just the markup. httpResource fetches
   // from an effect whether or not anything renders value().
-  canInvite = computed(() => this.isOwner() && !this.workspace()?.isPersonal);
+  canInvite = this.context.canManageCurrent;
   pending = this.invitations.pendingResource(this.workspaceId, this.canInvite);
 
   columns = ['name', 'role', 'joined', 'actions'];

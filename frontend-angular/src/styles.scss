@@ -437,17 +437,20 @@ table.mat-mdc-table {
   cursor: pointer;
 }
 
-// Destructive buttons (M3 has no "danger" role).
+// Destructive buttons (M3 has no "danger" role). --mat-button-*, not --mdc-*:
+// Material 22 renamed these and the old names are silently inert.
 .button-danger-filled {
-  --mdc-filled-button-container-color: var(--mat-sys-error);
-  --mdc-filled-button-label-text-color: var(--mat-sys-on-error);
+  --mat-button-filled-container-color: var(--mat-sys-error);
+  --mat-button-filled-label-text-color: var(--mat-sys-on-error);
+  --mat-button-filled-state-layer-color: var(--mat-sys-on-error);
+  --mat-button-filled-ripple-color: color-mix(in srgb, var(--mat-sys-on-error) 20%, transparent);
 }
 
 .button-danger {
-  --mat-outlined-button-state-layer-color: currentColor;
-  --mat-outlined-button-ripple-color: color-mix(in srgb, currentColor 10%, transparent);
-  --mdc-outlined-button-label-text-color: var(--mat-sys-error);
-  --mdc-outlined-button-outline-color: color-mix(in srgb, var(--mat-sys-error) 45%, transparent);
+  --mat-button-outlined-label-text-color: var(--mat-sys-error);
+  --mat-button-outlined-outline-color: color-mix(in srgb, var(--mat-sys-error) 45%, transparent);
+  --mat-button-outlined-state-layer-color: currentColor;
+  --mat-button-outlined-ripple-color: color-mix(in srgb, currentColor 10%, transparent);
   color: var(--mat-sys-error);
 }
 

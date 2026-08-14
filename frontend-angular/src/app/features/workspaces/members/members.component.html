@@ -5,7 +5,10 @@
     <div class="page-header">
       <div>
         <h1>{{ t('workspaces.members.title') }}</h1>
-        <p class="page-subtitle">{{ workspace()?.name }}</p>
+        <!-- The stored personal name is an English possessive; untranslatable. -->
+        <p class="page-subtitle">
+          {{ workspace()?.isPersonal ? t('workspaces.personal') : workspace()?.name }}
+        </p>
       </div>
 
       <div class="page-actions">

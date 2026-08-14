@@ -60,6 +60,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/workspaces/members/members.component').then((m) => m.MembersComponent),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./features/workspaces/settings/workspace-settings.component').then(
+            (m) => m.WorkspaceSettingsComponent,
+          ),
+      },
     ],
   },
   {

@@ -481,7 +481,8 @@
       "personalTag": "Personal",
       "createNew": "Create new workspace",
       "manageWorkspaces": "Manage workspaces",
-      "members": "Members"
+      "members": "Members",
+      "settings": "Workspace settings"
     },
     "roles": { "Owner": "Owner", "Member": "Member" },
     "list": {
@@ -515,11 +516,28 @@
     },
     "form": {
       "newTitle": "New workspace",
-      "editTitle": "Edit workspace",
       "name": "Name",
       "nameRequired": "A name is required.",
       "nameMaxLength": "The name cannot exceed 60 characters.",
       "description": "Description"
+    },
+    "settings": {
+      "title": "Workspace settings",
+      "generalTitle": "General",
+      "generalHint": "The name and description everyone in this workspace sees.",
+      "dangerTitle": "Danger zone",
+      "dangerHint": "Deleting this workspace removes it for every member.",
+      "delete": "Delete workspace",
+      "deleteTitle": "Delete this workspace?",
+      "deleteMessage": "{{name}} will be removed for everyone in it, and you won't be able to restore it.",
+      "deleteConfirmLabel": "Type the workspace name to confirm",
+      "saved": "Workspace updated.",
+      "deleted": "Workspace deleted.",
+      "saveFailed": "Could not save the changes. Please try again.",
+      "deleteFailed": "Could not delete the workspace. Please try again.",
+      "personalNotice": "Your personal workspace can't be renamed or deleted.",
+      "memberNotice": "Only the owner can change these settings.",
+      "backToMembers": "View members"
     }
   },
   "invitations": {

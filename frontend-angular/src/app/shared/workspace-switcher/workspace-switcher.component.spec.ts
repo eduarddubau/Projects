@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Router, UrlTree, provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 
 import { WorkspaceSwitcherComponent } from './workspace-switcher.component';
 import { API_URL } from '@core/tokens/app.tokens';
@@ -45,6 +46,7 @@ describe('WorkspaceSwitcherComponent', () => {
   let httpMock: HttpTestingController;
   let auth: AuthService;
   let context: WorkspaceContextService;
+  let router: Router;
 
   beforeEach(() => {
     localStorage.clear();
@@ -63,6 +65,7 @@ describe('WorkspaceSwitcherComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
     auth = TestBed.inject(AuthService);
     context = TestBed.inject(WorkspaceContextService);
+    router = TestBed.inject(Router);
     fixture.detectChanges();
   });
 
@@ -123,6 +126,28 @@ describe('WorkspaceSwitcherComponent', () => {
 
     expect(triggerText()).toContain('Acme Team');
     expect(localStorage.getItem(StorageKeys.CURRENT_WORKSPACE_ID)).toBe(acme.id);
+  });
+
+  // A store-only selection leaves the URL — and every call keyed on it — behind.
+  it('carries the current page over to the workspace it switches to', () => {
+    signIn();
+    vi.spyOn(router, 'url', 'get').mockReturnValue(`/w/${personal.id}/members`);
+    const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    fixture.componentInstance.select(acme.id);
+
+    expect(router.serializeUrl(navigate.mock.calls[0][0] as UrlTree)).toBe(`/w/${acme.id}/members`);
+  });
+
+  it('does not navigate from a page that has no workspace in its URL', () => {
+    signIn();
+    vi.spyOn(router, 'url', 'get').mockReturnValue('/dashboard');
+    const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    fixture.componentInstance.select(acme.id);
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(context.currentWorkspaceId()).toBe(acme.id);
   });
 
   it('disappears again once the context is cleared', () => {

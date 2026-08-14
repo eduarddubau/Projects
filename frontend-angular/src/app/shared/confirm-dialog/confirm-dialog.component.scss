@@ -1,0 +1,7 @@
+// mat-form-field is inline-flex, so without this it sits after the message
+// instead of below it.
+.confirm-phrase {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+}

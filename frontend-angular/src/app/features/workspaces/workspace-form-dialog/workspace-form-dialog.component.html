@@ -1,7 +1,5 @@
 <ng-container *transloco="let t">
-  <h2 mat-dialog-title>
-    {{ isEditMode ? t('workspaces.form.editTitle') : t('workspaces.form.newTitle') }}
-  </h2>
+  <h2 mat-dialog-title>{{ t('workspaces.form.newTitle') }}</h2>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
     <mat-dialog-content>
@@ -30,7 +28,7 @@
     <mat-dialog-actions align="end">
       <button type="button" mat-button (click)="cancel()">{{ t('common.actions.cancel') }}</button>
       <button type="submit" mat-flat-button [disabled]="form.invalid">
-        {{ isEditMode ? t('common.actions.save') : t('common.actions.create') }}
+        {{ t('common.actions.create') }}
       </button>
     </mat-dialog-actions>
   </form>

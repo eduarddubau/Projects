@@ -1,11 +1,25 @@
 <ng-container *transloco="let t">
   <h2 mat-dialog-title>{{ data.title }}</h2>
-  <mat-dialog-content>{{ data.message }}</mat-dialog-content>
+  <mat-dialog-content>
+    {{ data.message }}
+
+    @if (data.confirmPhrase) {
+      <mat-form-field appearance="outline" class="confirm-phrase">
+        <mat-label>{{ data.confirmPhraseLabel }}</mat-label>
+        <input matInput [value]="typed()" (input)="onType($event)" autocomplete="off" />
+      </mat-form-field>
+    }
+  </mat-dialog-content>
   <mat-dialog-actions align="end">
     <button mat-button (click)="cancel()">
       {{ data.cancelLabel ?? t('common.actions.cancel') }}
     </button>
-    <button mat-flat-button [class.button-danger-filled]="data.warn" (click)="confirm()">
+    <button
+      mat-flat-button
+      [class.button-danger-filled]="data.warn"
+      [disabled]="!canConfirm()"
+      (click)="confirm()"
+    >
       {{ data.confirmLabel ?? t('common.actions.confirm') }}
     </button>
   </mat-dialog-actions>

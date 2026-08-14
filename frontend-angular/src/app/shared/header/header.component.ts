@@ -1,5 +1,5 @@
 import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -21,6 +21,7 @@ import { LanguageSwitcherComponent } from '@shared/language-switcher/language-sw
 import { toSignal } from '@angular/core/rxjs-interop';
 import { WorkspaceSwitcherComponent } from '@shared/workspace-switcher/workspace-switcher.component';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
+import { withWorkspaceId } from '@core/utils/workspace-url';
 
 @Component({
   selector: 'app-header',
@@ -47,6 +48,7 @@ export class HeaderComponent {
   private themeService = inject(ThemeService);
   private paletteService = inject(PaletteService);
   private workspaceContext = inject(WorkspaceContextService);
+  private router = inject(Router);
 
   appName = APP_NAME;
   currentUser = this.authService.currentUser;
@@ -72,9 +74,14 @@ export class HeaderComponent {
   // navigation for submenus opened from a mat-menu-item.
   workspaces = this.workspaceContext.workspaces;
   currentWorkspaceId = this.workspaceContext.currentWorkspaceId;
+  canManageWorkspace = this.workspaceContext.canManageCurrent;
 
   selectWorkspace(id: string): void {
     this.workspaceContext.setCurrent(id);
+
+    // As in the switcher's select().
+    const tree = withWorkspaceId(this.router, this.router.url, id);
+    if (tree) this.router.navigateByUrl(tree);
   }
 
   setPalette(palette: Palette): void {

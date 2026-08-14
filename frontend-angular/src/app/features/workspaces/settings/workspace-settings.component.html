@@ -1,0 +1,84 @@
+<ng-container *transloco="let t">
+  <app-aurora />
+
+  <div class="page-container">
+    <div class="page-header">
+      <div>
+        <h1>{{ t('workspaces.settings.title') }}</h1>
+        <!-- The stored personal name is an English possessive; untranslatable. -->
+        <p class="page-subtitle">
+          {{ workspace()?.isPersonal ? t('workspaces.personal') : workspace()?.name }}
+        </p>
+      </div>
+    </div>
+
+    @if (!canManage()) {
+      <div class="state-container">
+        <mat-icon>lock</mat-icon>
+        <p>
+          {{
+            workspace()?.isPersonal
+              ? t('workspaces.settings.personalNotice')
+              : t('workspaces.settings.memberNotice')
+          }}
+        </p>
+        <a mat-stroked-button [routerLink]="['/w', workspaceId(), 'members']">
+          {{ t('workspaces.settings.backToMembers') }}
+        </a>
+      </div>
+    } @else {
+      <section class="settings-card">
+        <h2 class="section-title">{{ t('workspaces.settings.generalTitle') }}</h2>
+        <p class="section-hint">{{ t('workspaces.settings.generalHint') }}</p>
+
+        <form [formGroup]="form" (ngSubmit)="save()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ t('workspaces.form.name') }}</mat-label>
+            <input matInput formControlName="name" [maxlength]="nameMax" required />
+            @if (form.controls.name.hasError('required')) {
+              <mat-error>{{ t('workspaces.form.nameRequired') }}</mat-error>
+            }
+            @if (form.controls.name.hasError('maxlength')) {
+              <mat-error>{{ t('workspaces.form.nameMaxLength') }}</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ t('workspaces.form.description') }}</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              [maxlength]="descriptionMax"
+              rows="3"
+            ></textarea>
+          </mat-form-field>
+
+          <div class="form-actions">
+            <button
+              type="submit"
+              mat-flat-button
+              [disabled]="form.invalid || form.pristine || isBusy()"
+            >
+              {{ t('common.actions.saveChanges') }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="settings-card is-danger">
+        <h2 class="section-title">{{ t('workspaces.settings.dangerTitle') }}</h2>
+        <p class="section-hint">{{ t('workspaces.settings.dangerHint') }}</p>
+
+        <button
+          mat-stroked-button
+          class="button-danger"
+          (click)="confirmDelete()"
+          [disabled]="isBusy()"
+        >
+          <mat-icon>delete_forever</mat-icon>
+          {{ t('workspaces.settings.delete') }}
+        </button>
+      </section>
+    }
+  </div>
+</ng-container>

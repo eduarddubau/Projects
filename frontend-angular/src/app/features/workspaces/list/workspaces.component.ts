@@ -64,7 +64,7 @@ export class WorkspacesComponent {
 
   openCreateDialog(): void {
     this.dialog
-      .open(WorkspaceFormDialogComponent, { width: '480px', data: {} })
+      .open(WorkspaceFormDialogComponent, { width: '480px' })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result: WorkspaceFormResult | undefined) => {

@@ -237,6 +237,14 @@ describe('MembersComponent', () => {
     expect(text()).not.toContain('Leave workspace');
   });
 
+  // The stored personal name is an English possessive; untranslatable.
+  it('subtitles a personal workspace from the dictionary, not the stored name', async () => {
+    await setup(workspace({ isPersonal: true, name: "dev1's Workspace" }), [mine]);
+
+    expect(text()).toContain('My Workspace');
+    expect(text()).not.toContain("dev1's Workspace");
+  });
+
   // The gate lives in the resource's URL function, not in the template, because
   // httpResource fetches from an effect whether or not anything renders it.
   // Without it every plain member's page load collects a 403.

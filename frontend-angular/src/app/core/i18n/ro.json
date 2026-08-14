@@ -481,7 +481,8 @@
       "personalTag": "Personal",
       "createNew": "Crează un spațiu de lucru nou",
       "manageWorkspaces": "Gestionează spațiile de lucru",
-      "members": "Membri"
+      "members": "Membri",
+      "settings": "Setările spațiului de lucru"
     },
     "roles": { "Owner": "Proprietar", "Member": "Membru" },
     "list": {
@@ -515,11 +516,28 @@
     },
     "form": {
       "newTitle": "Spațiu de lucru nou",
-      "editTitle": "Editează spațiul de lucru",
       "name": "Nume",
       "nameRequired": "Numele este obligatoriu.",
       "nameMaxLength": "Numele nu poate depăși 60 de caractere.",
       "description": "Descriere"
+    },
+    "settings": {
+      "title": "Setările spațiului de lucru",
+      "generalTitle": "General",
+      "generalHint": "Numele și descrierea pe care le vede toată lumea din acest spațiu de lucru.",
+      "dangerTitle": "Zonă periculoasă",
+      "dangerHint": "Ștergerea acestui spațiu de lucru îl elimină pentru toți membrii.",
+      "delete": "Șterge spațiul de lucru",
+      "deleteTitle": "Ștergi acest spațiu de lucru?",
+      "deleteMessage": "{{name}} va fi eliminat pentru toți cei din el și nu îl vei putea restaura.",
+      "deleteConfirmLabel": "Scrie numele spațiului de lucru pentru a confirma",
+      "saved": "Spațiul de lucru a fost actualizat.",
+      "deleted": "Spațiul de lucru a fost șters.",
+      "saveFailed": "Modificările nu au putut fi salvate. Încearcă din nou.",
+      "deleteFailed": "Spațiul de lucru nu a putut fi șters. Încearcă din nou.",
+      "personalNotice": "Spațiul tău de lucru personal nu poate fi redenumit sau șters.",
+      "memberNotice": "Doar proprietarul poate modifica aceste setări.",
+      "backToMembers": "Vezi membrii"
     }
   },
   "invitations": {
