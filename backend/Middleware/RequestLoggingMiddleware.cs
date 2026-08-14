@@ -10,7 +10,7 @@ namespace Backend.Middleware;
 /// <para>Failures log at Warning/Error. Successes log at Debug, which the default
 /// Information minimum discards — raise Serilog:MinimumLevel to Debug to get full
 /// request logging without a rebuild.</para></summary>
-public class RequestLoggingMiddleware
+public partial class RequestLoggingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
@@ -45,9 +45,13 @@ public class RequestLoggingMiddleware
         var userId = context.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
                   ?? context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        _logger.Log(level,
-            "{Method} {Path} responded {StatusCode} for user {UserId} in {ElapsedMs:0.0}ms. TraceId {TraceId}",
-            context.Request.Method, context.Request.Path, statusCode,
+        LogRequestCompleted(level, context.Request.Method, context.Request.Path.Value, statusCode,
             userId, elapsedMs, traceId);
     }
+
+    // Level is a parameter rather than an attribute value: the severity follows
+    // the status code.
+    [LoggerMessage(Message = "{method} {path} responded {statusCode} for user {userId} in {elapsedMs:0.0}ms. TraceId {traceId}")]
+    private partial void LogRequestCompleted(LogLevel level, string method, string? path,
+        int statusCode, string? userId, double elapsedMs, string traceId);
 }

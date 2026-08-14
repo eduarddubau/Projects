@@ -11,14 +11,14 @@ using Moq;
 
 namespace Backend.Tests.Services;
 
-public class UserServiceTests
+public sealed class UserServiceTests : IDisposable
 {
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly Mock<UserManager<User>> _userManager;
     private readonly Mock<IWorkspaceService> _workspaceService = new();
     // The real normalizer, not a mock: fixtures then produce exactly what Identity
     // writes in production, so they can't drift from the code under test.
-    private readonly ILookupNormalizer _normalizer = new UpperInvariantLookupNormalizer();
+    private readonly UpperInvariantLookupNormalizer _normalizer = new();
     private readonly AppDbContext _context;
     private readonly UserService _service;
 
@@ -546,4 +546,6 @@ public class UserServiceTests
 
         Assert.False(result);
     }
+
+    public void Dispose() => _context.Dispose();
 }

@@ -1,3 +1,4 @@
+using Backend.Config;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Backend.Services.Interfaces;

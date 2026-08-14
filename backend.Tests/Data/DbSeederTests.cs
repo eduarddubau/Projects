@@ -10,10 +10,10 @@ using Moq;
 
 namespace Backend.Tests.Data;
 
-public class DbSeederTests
+public sealed class DbSeederTests : IDisposable
 {
     private readonly Mock<UserManager<User>> _userManager;
-    private readonly ILookupNormalizer _normalizer = new UpperInvariantLookupNormalizer();
+    private readonly UpperInvariantLookupNormalizer _normalizer = new();
     private readonly Mock<RoleManager<IdentityRole<Guid>>> _roleManager;
     private readonly AppDbContext _context;
     private readonly ILogger _logger = new Mock<ILogger>().Object;
@@ -237,4 +237,6 @@ public class DbSeederTests
         // Dev users are also seeded (e.g. dev1@example.com).
         _userManager.Verify(m => m.CreateAsync(It.Is<User>(u => u.Email == "dev1@example.com"), It.IsAny<string>()), Times.Once);
     }
+
+    public void Dispose() => _context.Dispose();
 }

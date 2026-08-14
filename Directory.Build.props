@@ -1,0 +1,13 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Applies to backend and backend.Tests alike; backend/Directory.Build.props
+         imports this one rather than shadowing it. -->
+    <AnalysisMode>Recommended</AnalysisMode>
+
+    <!-- The one category kept at All: this API issues credentials and tokens, and
+         the first run of it found Random.Shared generating user passwords. -->
+    <AnalysisModeSecurity>All</AnalysisModeSecurity>
+  </PropertyGroup>
+
+</Project>

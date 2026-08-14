@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Backend.Config;
 using Backend.Data;
 using Backend.DTOs.User;
@@ -31,10 +32,10 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<UserResponseDto?> GetMyProfileAsync(CancellationToken ct = default)
     {
-        var userId = _currentUser.UserGuid;
+        var userId = CurrentUser.UserGuid;
         if (userId is null) return null;
 
-        var user = await _context.Users
+        var user = await Context.Users
             .Include(u => u.Creator)
             .Include(u => u.Updater)
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
@@ -44,10 +45,10 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<UserResponseDto?> UpdateMyProfileAsync(UpdateProfileRequest dto, CancellationToken ct = default)
     {
-        var userId = _currentUser.UserGuid;
+        var userId = CurrentUser.UserGuid;
         if (userId is null) return null;
 
-        var user = await _context.Users
+        var user = await Context.Users
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
         if (user is null) return null;
@@ -73,9 +74,9 @@ public class UserService : BaseService<User>, IUserService
         }
 
         // No-op when SetEmailAsync already saved; needed when only the name changed.
-        await _context.SaveChangesAsync(ct);
+        await Context.SaveChangesAsync(ct);
 
-        return await _context.Users
+        return await Context.Users
             .Where(u => u.Id == userId)
             .MapToDto()
             .FirstAsync(ct);
@@ -83,7 +84,7 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(CancellationToken ct = default)
     {
-        return await _context.Users
+        return await Context.Users
             .IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
@@ -94,7 +95,7 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<UserResponseDto?> GetAnyUserByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await _context.Users
+        var user = await Context.Users
             .IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
@@ -129,7 +130,7 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<UserResponseDto?> RestoreAnyUserAsync(Guid id, CancellationToken ct = default)
     {
-        var deleted = await _context.Users
+        var deleted = await Context.Users
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Id == id, ct);
 
@@ -140,7 +141,7 @@ public class UserService : BaseService<User>, IUserService
             // Uniqueness is scoped to live rows, so restoring re-enters the partial index.
             // Only a live holder blocks it — another deleted row isn't in the index either.
             // Email only: UserName is derived from the row's own id, so it cannot collide.
-            bool taken = await _context.Users
+            bool taken = await Context.Users
                 .AnyAsync(u => u.Id != id && u.NormalizedEmail == deleted.NormalizedEmail, ct);
 
             if (taken)
@@ -150,10 +151,10 @@ public class UserService : BaseService<User>, IUserService
 
             deleted.IsDeleted = false;
             deleted.DeletedAt = null;
-            await _context.SaveChangesAsync(ct);
+            await Context.SaveChangesAsync(ct);
         }
 
-        return await _context.Users
+        return await Context.Users
             .Where(u => u.Id == id)
             .MapToDto()
             .FirstAsync(ct);
@@ -161,7 +162,7 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync(CancellationToken ct = default)
     {
-        return await _context.Users
+        return await Context.Users
             .IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
@@ -178,13 +179,13 @@ public class UserService : BaseService<User>, IUserService
     /// </summary>
     public async Task<bool> AnonymizeUserAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await _context.Users
+        var user = await Context.Users
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Id == id && u.IsDeleted && !u.IsAnonymized, ct);
 
         if (user is null) return false;
 
-        var soleOwned = await _context.Workspaces
+        var soleOwned = await Context.Workspaces
             .Where(w => !w.IsPersonal
                     && w.Members.Any(m => m.UserId == id && m.Role == WorkspaceRole.Owner)
                     && !w.Members.Any(m => m.UserId != id && m.Role == WorkspaceRole.Owner))
@@ -201,17 +202,17 @@ public class UserService : BaseService<User>, IUserService
                 new Dictionary<string, string> { ["workspaces"] = names });
         }
 
-        var personalWorkspaces = await _context.Workspaces
+        var personalWorkspaces = await Context.Workspaces
             .Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))
             .ToListAsync(ct);
 
-        var memberships = await _context.WorkspaceMembers
+        var memberships = await Context.WorkspaceMembers
             .Where(m => m.UserId == id)
             .ToListAsync(ct);
 
         // A real delete: the user stops appearing in member lists rather than lingering
         // as "Deleted User".
-        _context.WorkspaceMembers.RemoveRange(memberships);
+        Context.WorkspaceMembers.RemoveRange(memberships);
 
         var now = DateTime.UtcNow;
 
@@ -235,7 +236,7 @@ public class UserService : BaseService<User>, IUserService
         user.IsAnonymized = true;
         user.AnonymizedAt = now;
 
-        await _context.SaveChangesAsync(ct);
+        await Context.SaveChangesAsync(ct);
 
         return true;
     }
@@ -248,24 +249,27 @@ public class UserService : BaseService<User>, IUserService
         const string symbols = "!@#$%^&*";
         const string all = lower + upper + digits + symbols;
 
+        // RandomNumberGenerator, never Random.Shared: this value is a live
+        // credential, and Random is a seeded PRNG whose sequence can be inferred
+        // from other draws.
         // Guarantee one character from each class Identity's password policy
         // requires, then fill the remaining length from the full pool. Without
         // this, a random draw can omit a class and Identity rejects the password.
         var password = new List<char>
         {
-            lower[Random.Shared.Next(lower.Length)],
-            upper[Random.Shared.Next(upper.Length)],
-            digits[Random.Shared.Next(digits.Length)],
-            symbols[Random.Shared.Next(symbols.Length)]
+            lower[RandomNumberGenerator.GetInt32(lower.Length)],
+            upper[RandomNumberGenerator.GetInt32(upper.Length)],
+            digits[RandomNumberGenerator.GetInt32(digits.Length)],
+            symbols[RandomNumberGenerator.GetInt32(symbols.Length)]
         };
 
         password.AddRange(Enumerable.Range(0, 12)
-            .Select(_ => all[Random.Shared.Next(all.Length)]));
+            .Select(_ => all[RandomNumberGenerator.GetInt32(all.Length)]));
 
         // Shuffle so the guaranteed characters aren't always in the same positions.
         for (int i = password.Count - 1; i > 0; i--)
         {
-            int j = Random.Shared.Next(i + 1);
+            int j = RandomNumberGenerator.GetInt32(i + 1);
             (password[i], password[j]) = (password[j], password[i]);
         }
 

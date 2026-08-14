@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
-public class RefreshTokenService : IRefreshTokenService
+public partial class RefreshTokenService : IRefreshTokenService
 {
     private readonly AppDbContext _db;
     private readonly JwtOptions _options;
@@ -36,23 +36,21 @@ public class RefreshTokenService : IRefreshTokenService
 
         if (token is null)
         {
-            _logger.LogWarning("Refresh rejected: token not recognized.");
+            LogTokenNotRecognized();
             return RefreshRotationResult.Failure;
         }
 
         // A revoked token reused signals theft: revoke the user's whole token family.
         if (token.RevokedAt is not null)
         {
-            _logger.LogWarning(
-                "Refresh rejected: reuse of a revoked token detected for user {UserId}. Revoking all active tokens.",
-                token.UserId);
+            LogRevokedTokenReused(token.UserId);
             await RevokeAllActiveForUserAsync(token.UserId, ct);
             return RefreshRotationResult.Failure;
         }
 
         if (DateTime.UtcNow >= token.ExpiresAt)
         {
-            _logger.LogInformation("Refresh rejected: expired token for user {UserId}.", token.UserId);
+            LogTokenExpired(token.UserId);
             return RefreshRotationResult.Failure;
         }
 
@@ -63,7 +61,7 @@ public class RefreshTokenService : IRefreshTokenService
         _db.RefreshTokens.Add(NewToken(token.UserId, newHash));
         await _db.SaveChangesAsync(ct);
 
-        _logger.LogInformation("Rotated refresh token for user {UserId}.", token.UserId);
+        LogTokenRotated(token.UserId);
         return new RefreshRotationResult(true, token.UserId, raw);
     }
 
@@ -98,4 +96,16 @@ public class RefreshTokenService : IRefreshTokenService
         CreatedAt = DateTime.UtcNow,
         ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDurationInDays)
     };
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Refresh rejected: token not recognized.")]
+    private partial void LogTokenNotRecognized();
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Refresh rejected: reuse of a revoked token detected for user {userId}. Revoking all active tokens.")]
+    private partial void LogRevokedTokenReused(Guid userId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Refresh rejected: expired token for user {userId}.")]
+    private partial void LogTokenExpired(Guid userId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Rotated refresh token for user {userId}.")]
+    private partial void LogTokenRotated(Guid userId);
 }

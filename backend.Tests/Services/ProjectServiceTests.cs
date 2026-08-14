@@ -11,7 +11,7 @@ using Moq;
 
 namespace Backend.Tests.Services;
 
-public class ProjectServiceTests
+public sealed class ProjectServiceTests : IDisposable
 {
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly AppDbContext _context;
@@ -360,4 +360,6 @@ public class ProjectServiceTests
         Assert.Null(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == deleted2.Id));
         Assert.NotNull(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == active.Id));
     }
+
+    public void Dispose() => _context.Dispose();
 }

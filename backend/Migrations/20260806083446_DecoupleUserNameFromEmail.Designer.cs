@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace backend.Migrations
+namespace Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260806083446_DecoupleUserNameFromEmail")]

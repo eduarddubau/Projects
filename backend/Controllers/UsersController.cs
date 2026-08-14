@@ -1,3 +1,4 @@
+using Backend.Config;
 using Backend.DTOs.User;
 using Backend.Exceptions;
 using Backend.Services.Interfaces;
@@ -11,7 +12,7 @@ namespace Backend.Controllers;
 [Route("api/[controller]")]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
-public class UsersController : ControllerBase
+public partial class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ILogger<UsersController> _logger;
@@ -41,7 +42,7 @@ public class UsersController : ControllerBase
 
         if (user is null)
         {
-            _logger.LogWarning("User with ID {UserId} not found.", id);
+            LogUserNotFound(id);
             return NotFound(new { message = $"User with ID {id} not found." });
         }
 
@@ -66,7 +67,7 @@ public class UsersController : ControllerBase
 
         if (!result)
         {
-            _logger.LogWarning("User with ID {UserId} not found for deletion.", id);
+            LogUserNotFoundForDeletion(id);
             return NotFound(new { message = $"User with ID {id} not found." });
         }
 
@@ -103,10 +104,19 @@ public class UsersController : ControllerBase
 
         if (!result)
         {
-            _logger.LogWarning("User with ID {UserId} not found for anonymization.", id);
+            LogUserNotFoundForAnonymization(id);
             return NotFound(new { message = $"Deleted user with ID {id} not found." });
         }
 
         return NoContent();
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "User with ID {userId} not found.")]
+    private partial void LogUserNotFound(Guid userId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "User with ID {userId} not found for deletion.")]
+    private partial void LogUserNotFoundForDeletion(Guid userId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "User with ID {userId} not found for anonymization.")]
+    private partial void LogUserNotFoundForAnonymization(Guid userId);
 }

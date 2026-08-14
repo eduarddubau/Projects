@@ -10,8 +10,10 @@ using Moq;
 
 namespace Backend.Tests.Services;
 
-public class WorkspaceServiceTests
+public sealed class WorkspaceServiceTests : IDisposable
 {
+    private static readonly string[] ExpectedWorkspaceNames = ["Ada's Workspace", "Alpha", "Zulu"];
+
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly AppDbContext _context;
     private readonly WorkspaceService _service;
@@ -97,7 +99,7 @@ public class WorkspaceServiceTests
 
         var result = (await _service.GetMyWorkspacesAsync()).ToList();
 
-        Assert.Equal(new[] { "Ada's Workspace", "Alpha", "Zulu" }, result.Select(w => w.Name));
+        Assert.Equal(ExpectedWorkspaceNames, result.Select(w => w.Name));
         Assert.DoesNotContain(result, w => w.Name == "Not Mine");
     }
 
@@ -401,4 +403,6 @@ public class WorkspaceServiceTests
 
         Assert.Equal("Mine", Assert.Single(trash).Name);
     }
+
+    public void Dispose() => _context.Dispose();
 }

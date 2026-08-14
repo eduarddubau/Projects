@@ -12,10 +12,10 @@ using Moq;
 
 namespace Backend.Tests.Services;
 
-public class InvitationServiceTests
+public sealed class InvitationServiceTests : IDisposable
 {
     private readonly Mock<ICurrentUserService> _currentUser = new();
-    private readonly ILookupNormalizer _normalizer = new UpperInvariantLookupNormalizer();
+    private readonly UpperInvariantLookupNormalizer _normalizer = new();
     private readonly AppDbContext _context;
     private readonly InvitationService _service;
 
@@ -534,4 +534,6 @@ public class InvitationServiceTests
         Assert.Equal(1, await _context.WorkspaceMembers.CountAsync(m => m.UserId == newcomer.Id));
         Assert.True(await _context.Invitations.AllAsync(i => i.AcceptedAt != null));
     }
+
+    public void Dispose() => _context.Dispose();
 }

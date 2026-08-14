@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Data;
 
-public static class DbSeeder
+public static partial class DbSeeder
 {
     private const string DefaultPassword = "Password123!";
     private const int UserCount = 3;
@@ -22,7 +22,7 @@ public static class DbSeeder
         IWorkspaceService workspaceService,
         bool isDevelopment)
     {
-        logger.LogInformation("Starting database seeding...");
+        LogSeedingStarted(logger);
 
         await SeedRolesAsync(roleManager, logger);
         await SeedAdminAsync(userManager, logger, adminOptions);
@@ -34,7 +34,7 @@ public static class DbSeeder
 
         await SeedPersonalWorkspacesAsync(context, workspaceService, logger);
 
-        logger.LogInformation("Database seeding completed successfully.");
+        LogSeedingCompleted(logger);
     }
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager, ILogger logger)
@@ -43,7 +43,7 @@ public static class DbSeeder
         {
             if (await roleManager.RoleExistsAsync(roleName)) continue;
 
-            logger.LogInformation("Creating role: {RoleName}", roleName);
+            LogCreatingRole(logger, roleName);
             await roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
         }
     }
@@ -59,11 +59,11 @@ public static class DbSeeder
         var existing = await userManager.FindByEmailAsync(options.Email);
         if (existing is not null)
         {
-            logger.LogInformation("Admin account {Email} already exists. Skipping admin seed.", options.Email);
+            LogAdminExists(logger, options.Email);
             return;
         }
 
-        logger.LogInformation("Seeding admin account: {Email}", options.Email);
+        LogSeedingAdmin(logger, options.Email);
         var id = Guid.CreateVersion7();
         var admin = new User
         {
@@ -78,8 +78,7 @@ public static class DbSeeder
         var result = await userManager.CreateAsync(admin, options.Password);
         if (!result.Succeeded)
         {
-            logger.LogError("Failed to seed admin {Email}: {Errors}",
-                options.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            LogAdminSeedFailed(logger, options.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
             return;
         }
 
@@ -119,17 +118,17 @@ public static class DbSeeder
 
         if (users.Count == 0)
         {
-            logger.LogDebug("Every user already has a personal workspace.");
+            LogAllWorkspacesPresent(logger);
             return;
         }
 
         foreach (var user in users)
         {
-            logger.LogDebug("Seeding personal workspace for user: {UserId}", user.Id);
+            LogSeedingPersonalWorkspace(logger, user.Id);
             await workspaceService.EnsurePersonalWorkspaceAsync(user);
         }
 
-        logger.LogInformation("Seeded {Count} personal workspace(s).", users.Count);
+        LogSeededPersonalWorkspaces(logger, users.Count);
     }
 
     private static async Task<User?> SeedUserAsync(
@@ -157,14 +156,14 @@ public static class DbSeeder
             // would undo that silently.
             if (existingUser.IsDeleted)
             {
-                logger.LogDebug("Dev user {Email} is deleted. Leaving it alone.", email);
+                LogDevUserDeleted(logger, email);
                 return null;
             }
 
             return existingUser;
         }
 
-        logger.LogInformation("Seeding user: {Email}", email);
+        LogSeedingUser(logger, email);
         var id = Guid.CreateVersion7();
         var user = new User
         {
@@ -180,8 +179,7 @@ public static class DbSeeder
         var result = await userManager.CreateAsync(user, DefaultPassword);
         if (!result.Succeeded)
         {
-            logger.LogError("Failed to seed user {Email}: {Errors}",
-                email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            LogUserSeedFailed(logger, email, string.Join(", ", result.Errors.Select(e => e.Description)));
             return null;
         }
 
@@ -196,11 +194,11 @@ public static class DbSeeder
     {
         if (await context.Projects.AnyAsync(p => p.CreatedBy == user.Id))
         {
-            logger.LogDebug("User {Email} already has projects. Skipping project seed.", user.Email);
+            LogUserHasProjects(logger, user.Email);
             return;
         }
 
-        logger.LogInformation("Seeding projects for user: {Email}", user.Email);
+        LogSeedingProjects(logger, user.Email);
 
         var activeProjects = new[]
         {
@@ -255,24 +253,24 @@ public static class DbSeeder
 
     /// <summary>One shared workspace so the switcher, the members page and the multi-owner
     /// and last-owner guards have something real to run against.</summary>
-    private static async Task SeedSharedWorkspaceAsync(AppDbContext context, ILogger logger, IReadOnlyList<User> devUsers)
+    private static async Task SeedSharedWorkspaceAsync(AppDbContext context, ILogger logger, List<User> devUsers)
     {
         const string sharedName = "Acme Team";
 
         if (devUsers.Count == 0)
         {
-            logger.LogDebug("No dev users to place in the shared workspace. Skipping.");
+            LogNoDevUsersForSharedWorkspace(logger);
             return;
         }
 
         if (await context.Workspaces.AnyAsync(w => !w.IsPersonal && w.Name == sharedName))
         {
-            logger.LogDebug("Shared workspace already seeded. Skipping.");
+            LogSharedWorkspaceExists(logger);
             return;
         }
 
 
-        logger.LogInformation("Seeding shared workspace: {Name}", sharedName);
+        LogSeedingSharedWorkspace(logger, sharedName);
 
         var workspace = new Workspace
         {
@@ -297,4 +295,55 @@ public static class DbSeeder
         context.Workspaces.Add(workspace);
         await context.SaveChangesAsync();
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Starting database seeding...")]
+    private static partial void LogSeedingStarted(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Database seeding completed successfully.")]
+    private static partial void LogSeedingCompleted(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Creating role: {roleName}")]
+    private static partial void LogCreatingRole(ILogger logger, string roleName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Admin account {email} already exists. Skipping admin seed.")]
+    private static partial void LogAdminExists(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeding admin account: {email}")]
+    private static partial void LogSeedingAdmin(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to seed admin {email}: {errors}")]
+    private static partial void LogAdminSeedFailed(ILogger logger, string email, string errors);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Every user already has a personal workspace.")]
+    private static partial void LogAllWorkspacesPresent(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Seeding personal workspace for user: {userId}")]
+    private static partial void LogSeedingPersonalWorkspace(ILogger logger, Guid userId);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeded {count} personal workspace(s).")]
+    private static partial void LogSeededPersonalWorkspaces(ILogger logger, int count);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Dev user {email} is deleted. Leaving it alone.")]
+    private static partial void LogDevUserDeleted(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeding user: {email}")]
+    private static partial void LogSeedingUser(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to seed user {email}: {errors}")]
+    private static partial void LogUserSeedFailed(ILogger logger, string email, string errors);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "User {email} already has projects. Skipping project seed.")]
+    private static partial void LogUserHasProjects(ILogger logger, string? email);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeding projects for user: {email}")]
+    private static partial void LogSeedingProjects(ILogger logger, string? email);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "No dev users to place in the shared workspace. Skipping.")]
+    private static partial void LogNoDevUsersForSharedWorkspace(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Shared workspace already seeded. Skipping.")]
+    private static partial void LogSharedWorkspaceExists(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeding shared workspace: {name}")]
+    private static partial void LogSeedingSharedWorkspace(ILogger logger, string name);
 }

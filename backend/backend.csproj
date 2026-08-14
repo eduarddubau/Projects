@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- The project file is lower-case; the namespaces are not. Without these the
+         assembly name and the root namespace differ only by case. -->
+    <AssemblyName>Backend</AssemblyName>
+    <RootNamespace>Backend</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>d2efe90a-cd97-4ef5-a6da-9b447ebae73e</UserSecretsId>

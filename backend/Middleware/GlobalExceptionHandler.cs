@@ -7,7 +7,7 @@ using Backend.Exceptions;
 
 namespace Backend.Middleware;
 
-public class GlobalExceptionHandler : IExceptionHandler
+public partial class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<GlobalExceptionHandler> _logger;
     private readonly IWebHostEnvironment _env;
@@ -41,13 +41,11 @@ public class GlobalExceptionHandler : IExceptionHandler
         // Mapped 4xx are expected traffic, not faults — logging them as errors
         // buries real ones and lets anyone probing ids fill the log.
         if (statusCode >= StatusCodes.Status500InternalServerError)
-            _logger.LogError(exception,
-                "Unhandled exception ({StatusCode}) on {Method} {Path} for user {UserId}. TraceId {TraceId}",
-                statusCode, httpContext.Request.Method, httpContext.Request.Path, userId, traceId);
+            LogUnhandledException(exception, statusCode, httpContext.Request.Method,
+                httpContext.Request.Path, userId, traceId);
         else
-            _logger.LogWarning(
-                "Request rejected ({StatusCode}, {Code}) on {Method} {Path} for user {UserId}: {Message} TraceId {TraceId}",
-                statusCode, code, httpContext.Request.Method, httpContext.Request.Path, userId, exception.Message, traceId);
+            LogRequestRejected(statusCode, code, httpContext.Request.Method,
+                httpContext.Request.Path, userId, exception.Message, traceId);
 
         var response = new ErrorResponse
         {
@@ -64,4 +62,12 @@ public class GlobalExceptionHandler : IExceptionHandler
 
         return true;
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Unhandled exception ({statusCode}) on {method} {path} for user {userId}. TraceId {traceId}")]
+    private partial void LogUnhandledException(Exception exception, int statusCode, string method,
+        string path, string? userId, string traceId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Request rejected ({statusCode}, {code}) on {method} {path} for user {userId}: {message} TraceId {traceId}")]
+    private partial void LogRequestRejected(int statusCode, string? code, string method,
+        string path, string? userId, string message, string traceId);
 }

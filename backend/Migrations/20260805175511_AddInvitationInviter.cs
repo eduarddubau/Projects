@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace backend.Migrations
+namespace Backend.Migrations
 {
     /// <inheritdoc />
     public partial class AddInvitationInviter : Migration

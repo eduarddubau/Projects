@@ -9,7 +9,7 @@ using Moq;
 
 namespace Backend.Tests.Services;
 
-public class RefreshTokenServiceTests
+public sealed class RefreshTokenServiceTests : IDisposable
 {
     private readonly AppDbContext _context;
     private readonly RefreshTokenService _service;
@@ -113,4 +113,6 @@ public class RefreshTokenServiceTests
 
         Assert.Empty(await _context.RefreshTokens.ToListAsync());
     }
+
+    public void Dispose() => _context.Dispose();
 }

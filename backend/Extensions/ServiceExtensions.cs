@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using Backend.Services.Interfaces;
 using Backend.Services;
@@ -14,6 +15,8 @@ using FluentValidation.AspNetCore;
 using Serilog;
 using Serilog.Formatting.Compact;
 
+namespace Backend.Extensions;
+
 public static class ServiceExtensions
 {
     public static IServiceCollection AddLoggingServices(
@@ -28,7 +31,7 @@ public static class ServiceExtensions
                         .Enrich.FromLogContext();
 
             if (env.IsDevelopment())
-                loggerConfig.WriteTo.Console();
+                loggerConfig.WriteTo.Console(formatProvider: CultureInfo.InvariantCulture);
             else
                 // One JSON object per line on stdout: the container-native contract, so
                 // any collector can parse it without a regex.

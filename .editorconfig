@@ -10,3 +10,8 @@ insert_final_newline = true
 
 [*.cs]
 indent_size = 4
+
+# EF writes these; marking them as what they are rather than restyling them.
+# The leading **/ matters — a bare Migrations/*.cs only matches at the repo root.
+[**/Migrations/*.cs]
+generated_code = true

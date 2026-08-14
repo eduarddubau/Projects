@@ -9,7 +9,7 @@ using Moq;
 
 namespace Backend.Tests.Services;
 
-public class DashboardServiceTests
+public sealed class DashboardServiceTests : IDisposable
 {
     private const int TrashWindowDays = 30;
 
@@ -149,4 +149,6 @@ public class DashboardServiceTests
         Assert.Equal(5, result.RecentProjects.Count);
         Assert.Equal(5, result.RecentUsers.Count);
     }
+
+    public void Dispose() => _context.Dispose();
 }

@@ -1,3 +1,4 @@
+using Backend.Config;
 using Backend.DTOs.User;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -11,7 +12,7 @@ namespace Backend.Controllers;
 [Route("api/[controller]")]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
-public class ProfileController : ControllerBase
+public partial class ProfileController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly ILogger<ProfileController> _logger;
@@ -33,7 +34,7 @@ public class ProfileController : ControllerBase
 
         if (profile is null)
         {
-            _logger.LogWarning("Profile requested for a user that no longer exists.");
+            LogProfileUserMissing();
             return NotFound(new { message = "Profile not found." });
         }
 
@@ -50,10 +51,16 @@ public class ProfileController : ControllerBase
 
         if (profile is null)
         {
-            _logger.LogWarning("Profile update attempted for a user that no longer exists.");
+            LogProfileUpdateUserMissing();
             return NotFound(new { message = "Profile not found." });
         }
 
         return Ok(profile);
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Profile requested for a user that no longer exists.")]
+    private partial void LogProfileUserMissing();
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Profile update attempted for a user that no longer exists.")]
+    private partial void LogProfileUpdateUserMissing();
 }

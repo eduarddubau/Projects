@@ -10,18 +10,18 @@ namespace Backend.Services;
 /// context should take it directly.</summary>
 public abstract class BaseService<T> where T : class, IAuditEntity
 {
-    protected readonly AppDbContext _context;
-    protected readonly ICurrentUserService _currentUser;
+    protected AppDbContext Context { get; }
+    protected ICurrentUserService CurrentUser { get; }
 
     protected BaseService(AppDbContext context, ICurrentUserService currentUser)
     {
-        _context = context;
-        _currentUser = currentUser;
+        Context = context;
+        CurrentUser = currentUser;
     }
 
     protected async Task<bool> SoftDeleteAnyByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var entity = await _context.Set<T>()
+        var entity = await Context.Set<T>()
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
@@ -33,14 +33,14 @@ public abstract class BaseService<T> where T : class, IAuditEntity
         entity.IsDeleted = true;
         entity.DeletedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync(ct);
+        await Context.SaveChangesAsync(ct);
 
         return true;
     }
 
     protected async Task<T?> RestoreAnyByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var entity = await _context.Set<T>()
+        var entity = await Context.Set<T>()
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
@@ -50,7 +50,7 @@ public abstract class BaseService<T> where T : class, IAuditEntity
         entity.IsDeleted = false;
         entity.DeletedAt = null;
 
-        await _context.SaveChangesAsync(ct);
+        await Context.SaveChangesAsync(ct);
 
         return entity;
     }

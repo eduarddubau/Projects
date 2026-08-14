@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace backend.Migrations
+namespace Backend.Migrations
 {
     /// <summary>
     /// Data-only: the schema is unchanged, so EF generated an empty migration and the body

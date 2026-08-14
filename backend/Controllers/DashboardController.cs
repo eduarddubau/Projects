@@ -1,3 +1,4 @@
+using Backend.Config;
 using Backend.DTOs.Dashboard;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;

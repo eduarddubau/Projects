@@ -1,4 +1,8 @@
 <Project>
+  <!-- MSBuild reads only the nearest Directory.Build.props, so the repo-root one
+       has to be imported by hand or its analyzer settings never reach this project. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)../))" />
+
   <PropertyGroup>
     <BaseIntermediateOutputPath>/tmp/build/obj/</BaseIntermediateOutputPath>
     <BaseOutputPath>/tmp/build/bin/</BaseOutputPath>

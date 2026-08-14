@@ -29,15 +29,15 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     // Bypasses the soft-delete interception below for this entity's next removal.
     public void MarkForHardDelete(object entity) => _hardDeleteOverrides.Add(entity);
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(modelBuilder);
+        base.OnModelCreating(builder);
 
-        modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
-        modelBuilder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
-        modelBuilder.Entity<Workspace>().HasQueryFilter(w => !w.IsDeleted);
+        builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
+        builder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
+        builder.Entity<Workspace>().HasQueryFilter(w => !w.IsDeleted);
 
-        modelBuilder.Entity<User>(entity =>
+        builder.Entity<User>(entity =>
         {
             // Uniqueness scoped to live rows: a soft-deleted account stops reserving its address.
             // Postgres enforces this atomically, which no validator can — Identity's checks read
@@ -67,7 +67,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(u => u.Nickname).HasMaxLength(30);
         });
 
-        modelBuilder.Entity<Project>(entity =>
+        builder.Entity<Project>(entity =>
         {
             entity.Property(p => p.Name).HasMaxLength(Project.NameMaxLength);
 
@@ -84,7 +84,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<Workspace>(entity =>
+        builder.Entity<Workspace>(entity =>
         {
             entity.HasOne(w => w.Creator)
                 .WithMany()
@@ -105,7 +105,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Ignore(w => w.Projects);
         });
 
-        modelBuilder.Entity<WorkspaceMember>(entity =>
+        builder.Entity<WorkspaceMember>(entity =>
         {
             entity.HasIndex(m => new { m.WorkspaceId, m.UserId }).IsUnique();
 
@@ -122,7 +122,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<Invitation>(entity =>
+        builder.Entity<Invitation>(entity =>
         {
             entity.HasIndex(i => new { i.WorkspaceId, i.NormalizedEmail });
             entity.HasIndex(i => i.TokenHash).IsUnique();
@@ -142,7 +142,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<RefreshToken>(entity =>
+        builder.Entity<RefreshToken>(entity =>
         {
             entity.HasIndex(rt => rt.TokenHash).IsUnique();
 

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Extensions;
 
-public static class MigrationExtensions
+public static partial class MigrationExtensions
 {
     public static async Task ApplyMigrationsAndSeedAsync(this WebApplication app)
     {
@@ -36,8 +36,11 @@ public static class MigrationExtensions
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred during migration or seeding.");
+            LogMigrationFailed(logger, ex);
             throw;
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred during migration or seeding.")]
+    private static partial void LogMigrationFailed(ILogger logger, Exception ex);
 }

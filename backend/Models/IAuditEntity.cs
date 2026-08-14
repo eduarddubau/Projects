@@ -1,3 +1,5 @@
+
+namespace Backend.Models;
 public interface IAuditEntity
 {
     Guid Id { get; set; }

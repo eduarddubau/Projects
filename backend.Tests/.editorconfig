@@ -1,0 +1,8 @@
+# Test-only relaxations. Nested rather than global so the same rules stay on for
+# backend/, where they are not conventions but defects.
+
+[*.cs]
+# Method_Scenario_ExpectedResult is the naming convention this suite is written
+# in — 492 hits, none of them a finding. The alternative is
+# CreateWorkspaceAsyncWithDuplicateNameThrows.
+dotnet_diagnostic.CA1707.severity = none
