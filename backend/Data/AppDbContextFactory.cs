@@ -48,5 +48,5 @@ public class DesignTimeUserService : Services.Interfaces.ICurrentUserService
     public string? FirstName => null;
     public string? LastName => null;
     public string? FullName => null;
-    public IEnumerable<string> Roles => Enumerable.Empty<string>();
+    public IEnumerable<string> Roles => [];
 }

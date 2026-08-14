@@ -32,8 +32,8 @@ public partial class RequestLoggingMiddleware
         var level = statusCode switch
         {
             >= StatusCodes.Status500InternalServerError => LogLevel.Error,
-            >= StatusCodes.Status400BadRequest          => LogLevel.Warning,
-            _                                          => LogLevel.Debug,
+            >= StatusCodes.Status400BadRequest => LogLevel.Warning,
+            _ => LogLevel.Debug,
         };
 
         if (!_logger.IsEnabled(level)) return;

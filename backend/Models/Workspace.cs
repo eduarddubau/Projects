@@ -12,8 +12,8 @@ public class Workspace : BaseEntity
     public string? Description { get; set; }
     public bool IsPersonal { get; set; }
 
-    public virtual ICollection<WorkspaceMember> Members { get; set; } = new List<WorkspaceMember>();
-    public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+    public virtual ICollection<WorkspaceMember> Members { get; set; } = [];
+    public virtual ICollection<Project> Projects { get; set; } = [];
 
     [ForeignKey("CreatedBy")]
     public virtual User? Creator { get; set; }

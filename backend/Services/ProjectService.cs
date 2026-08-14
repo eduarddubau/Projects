@@ -53,7 +53,7 @@ public class ProjectService : BaseService<Project>, IProjectService
             .Include(p => p.Updater)
             .FirstOrDefaultAsync(p => p.Id == id && p.CreatedBy == CurrentUser.UserGuid, ct);
 
-        return project is null ? null : project.MapToDto();
+        return project?.MapToDto();
     }
 
     public async Task<ProjectResponseDto> CreateProjectAsync(CreateProjectRequest dto, CancellationToken ct = default)
@@ -162,7 +162,7 @@ public class ProjectService : BaseService<Project>, IProjectService
             .Include(p => p.Updater)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
-        return project is null ? null : project.MapToDto();
+        return project?.MapToDto();
     }
 
     public Task<bool> DeleteAnyProjectByIdAsync(Guid id, CancellationToken ct = default) => SoftDeleteAnyByIdAsync(id, ct);

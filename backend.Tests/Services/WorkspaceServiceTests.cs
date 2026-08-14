@@ -18,7 +18,7 @@ public sealed class WorkspaceServiceTests : IDisposable
     private readonly AppDbContext _context;
     private readonly WorkspaceService _service;
 
-    private User _caller = null!;
+    private readonly User _caller = null!;
 
     public WorkspaceServiceTests()
     {

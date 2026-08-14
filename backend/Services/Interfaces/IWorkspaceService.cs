@@ -18,6 +18,6 @@ public interface IWorkspaceService
     Task<WorkspaceMemberResponseDto> ChangeRoleAsync(Guid id, Guid userId, WorkspaceRole newRole, CancellationToken ct = default);
     Task RemoveMemberAsync(Guid id, Guid userId, CancellationToken ct = default);
     Task LeaveAsync(Guid id, CancellationToken ct = default);
-    
+
     Task EnsurePersonalWorkspaceAsync(User user, CancellationToken ct = default);
 }

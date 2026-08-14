@@ -101,7 +101,7 @@ public class UserService : BaseService<User>, IUserService
             .Include(u => u.Updater)
             .FirstOrDefaultAsync(u => u.Id == id, ct);
 
-        return user is null ? null : user.MapToDto();
+        return user?.MapToDto();
     }
 
     public async Task<UserResponseDto> CreateUserAsync(CreateUserRequest dto, CancellationToken ct = default)
@@ -219,8 +219,8 @@ public class UserService : BaseService<User>, IUserService
         // A soft delete: the personal workspace is hidden from the user and cannot be restored.
         foreach (var workspace in personalWorkspaces)
         {
-           workspace.IsDeleted = true;
-           workspace.DeletedAt = now;
+            workspace.IsDeleted = true;
+            workspace.DeletedAt = now;
         }
 
         var tombstone = $"deleted-{user.Id:N}@anonymized.invalid";
@@ -273,6 +273,6 @@ public class UserService : BaseService<User>, IUserService
             (password[i], password[j]) = (password[j], password[i]);
         }
 
-        return new string(password.ToArray());
+        return new string([.. password]);
     }
 }

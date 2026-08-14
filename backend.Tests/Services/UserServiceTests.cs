@@ -201,7 +201,8 @@ public sealed class UserServiceTests : IDisposable
         _userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError
             {
-                Code = "DuplicateEmail", Description = "Email 'taken@example.com' is already taken."
+                Code = "DuplicateEmail",
+                Description = "Email 'taken@example.com' is already taken."
             }));
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateMyProfileAsync(

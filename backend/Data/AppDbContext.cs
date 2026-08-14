@@ -12,7 +12,7 @@ namespace Backend.Data;
 public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     private readonly ICurrentUserService _currentUserService;
-    private readonly HashSet<object> _hardDeleteOverrides = new();
+    private readonly HashSet<object> _hardDeleteOverrides = [];
 
     public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService)
         : base(options)
@@ -59,11 +59,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(u => u.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.Property(u => u.FirstName).HasMaxLength(50);
 
             entity.Property(u => u.LastName).HasMaxLength(50);
-            
+
             entity.Property(u => u.Nickname).HasMaxLength(30);
         });
 
@@ -159,9 +159,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         var now = DateTime.UtcNow;
 
         var entries = ChangeTracker.Entries<IAuditEntity>()
-            .Where(e => e.State == EntityState.Added ||
-                        e.State == EntityState.Modified ||
-                        e.State == EntityState.Deleted);
+            .Where(e => e.State is EntityState.Added or
+                        EntityState.Modified or
+                        EntityState.Deleted);
 
         foreach (var entityEntry in entries)
         {
@@ -221,10 +221,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         // resets the trace to this file and hides where the write actually came from.
         catch (DbUpdateException ex)
             when (ex.InnerException is PostgresException
-                  {
-                      SqlState: PostgresErrorCodes.UniqueViolation,
-                      ConstraintName: "UserNameIndex" or "EmailIndex"
-                  })
+            {
+                SqlState: PostgresErrorCodes.UniqueViolation,
+                ConstraintName: "UserNameIndex" or "EmailIndex"
+            })
         {
             // A unique index is the only check atomic with the insert, so it catches races
             // no service-layer guard can. Translated here because this is the last place
@@ -234,7 +234,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         }
         catch (DbUpdateException ex)
             when (ex.InnerException is PostgresException
-                  { SqlState: PostgresErrorCodes.StringDataRightTruncation })
+            { SqlState: PostgresErrorCodes.StringDataRightTruncation })
         {
             // 22001 doesn't carry a column name the way a unique violation carries a constraint
             // name, so this can't be specific. Reaching it means a validator is missing a length

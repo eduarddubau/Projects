@@ -39,7 +39,7 @@ public class TokenServiceTests
             FirstName = "Ada",
             LastName = "Lovelace"
         };
-        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([]);
 
         var token = await _service.CreateToken(user);
 
@@ -63,7 +63,7 @@ public class TokenServiceTests
             LastName = "Lovelace",
             Nickname = "Countess"
         };
-        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([]);
 
         var token = await _service.CreateToken(user);
 
@@ -81,7 +81,7 @@ public class TokenServiceTests
             FirstName = "Ada",
             LastName = "Lovelace"
         };
-        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string>());
+        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([]);
 
         var token = await _service.CreateToken(user);
 
@@ -93,7 +93,7 @@ public class TokenServiceTests
     public async Task CreateToken_IncludesRoleClaims()
     {
         var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
-        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { AppRoles.Admin });
+        _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([AppRoles.Admin]);
 
         var token = await _service.CreateToken(user);
 

@@ -19,7 +19,7 @@ public sealed class InvitationServiceTests : IDisposable
     private readonly AppDbContext _context;
     private readonly InvitationService _service;
 
-    private User _caller = null!;
+    private readonly User _caller = null!;
 
     public InvitationServiceTests()
     {

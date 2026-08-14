@@ -52,5 +52,5 @@ public class CurrentUserService : ICurrentUserService
         _httpContextAccessor.HttpContext?.User?.Claims
             .Where(c => c.Type == ClaimTypes.Role)
             .Select(c => c.Value)
-        ?? Enumerable.Empty<string>();
+        ?? [];
 }
