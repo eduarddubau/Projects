@@ -8,6 +8,10 @@
     <!-- The one category kept at All: this API issues credentials and tokens, and
          the first run of it found Random.Shared generating user passwords. -->
     <AnalysisModeSecurity>All</AnalysisModeSecurity>
+
+    <!-- IDExxxx rules are IDE-only on a command-line build unless this is set,
+         so without it the .editorconfig style rules never reach CI. -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
 </Project>
