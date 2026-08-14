@@ -37,8 +37,11 @@ jobs:
       - name: Restore
         run: dotnet restore fullstack-app.sln
 
+      # -warnaserror is the gate: analyzer and style violations are warnings
+      # locally so they don't block a work-in-progress build, and errors here.
+      # Mirrors the frontend job's `lint --max-warnings=0`.
       - name: Build
-        run: dotnet build fullstack-app.sln --configuration Release --no-restore
+        run: dotnet build fullstack-app.sln --configuration Release --no-restore -warnaserror
 
       # backend.Tests is entirely EF InMemory — no UseNpgsql anywhere — so this
       # job needs no database service.
