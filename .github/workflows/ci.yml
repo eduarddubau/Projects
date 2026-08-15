@@ -19,6 +19,17 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
+  # actionlint runs shellcheck over every `run:` block below.
+  workflows:
+    name: Workflow lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker://rhysd/actionlint:latest
+        with:
+          args: -color
+
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
@@ -44,11 +55,20 @@ jobs:
         run: dotnet build fullstack-app.sln --configuration Release --no-restore -warnaserror
 
       # backend.Tests is entirely EF InMemory — no UseNpgsql anywhere — so this
-      # job needs no database service.
-      # --solution, not a bare path: global.json selects Microsoft.Testing
-      # Platform mode, where positional targets are gone.
+      # job needs no database service. --solution, not a bare path: global.json
+      # selects Microsoft.Testing.Platform mode, where positional targets are gone.
       - name: Test
         run: dotnet test --solution fullstack-app.sln --configuration Release --no-build
+
+      # `dotnet list` exits 0 even when it reports a High advisory, so the text
+      # is the gate, not the exit code.
+      - name: Audit dependencies
+        run: |
+          dotnet list fullstack-app.sln package --vulnerable --include-transitive | tee audit.log
+          if grep -q 'has the following vulnerable packages' audit.log; then
+            echo "::error::Vulnerable NuGet packages found"
+            exit 1
+          fi
 
   frontend:
     name: Frontend tests
