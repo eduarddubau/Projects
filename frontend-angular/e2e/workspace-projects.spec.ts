@@ -72,6 +72,32 @@ test.describe('Workspace-scoped projects', () => {
     await expect(page.getByText('Project updated.')).toBeVisible();
   });
 
+  test('an owner moves a project between workspaces and the URL follows', async ({ page }) => {
+    await login(page, 'dev1@example.com');
+
+    // A project of its own, so a rerun never fights the seeded ones over a name.
+    const name = `Movable ${Date.now()}`;
+    await page.locator('.nav-inline a', { hasText: 'Projects' }).click();
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects$/);
+    const personalId = new URL(page.url()).pathname.split('/')[2];
+
+    await page.getByRole('button', { name: 'New Project' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Name').fill(name);
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Project created.')).toBeVisible();
+
+    await page.locator('tr', { hasText: name }).click();
+    await expect(page).toHaveURL(new RegExp(`/w/${personalId}/projects/[0-9a-f-]+$`));
+
+    await page.getByRole('button', { name: 'Move to workspace' }).click();
+    await page.getByRole('menuitem', { name: 'Acme Team' }).click();
+
+    await expect(page.getByText('Project moved to Acme Team.')).toBeVisible();
+    await expect(page).not.toHaveURL(new RegExp(`/w/${personalId}/`));
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects\/[0-9a-f-]+$/);
+  });
+
   test('the owner of the workspace is offered delete', async ({ page }) => {
     await login(page, 'dev1@example.com');
     await openAcmeProjects(page);

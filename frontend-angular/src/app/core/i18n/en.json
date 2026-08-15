@@ -289,7 +289,9 @@
       "createdAt": "Created at",
       "updatedBy": "Last updated by",
       "updatedAt": "Last updated",
-      "projectId": "Project ID"
+      "projectId": "Project ID",
+      "moveTo": "Move to workspace",
+      "noOtherWorkspaces": "No other workspaces"
     },
     "form": {
       "editTitle": "Edit Project",
@@ -329,7 +331,9 @@
       "deleted": "Project deleted.",
       "deleteFailed": "Failed to delete project.",
       "restored": "Project restored.",
-      "restoreFailed": "Failed to restore project."
+      "restoreFailed": "Failed to restore project.",
+      "moved": "Project moved to {{name}}.",
+      "moveFailed": "Failed to move project."
     },
     "confirmDelete": {
       "title": "Delete Project",

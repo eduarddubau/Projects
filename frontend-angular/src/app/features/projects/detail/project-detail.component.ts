@@ -16,15 +16,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { ProjectService } from '@core/services/project.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { LanguageService } from '@core/services/language.service';
 import { Project } from '@core/models/project';
+import { Workspace } from '@core/models/workspace';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 
@@ -41,9 +43,11 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
+    MatMenuModule,
     DatePipe,
     AuroraComponent,
     TranslocoDirective,
+    TranslocoPipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -78,6 +82,14 @@ export class ProjectDetailComponent {
     if (!this.project.hasValue()) return false;
     const holder = this.project.value().workspaceId;
     return this.workspaceContext.workspaces().find((w) => w.id === holder)?.myRole === 'Owner';
+  });
+
+  // Everywhere the caller belongs that isn't already holding it. Membership of the
+  // target is all the API asks for; ownership is only required of the source.
+  moveTargets = computed<Workspace[]>(() => {
+    if (!this.project.hasValue()) return [];
+    const holder = this.project.value().workspaceId;
+    return this.workspaceContext.workspaces().filter((w) => w.id !== holder);
   });
 
   form = this.fb.nonNullable.group({
@@ -131,6 +143,34 @@ export class ProjectDetailComponent {
               { duration: 5000 },
             ),
         });
+      });
+  }
+
+  moveTo(project: Project, target: Workspace): void {
+    this.projectService
+      .moveProject(project.id, target.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (moved) => {
+          this.project.set(moved);
+          this.cdr.markForCheck();
+          this.snackBar.open(
+            this.transloco.translate('projects.notifications.moved', { name: moved.workspaceName }),
+            this.transloco.translate('common.actions.close'),
+            { duration: 3000 },
+          );
+
+          // Keep the URL honest: the path still names the workspace it came from.
+          this.router.navigate(['/w', moved.workspaceId, 'projects', moved.id], {
+            replaceUrl: true,
+          });
+        },
+        error: (err) =>
+          this.snackBar.open(
+            this.transloco.translate(serverErrorKey(err, 'projects.notifications.moveFailed')),
+            this.transloco.translate('common.actions.close'),
+            { duration: 5000 },
+          ),
       });
   }
 

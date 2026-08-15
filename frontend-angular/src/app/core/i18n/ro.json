@@ -289,7 +289,9 @@
       "createdAt": "Creat la",
       "updatedBy": "Ultima actualizare de",
       "updatedAt": "Ultima actualizare",
-      "projectId": "ID proiect"
+      "projectId": "ID proiect",
+      "moveTo": "Mută în spațiul de lucru",
+      "noOtherWorkspaces": "Nu ai alte spații de lucru"
     },
     "form": {
       "editTitle": "Editează proiectul",
@@ -329,7 +331,9 @@
       "deleted": "Proiectul a fost șters.",
       "deleteFailed": "Proiectul nu a putut fi șters.",
       "restored": "Proiectul a fost restaurat.",
-      "restoreFailed": "Proiectul nu a putut fi restaurat."
+      "restoreFailed": "Proiectul nu a putut fi restaurat.",
+      "moved": "Proiect mutat în {{name}}.",
+      "moveFailed": "Proiectul nu a putut fi mutat."
     },
     "confirmDelete": {
       "title": "Șterge proiectul",
