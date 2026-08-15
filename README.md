@@ -17,7 +17,7 @@ A full-stack project management application — ASP.NET Core 10 API, Angular 22 
 - **Authentication** — JWT bearer access tokens plus rotating refresh tokens with reuse detection: tokens are stored hashed, every refresh rotates the token, and reuse of a revoked token revokes the user's whole token family. Role-based authorization policies (Admin / User) on top of ASP.NET Identity.
 - **Hybrid SSR** — public pages are server-rendered for first paint and SEO; authenticated routes are client-rendered. This keeps the API a client-agnostic, token-based JSON contract that a future mobile client can consume unchanged.
 - **GDPR-aware deletion model** — soft delete with a dedicated trash area. Projects can be hard-purged after a retention window; user erasure is implemented as anonymization (PII scrubbed, row retained) because audit foreign keys (`created_by`/`updated_by`) reference users with `Restrict` semantics.
-- **Ownership enforced at the query level** — services scope reads and writes by the authenticated user's id inside the SQL query, not after fetching.
+- **Workspaces** — every project belongs to a workspace, and every user gets a personal one on registration. Shared workspaces are the same entity with more members: owners invite by email (a known address joins immediately, an unknown one gets a redeemable token), members contribute, and owners alone can remove or move a project. Access is enforced inside the SQL query as a membership subquery, not after fetching, and a non-member gets 404 rather than 403 — existence and access are deliberately indistinguishable.
 - **Cross-cutting hygiene** — automatic audit stamping in the DbContext, global exception handling with RFC 9457 ProblemDetails, request validation via FluentValidation, health checks (`/health`), OpenAPI with a Scalar reference UI in development.
 
 ## Getting started
@@ -71,4 +71,4 @@ compose.yaml        Dev stack: api, db, frontend (+ e2e profile)
 
 ## Status
 
-Actively developed. Current focus is production hardening: rate limiting and account lockout, CI, a production deployment target with TLS, and the account lifecycle (email confirmation, password reset).
+Actively developed. Workspaces and workspace-scoped project access are in place. Current focus is production hardening: rate limiting and account lockout, a production deployment target with TLS, and the account lifecycle (email confirmation, password reset).
