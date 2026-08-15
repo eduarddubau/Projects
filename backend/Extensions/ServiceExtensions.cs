@@ -10,8 +10,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Backend.Config;
+using Backend.Filters;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -54,7 +54,7 @@ public static class ServiceExtensions
         IConfiguration config,
         IWebHostEnvironment env)
     {
-        services.AddControllers()
+        services.AddControllers(options => options.Filters.Add<FluentValidationFilter>())
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
@@ -62,7 +62,6 @@ public static class ServiceExtensions
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
-        services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssemblyContaining<Program>();
 
         services.AddHttpContextAccessor();
