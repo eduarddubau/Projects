@@ -12,15 +12,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260804201802_AddInvitationAuditFields")]
-    partial class AddInvitationAuditFields
+    [Migration("20260815143916_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -87,6 +87,9 @@ namespace Backend.Migrations
                     b.HasKey("Id")
                         .HasName("pk_invitations");
 
+                    b.HasIndex("InvitedBy")
+                        .HasDatabaseName("ix_invitations_invited_by");
+
                     b.HasIndex("TokenHash")
                         .IsUnique()
                         .HasDatabaseName("ix_invitations_token_hash");
@@ -117,7 +120,8 @@ namespace Backend.Migrations
                         .HasColumnName("deleted_at");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("description");
 
                     b.Property<bool>("IsDeleted")
@@ -126,7 +130,8 @@ namespace Backend.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
                         .HasColumnName("name");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -137,6 +142,10 @@ namespace Backend.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workspace_id");
+
                     b.HasKey("Id")
                         .HasName("pk_projects");
 
@@ -145,6 +154,9 @@ namespace Backend.Migrations
 
                     b.HasIndex("UpdatedBy")
                         .HasDatabaseName("ix_projects_updated_by");
+
+                    b.HasIndex("WorkspaceId")
+                        .HasDatabaseName("ix_projects_workspace_id");
 
                     b.ToTable("projects", (string)null);
                 });
@@ -318,11 +330,14 @@ namespace Backend.Migrations
                         .HasDatabaseName("ix_asp_net_users_created_by");
 
                     b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
+                        .IsUnique()
+                        .HasDatabaseName("EmailIndex")
+                        .HasFilter("is_deleted = false");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("is_deleted = false");
 
                     b.HasIndex("UpdatedBy")
                         .HasDatabaseName("ix_asp_net_users_updated_by");
@@ -589,12 +604,21 @@ namespace Backend.Migrations
 
             modelBuilder.Entity("Backend.Models.Invitation", b =>
                 {
+                    b.HasOne("Backend.Models.User", "Inviter")
+                        .WithMany()
+                        .HasForeignKey("InvitedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_invitations_users_invited_by");
+
                     b.HasOne("Backend.Models.Workspace", "Workspace")
                         .WithMany()
                         .HasForeignKey("WorkspaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_invitations_workspaces_workspace_id");
+
+                    b.Navigation("Inviter");
 
                     b.Navigation("Workspace");
                 });
@@ -613,9 +637,18 @@ namespace Backend.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_projects_users_updated_by");
 
+                    b.HasOne("Backend.Models.Workspace", "Workspace")
+                        .WithMany("Projects")
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_projects_workspaces_workspace_id");
+
                     b.Navigation("Creator");
 
                     b.Navigation("Updater");
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("Backend.Models.RefreshToken", b =>
@@ -747,6 +780,8 @@ namespace Backend.Migrations
             modelBuilder.Entity("Backend.Models.Workspace", b =>
                 {
                     b.Navigation("Members");
+
+                    b.Navigation("Projects");
                 });
 #pragma warning restore 612, 618
         }

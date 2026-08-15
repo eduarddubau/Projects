@@ -121,8 +121,17 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
                 "Your personal workspace cannot be deleted."
             );
 
-        // TODO(stage 2): also refuse when the workspace holds any project, active or trashed.
-        // Not expressible until Project.WorkspaceId exists.
+        // IgnoreQueryFilters: a trashed project still pins the workspace, or restoring it
+        // later drops it into one nobody can reach.
+        bool hasProjects = await Context
+            .Projects.IgnoreQueryFilters()
+            .AnyAsync(p => p.WorkspaceId == id, ct);
+
+        if (hasProjects)
+            throw new BusinessRuleException(
+                BusinessRuleCodes.WorkspaceHasProjects,
+                "This workspace still holds projects."
+            );
 
         // Not Remove(): WorkspaceMember cascades from Workspace, so removing the principal
         // would hard-delete the membership rows this workspace needs to come back.

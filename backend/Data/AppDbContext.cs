@@ -88,6 +88,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(p => p.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Restrict, so a workspace cannot vanish under its projects. A hard delete
+            // then throws an FK violation, which is why DeleteWorkspaceAsync refuses first.
+            entity
+                .HasOne(p => p.Workspace)
+                .WithMany(w => w.Projects)
+                .HasForeignKey(p => p.WorkspaceId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<Workspace>(entity =>
@@ -107,10 +115,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(w => w.Name).HasMaxLength(Workspace.NameMaxLength);
 
             entity.Property(w => w.Description).HasMaxLength(Workspace.DescriptionMaxLength);
-
-            // Project.WorkspaceId doesn't exist until later — without this,
-            // EF's convention discovery invents a shadow FK on projects right now instead.
-            entity.Ignore(w => w.Projects);
         });
 
         builder.Entity<WorkspaceMember>(entity =>

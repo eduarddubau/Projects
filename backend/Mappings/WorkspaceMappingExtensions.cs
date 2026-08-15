@@ -18,8 +18,9 @@ public static class WorkspaceMappingExtensions
             IsPersonal = w.IsPersonal,
             MyRole = w.Members.Where(m => m.UserId == userId).Select(m => m.Role).FirstOrDefault(),
             MemberCount = w.Members.Count,
-            // ProjectCount stays 0 until Stage 2 adds Project.WorkspaceId; the Projects
-            // navigation is still Ignore()d in OnModelCreating, so there is nothing to count.
+            // Explicit predicate, not w.Projects.Count: GetDeletedWorkspacesAsync runs
+            // under IgnoreQueryFilters, where the soft-delete filter would not apply.
+            ProjectCount = w.Projects.Count(p => !p.IsDeleted),
             IsDeleted = w.IsDeleted,
             DeletedAt = w.DeletedAt,
             CreatedAt = w.CreatedAt,

@@ -259,6 +259,57 @@ public sealed class WorkspaceServiceTests : IDisposable
         );
     }
 
+    private Project AddProject(string name, Guid workspaceId, bool trashed = false)
+    {
+        var project = new Project
+        {
+            Name = name,
+            WorkspaceId = workspaceId,
+            CreatedBy = _caller.Id,
+        };
+
+        _context.Projects.Add(project);
+        _context.SaveChanges();
+
+        if (trashed)
+        {
+            // SaveChanges forces IsDeleted = false on Added, so trash it in a second pass.
+            project.IsDeleted = true;
+            project.DeletedAt = DateTime.UtcNow;
+            _context.SaveChanges();
+        }
+
+        return project;
+    }
+
+    [Fact]
+    public async Task DeleteWorkspaceAsync_WhenItHoldsProjects_IsRefused()
+    {
+        var shared = AddWorkspace("Acme Team", isPersonal: false, (_caller, WorkspaceRole.Owner));
+        AddProject("Live one", shared.Id);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.DeleteWorkspaceAsync(shared.Id, TestContext.Current.CancellationToken)
+        );
+
+        Assert.Equal(BusinessRuleCodes.WorkspaceHasProjects, ex.Code);
+    }
+
+    // The IgnoreQueryFilters case: without it the guard sees an empty workspace and the
+    // project comes back, on restore, into somewhere no member can reach.
+    [Fact]
+    public async Task DeleteWorkspaceAsync_WhenItHoldsOnlyTrashedProjects_IsStillRefused()
+    {
+        var shared = AddWorkspace("Acme Team", isPersonal: false, (_caller, WorkspaceRole.Owner));
+        AddProject("Trashed one", shared.Id, trashed: true);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.DeleteWorkspaceAsync(shared.Id, TestContext.Current.CancellationToken)
+        );
+
+        Assert.Equal(BusinessRuleCodes.WorkspaceHasProjects, ex.Code);
+    }
+
     [Fact]
     public async Task DeleteWorkspaceAsync_SoftDeletesRatherThanPurging()
     {

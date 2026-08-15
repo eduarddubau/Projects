@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -181,12 +181,103 @@ namespace Backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "refresh_tokens",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    token_hash = table.Column<string>(type: "text", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    revoked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    replaced_by_token_hash = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_refresh_tokens", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_refresh_tokens_asp_net_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "workspaces",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(60)", maxLength: 60, nullable: false),
+                    description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    is_personal = table.Column<bool>(type: "boolean", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    created_by = table.Column<Guid>(type: "uuid", nullable: true),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    updated_by = table.Column<Guid>(type: "uuid", nullable: true),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_workspaces", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_workspaces_users_created_by",
+                        column: x => x.created_by,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_workspaces_users_updated_by",
+                        column: x => x.updated_by,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "invitations",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    workspace_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    email = table.Column<string>(type: "text", nullable: false),
+                    normalized_email = table.Column<string>(type: "text", nullable: false),
+                    role = table.Column<string>(type: "text", nullable: false),
+                    token_hash = table.Column<string>(type: "text", nullable: false),
+                    invited_by = table.Column<Guid>(type: "uuid", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    accepted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    accepted_by = table.Column<Guid>(type: "uuid", nullable: true),
+                    revoked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    revoked_by = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_invitations", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_invitations_users_invited_by",
+                        column: x => x.invited_by,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_invitations_workspaces_workspace_id",
+                        column: x => x.workspace_id,
+                        principalTable: "workspaces",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "projects",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    name = table.Column<string>(type: "text", nullable: false),
-                    description = table.Column<string>(type: "text", nullable: true),
+                    name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    workspace_id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: true),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -209,27 +300,37 @@ namespace Backend.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_projects_workspaces_workspace_id",
+                        column: x => x.workspace_id,
+                        principalTable: "workspaces",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "refresh_tokens",
+                name: "workspace_members",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    token_hash = table.Column<string>(type: "text", nullable: false),
+                    workspace_id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    revoked_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    replaced_by_token_hash = table.Column<string>(type: "text", nullable: true)
+                    role = table.Column<string>(type: "text", nullable: false),
+                    joined_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_refresh_tokens", x => x.id);
+                    table.PrimaryKey("pk_workspace_members", x => x.id);
                     table.ForeignKey(
-                        name: "fk_refresh_tokens_asp_net_users_user_id",
+                        name: "fk_workspace_members_users_user_id",
                         column: x => x.user_id,
                         principalTable: "AspNetUsers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_workspace_members_workspaces_workspace_id",
+                        column: x => x.workspace_id,
+                        principalTable: "workspaces",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -263,7 +364,9 @@ namespace Backend.Migrations
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "AspNetUsers",
-                column: "normalized_email");
+                column: "normalized_email",
+                unique: true,
+                filter: "is_deleted = false");
 
             migrationBuilder.CreateIndex(
                 name: "ix_asp_net_users_created_by",
@@ -279,7 +382,24 @@ namespace Backend.Migrations
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "normalized_user_name",
+                unique: true,
+                filter: "is_deleted = false");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_invitations_invited_by",
+                table: "invitations",
+                column: "invited_by");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_invitations_token_hash",
+                table: "invitations",
+                column: "token_hash",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_invitations_workspace_id_normalized_email",
+                table: "invitations",
+                columns: new[] { "workspace_id", "normalized_email" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_projects_created_by",
@@ -292,6 +412,11 @@ namespace Backend.Migrations
                 column: "updated_by");
 
             migrationBuilder.CreateIndex(
+                name: "ix_projects_workspace_id",
+                table: "projects",
+                column: "workspace_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_refresh_tokens_token_hash",
                 table: "refresh_tokens",
                 column: "token_hash",
@@ -301,6 +426,27 @@ namespace Backend.Migrations
                 name: "ix_refresh_tokens_user_id",
                 table: "refresh_tokens",
                 column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_workspace_members_user_id",
+                table: "workspace_members",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_workspace_members_workspace_id_user_id",
+                table: "workspace_members",
+                columns: new[] { "workspace_id", "user_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_workspaces_created_by",
+                table: "workspaces",
+                column: "created_by");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_workspaces_updated_by",
+                table: "workspaces",
+                column: "updated_by");
         }
 
         /// <inheritdoc />
@@ -322,13 +468,22 @@ namespace Backend.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "invitations");
+
+            migrationBuilder.DropTable(
                 name: "projects");
 
             migrationBuilder.DropTable(
                 name: "refresh_tokens");
 
             migrationBuilder.DropTable(
+                name: "workspace_members");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "workspaces");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

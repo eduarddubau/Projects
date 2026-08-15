@@ -83,7 +83,23 @@ public class ProjectService : BaseService<Project>, IProjectService
                 "You already have a project with this name."
             );
 
-        var project = new Project { Name = dto.Name, Description = dto.Description };
+        // Step 16 makes the workspace an explicit parameter. Until it does, creation
+        // still has to name one, or the required FK rejects the row as a 500.
+        var workspaceId =
+            await Context
+                .Workspaces.Where(w =>
+                    w.IsPersonal && w.Members.Any(m => m.UserId == CurrentUser.UserGuid)
+                )
+                .Select(w => (Guid?)w.Id)
+                .FirstOrDefaultAsync(ct)
+            ?? throw new NotFoundException("You have no personal workspace.");
+
+        var project = new Project
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            WorkspaceId = workspaceId,
+        };
 
         Context.Projects.Add(project);
         await Context.SaveChangesAsync(ct);

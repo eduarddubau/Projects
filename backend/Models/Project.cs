@@ -11,6 +11,11 @@ public class Project : BaseEntity
     public required string Name { get; set; }
     public string? Description { get; set; }
 
+    public Guid WorkspaceId { get; set; }
+
+    // Nullable nav, required FK: "not loaded" and "no workspace" are different states.
+    public virtual Workspace? Workspace { get; set; }
+
     [ForeignKey("CreatedBy")]
     public virtual User? Creator { get; set; }
 

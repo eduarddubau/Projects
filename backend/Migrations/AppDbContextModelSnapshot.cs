@@ -17,7 +17,7 @@ namespace Backend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -139,6 +139,10 @@ namespace Backend.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("updated_by");
 
+                    b.Property<Guid>("WorkspaceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("workspace_id");
+
                     b.HasKey("Id")
                         .HasName("pk_projects");
 
@@ -147,6 +151,9 @@ namespace Backend.Migrations
 
                     b.HasIndex("UpdatedBy")
                         .HasDatabaseName("ix_projects_updated_by");
+
+                    b.HasIndex("WorkspaceId")
+                        .HasDatabaseName("ix_projects_workspace_id");
 
                     b.ToTable("projects", (string)null);
                 });
@@ -627,9 +634,18 @@ namespace Backend.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("fk_projects_users_updated_by");
 
+                    b.HasOne("Backend.Models.Workspace", "Workspace")
+                        .WithMany("Projects")
+                        .HasForeignKey("WorkspaceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_projects_workspaces_workspace_id");
+
                     b.Navigation("Creator");
 
                     b.Navigation("Updater");
+
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("Backend.Models.RefreshToken", b =>
@@ -761,6 +777,8 @@ namespace Backend.Migrations
             modelBuilder.Entity("Backend.Models.Workspace", b =>
                 {
                     b.Navigation("Members");
+
+                    b.Navigation("Projects");
                 });
 #pragma warning restore 612, 618
         }

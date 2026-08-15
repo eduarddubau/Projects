@@ -474,7 +474,8 @@
       "personalNotLeavable": "Nu poți părăsi spațiul tău de lucru personal.",
       "alreadyMember": "Acest utilizator este deja membru al spațiului de lucru.",
       "mustHaveOwner": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar.",
-      "personalNotRenamable": "Spațiul de lucru personal nu poate fi redenumit."
+      "personalNotRenamable": "Spațiul de lucru personal nu poate fi redenumit.",
+      "hasProjects": "Acest spațiu de lucru conține încă proiecte. Mută-le sau șterge-le mai întâi."
     },
     "switcher": {
       "label": "Schimbă spațiul de lucru",

@@ -1,7 +1,9 @@
 using Backend.Data;
 using Backend.DTOs.TestSeed;
+using Backend.Exceptions;
 using Backend.Models;
 using Backend.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
@@ -14,10 +16,12 @@ namespace Backend.Services;
 public class TestSeedService : ITestSeedService
 {
     private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public TestSeedService(AppDbContext context)
+    public TestSeedService(AppDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<IReadOnlyList<SeededProjectDto>> SeedDeletedProjectsAsync(
@@ -27,11 +31,23 @@ public class TestSeedService : ITestSeedService
     {
         var items = request.Projects;
 
+        // (Guid?), not Guid: a projected value type comes back as Guid.Empty when there
+        // is no row, and Guid.Empty would fail the FK rather than say what went wrong.
+        var workspaceId =
+            await _context
+                .Workspaces.Where(w =>
+                    w.IsPersonal && w.Members.Any(m => m.UserId == _currentUser.UserGuid)
+                )
+                .Select(w => (Guid?)w.Id)
+                .FirstOrDefaultAsync(ct)
+            ?? throw new NotFoundException("The caller has no personal workspace to seed into.");
+
         var projects = items
             .Select(p => new Project
             {
                 Name = p.Name,
                 Description = "Seeded by an E2E test.",
+                WorkspaceId = workspaceId,
                 // CreatedBy is set to the current user by the audit hook in SaveChanges.
             })
             .ToList();

@@ -17,6 +17,7 @@ public sealed class ProjectServiceTests : IDisposable
     private readonly AppDbContext _context;
     private readonly ProjectService _service;
     private readonly Guid _userId = Guid.NewGuid();
+    private readonly Workspace _personalWorkspace;
     private const int TrashWindowDays = 30;
 
     public ProjectServiceTests()
@@ -33,6 +34,26 @@ public sealed class ProjectServiceTests : IDisposable
         );
 
         _currentUser.Setup(c => c.UserGuid).Returns(_userId);
+
+        // CreateProjectAsync resolves the caller's personal workspace, and Project.WorkspaceId
+        // is required. Fixtures that skip this write Guid.Empty, which InMemory accepts and
+        // Postgres rejects — see step 16.
+        _personalWorkspace = new Workspace
+        {
+            Name = "Caller's Workspace",
+            IsPersonal = true,
+            Members =
+            {
+                new WorkspaceMember
+                {
+                    UserId = _userId,
+                    Role = WorkspaceRole.Owner,
+                    JoinedAt = DateTime.UtcNow,
+                },
+            },
+        };
+        _context.Workspaces.Add(_personalWorkspace);
+        _context.SaveChanges();
     }
 
     private Project AddProject(
@@ -46,6 +67,7 @@ public sealed class ProjectServiceTests : IDisposable
         {
             Name = name,
             CreatedBy = createdBy,
+            WorkspaceId = _personalWorkspace.Id,
             IsDeleted = isDeleted,
             DeletedAt = deletedAt,
         };

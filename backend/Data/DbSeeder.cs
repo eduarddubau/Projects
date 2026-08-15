@@ -28,18 +28,16 @@ public static partial class DbSeeder
         await SeedRolesAsync(roleManager, logger);
         await SeedAdminAsync(userManager, logger, adminOptions);
 
-        if (isDevelopment)
-        {
-            await SeedDevelopmentDataAsync(
-                userManager,
-                context,
-                logger,
-                retentionOptions,
-                normalizer
-            );
-        }
+        // Users, then workspaces, then anything that belongs to one. Project.WorkspaceId
+        // is required, so a project cannot be written before its workspace exists.
+        var devUsers = isDevelopment
+            ? await SeedDevelopmentUsersAsync(userManager, context, logger, normalizer)
+            : [];
 
         await SeedPersonalWorkspacesAsync(context, workspaceService, logger);
+
+        if (isDevelopment)
+            await SeedDevelopmentContentAsync(context, logger, retentionOptions, devUsers);
 
         LogSeedingCompleted(logger);
     }
@@ -105,11 +103,10 @@ public static partial class DbSeeder
         await userManager.AddToRoleAsync(admin, AppRoles.Admin);
     }
 
-    private static async Task SeedDevelopmentDataAsync(
+    private static async Task<List<User>> SeedDevelopmentUsersAsync(
         UserManager<User> userManager,
         AppDbContext context,
         ILogger logger,
-        ProjectRetentionOptions retentionOptions,
         ILookupNormalizer normalizer
     )
     {
@@ -118,20 +115,51 @@ public static partial class DbSeeder
         for (var index = 1; index <= UserCount; index++)
         {
             var user = await SeedUserAsync(userManager, context, logger, normalizer, index);
-            if (user is null)
-                continue;
+            if (user is not null)
+                devUsers.Add(user);
+        }
 
-            devUsers.Add(user);
+        return devUsers;
+    }
+
+    private static async Task SeedDevelopmentContentAsync(
+        AppDbContext context,
+        ILogger logger,
+        ProjectRetentionOptions retentionOptions,
+        List<User> devUsers
+    )
+    {
+        var sharedWorkspaceId = await SeedSharedWorkspaceAsync(context, logger, devUsers);
+
+        for (var index = 1; index <= devUsers.Count; index++)
+        {
+            var user = devUsers[index - 1];
+
+            // (Guid?), not Guid: a projected value type comes back as Guid.Empty when
+            // there is no row, which reads as a real id.
+            var personalWorkspaceId = await context
+                .Workspaces.Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == user.Id))
+                .Select(w => (Guid?)w.Id)
+                .FirstOrDefaultAsync();
+
+            if (personalWorkspaceId is null)
+            {
+                LogNoPersonalWorkspace(logger, user.Email);
+                continue;
+            }
+
             await SeedProjectsForUserAsync(
                 context,
                 logger,
                 user,
                 index,
-                retentionOptions.TrashWindowDays
+                retentionOptions.TrashWindowDays,
+                personalWorkspaceId.Value
             );
         }
 
-        await SeedSharedWorkspaceAsync(context, logger, devUsers);
+        if (sharedWorkspaceId is not null)
+            await SeedSharedProjectsAsync(context, logger, devUsers, sharedWorkspaceId.Value);
     }
 
     /// <summary>Delegates to the service rather than reimplementing it: this used to be a
@@ -235,10 +263,11 @@ public static partial class DbSeeder
         ILogger logger,
         User user,
         int index,
-        int trashWindowDays
+        int trashWindowDays,
+        Guid workspaceId
     )
     {
-        if (await context.Projects.AnyAsync(p => p.CreatedBy == user.Id))
+        if (await context.Projects.AnyAsync(p => p.WorkspaceId == workspaceId))
         {
             LogUserHasProjects(logger, user.Email);
             return;
@@ -253,12 +282,14 @@ public static partial class DbSeeder
                 Name = $"{user.FirstName}'s First Project",
                 Description = "Automatically generated starter project.",
                 CreatedBy = user.Id,
+                WorkspaceId = workspaceId,
             },
             new Project
             {
                 Name = $"Ongoing Research Project no {index}",
                 Description = "A project for tracking long-term goals.",
                 CreatedBy = user.Id,
+                WorkspaceId = workspaceId,
             },
         };
 
@@ -282,6 +313,7 @@ public static partial class DbSeeder
                         ? "Soft-deleted recently; still within the trash retention window."
                         : $"Soft-deleted {ageDays} days ago; past the {trashWindowDays}-day retention window.",
                 CreatedBy = user.Id,
+                WorkspaceId = workspaceId,
             })
             .ToArray();
 
@@ -302,7 +334,7 @@ public static partial class DbSeeder
 
     /// <summary>One shared workspace so the switcher, the members page and the multi-owner
     /// and last-owner guards have something real to run against.</summary>
-    private static async Task SeedSharedWorkspaceAsync(
+    private static async Task<Guid?> SeedSharedWorkspaceAsync(
         AppDbContext context,
         ILogger logger,
         List<User> devUsers
@@ -313,13 +345,18 @@ public static partial class DbSeeder
         if (devUsers.Count == 0)
         {
             LogNoDevUsersForSharedWorkspace(logger);
-            return;
+            return null;
         }
 
-        if (await context.Workspaces.AnyAsync(w => !w.IsPersonal && w.Name == sharedName))
+        var existingId = await context
+            .Workspaces.Where(w => !w.IsPersonal && w.Name == sharedName)
+            .Select(w => (Guid?)w.Id)
+            .FirstOrDefaultAsync();
+
+        if (existingId is not null)
         {
             LogSharedWorkspaceExists(logger);
-            return;
+            return existingId;
         }
 
         LogSeedingSharedWorkspace(logger, sharedName);
@@ -347,6 +384,42 @@ public static partial class DbSeeder
         }
 
         context.Workspaces.Add(workspace);
+        await context.SaveChangesAsync();
+
+        return workspace.Id;
+    }
+
+    /// <summary>Projects owned by the shared workspace rather than by one person, so the
+    /// members-see-each-other's-work behaviour has something to run against.</summary>
+    private static async Task SeedSharedProjectsAsync(
+        AppDbContext context,
+        ILogger logger,
+        List<User> devUsers,
+        Guid workspaceId
+    )
+    {
+        if (await context.Projects.AnyAsync(p => p.WorkspaceId == workspaceId))
+            return;
+
+        LogSeedingSharedProjects(logger);
+
+        context.Projects.AddRange(
+            new Project
+            {
+                Name = "Acme Website Redesign",
+                Description = "Shared workspace project, created by the owner.",
+                CreatedBy = devUsers[0].Id,
+                WorkspaceId = workspaceId,
+            },
+            new Project
+            {
+                Name = "Acme Q3 Roadmap",
+                Description = "Shared workspace project, created by another member.",
+                CreatedBy = devUsers[^1].Id,
+                WorkspaceId = workspaceId,
+            }
+        );
+
         await context.SaveChangesAsync();
     }
 
@@ -421,4 +494,16 @@ public static partial class DbSeeder
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeding shared workspace: {name}")]
     private static partial void LogSeedingSharedWorkspace(ILogger logger, string name);
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Seeding projects for the shared workspace."
+    )]
+    private static partial void LogSeedingSharedProjects(ILogger logger);
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "No personal workspace for {email}. Skipping their projects."
+    )]
+    private static partial void LogNoPersonalWorkspace(ILogger logger, string? email);
 }

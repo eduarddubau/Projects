@@ -10,6 +10,7 @@ const SERVER_ERROR_KEYS: Record<string, string> = {
   PersonalWorkspaceNoMembers: 'workspaces.serverErrors.personalNoMembers',
   PersonalWorkspaceNotLeavable: 'workspaces.serverErrors.personalNotLeavable',
   AlreadyWorkspaceMember: 'workspaces.serverErrors.alreadyMember',
+  WorkspaceHasProjects: 'workspaces.serverErrors.hasProjects',
   WorkspaceMustHaveOwner: 'workspaces.serverErrors.mustHaveOwner',
   SoleOwnerOfWorkspaces: 'admin.users.serverErrors.soleOwnerOfWorkspaces',
   EmailReclaimed: 'admin.trashUsers.serverErrors.emailReclaimed',

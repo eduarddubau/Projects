@@ -474,7 +474,8 @@
       "personalNotLeavable": "You cannot leave your personal workspace.",
       "alreadyMember": "This user is already a member of the workspace.",
       "mustHaveOwner": "A workspace must have at least one owner.",
-      "personalNotRenamable": "Your personal workspace cannot be renamed."
+      "personalNotRenamable": "Your personal workspace cannot be renamed.",
+      "hasProjects": "This workspace still holds projects. Move or delete them first."
     },
     "switcher": {
       "label": "Switch workspace",
