@@ -25,42 +25,58 @@ public class ProjectsControllerTests
         };
 
     [Fact]
-    public async Task GetMyProjects_ReturnsOkWithProjects()
+    public async Task GetWorkspaceProjects_ReturnsOkWithProjects()
     {
+        var workspaceId = Guid.NewGuid();
         var projects = new[] { SampleProject() };
         _projectService
-            .Setup(s => s.GetMyProjectsAsync(It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetWorkspaceProjectsAsync(workspaceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(projects);
 
-        var result = await _controller.GetMyProjects(CancellationToken.None);
+        var result = await _controller.GetWorkspaceProjects(workspaceId, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(projects, okResult.Value);
     }
 
     [Fact]
-    public async Task GetMyProjectById_WhenFound_ReturnsOk()
+    public async Task GetWorkspaceTrash_ReturnsOkWithProjects()
+    {
+        var workspaceId = Guid.NewGuid();
+        var projects = new[] { SampleProject() };
+        _projectService
+            .Setup(s => s.GetWorkspaceTrashAsync(workspaceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(projects);
+
+        var result = await _controller.GetWorkspaceTrash(workspaceId, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(projects, okResult.Value);
+    }
+
+    [Fact]
+    public async Task GetProjectById_WhenFound_ReturnsOk()
     {
         var project = SampleProject();
         _projectService
-            .Setup(s => s.GetMyProjectByIdAsync(project.Id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetProjectByIdAsync(project.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(project);
 
-        var result = await _controller.GetMyProjectById(project.Id, CancellationToken.None);
+        var result = await _controller.GetProjectById(project.Id, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(project, okResult.Value);
     }
 
     [Fact]
-    public async Task GetMyProjectById_WhenNotFound_ReturnsNotFound()
+    public async Task GetProjectById_WhenNotFound_ReturnsNotFound()
     {
         var id = Guid.NewGuid();
         _projectService
-            .Setup(s => s.GetMyProjectByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetProjectByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProjectResponseDto?)null);
 
-        var result = await _controller.GetMyProjectById(id, CancellationToken.None);
+        var result = await _controller.GetProjectById(id, CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result.Result);
     }
@@ -68,97 +84,129 @@ public class ProjectsControllerTests
     [Fact]
     public async Task CreateProject_ReturnsCreatedAtAction()
     {
+        var workspaceId = Guid.NewGuid();
         var project = SampleProject();
         var request = new CreateProjectRequest(project.Name, project.Description);
         _projectService
-            .Setup(s => s.CreateProjectAsync(request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.CreateProjectAsync(workspaceId, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(project);
 
-        var result = await _controller.CreateProject(request, CancellationToken.None);
+        var result = await _controller.CreateProject(workspaceId, request, CancellationToken.None);
 
         var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);
-        Assert.Equal(nameof(ProjectsController.GetMyProjectById), createdResult.ActionName);
+        Assert.Equal(nameof(ProjectsController.GetProjectById), createdResult.ActionName);
         Assert.Equal(project, createdResult.Value);
     }
 
     [Fact]
-    public async Task UpdateMyProject_WhenFound_ReturnsOk()
+    public async Task UpdateProject_WhenFound_ReturnsOk()
     {
         var project = SampleProject();
         var request = new UpdateProjectRequest(project.Name, project.Description);
         _projectService
-            .Setup(s => s.UpdateMyProjectAsync(project.Id, request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UpdateProjectAsync(project.Id, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(project);
 
-        var result = await _controller.UpdateMyProject(project.Id, request, CancellationToken.None);
+        var result = await _controller.UpdateProject(project.Id, request, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(project, okResult.Value);
     }
 
     [Fact]
-    public async Task UpdateMyProject_WhenNotFound_ReturnsNotFound()
+    public async Task UpdateProject_WhenNotFound_ReturnsNotFound()
     {
         var id = Guid.NewGuid();
         var request = new UpdateProjectRequest("My Project", null);
         _projectService
-            .Setup(s => s.UpdateMyProjectAsync(id, request, It.IsAny<CancellationToken>()))
+            .Setup(s => s.UpdateProjectAsync(id, request, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProjectResponseDto?)null);
 
-        var result = await _controller.UpdateMyProject(id, request, CancellationToken.None);
+        var result = await _controller.UpdateProject(id, request, CancellationToken.None);
 
         Assert.IsType<NotFoundResult>(result.Result);
     }
 
     [Fact]
-    public async Task DeleteMyProjectById_WhenFound_ReturnsNoContent()
+    public async Task DeleteProjectById_WhenFound_ReturnsNoContent()
     {
         var id = Guid.NewGuid();
         _projectService
-            .Setup(s => s.DeleteMyProjectByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteProjectByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var result = await _controller.DeleteMyProjectById(id, CancellationToken.None);
+        var result = await _controller.DeleteProjectById(id, CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
     }
 
     [Fact]
-    public async Task DeleteMyProjectById_WhenNotFound_ReturnsNotFound()
+    public async Task DeleteProjectById_WhenNotFound_ReturnsNotFound()
     {
         var id = Guid.NewGuid();
         _projectService
-            .Setup(s => s.DeleteMyProjectByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteProjectByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        var result = await _controller.DeleteMyProjectById(id, CancellationToken.None);
+        var result = await _controller.DeleteProjectById(id, CancellationToken.None);
 
         Assert.IsType<NotFoundObjectResult>(result);
     }
 
     [Fact]
-    public async Task RestoreMyProjectById_WhenFound_ReturnsOk()
+    public async Task RestoreProjectById_WhenFound_ReturnsOk()
     {
         var project = SampleProject();
         _projectService
-            .Setup(s => s.RestoreMyProjectByIdAsync(project.Id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.RestoreProjectByIdAsync(project.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(project);
 
-        var result = await _controller.RestoreMyProjectById(project.Id, CancellationToken.None);
+        var result = await _controller.RestoreProjectById(project.Id, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(project, okResult.Value);
     }
 
     [Fact]
-    public async Task RestoreMyProjectById_WhenNotFound_ReturnsNotFound()
+    public async Task RestoreProjectById_WhenNotFound_ReturnsNotFound()
     {
         var id = Guid.NewGuid();
         _projectService
-            .Setup(s => s.RestoreMyProjectByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.RestoreProjectByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProjectResponseDto?)null);
 
-        var result = await _controller.RestoreMyProjectById(id, CancellationToken.None);
+        var result = await _controller.RestoreProjectById(id, CancellationToken.None);
+
+        Assert.IsType<NotFoundObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task MoveProject_WhenFound_ReturnsOk()
+    {
+        var project = SampleProject();
+        var request = new MoveProjectRequest(Guid.NewGuid());
+        _projectService
+            .Setup(s =>
+                s.MoveProjectAsync(project.Id, request.WorkspaceId, It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync(project);
+
+        var result = await _controller.MoveProject(project.Id, request, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(project, okResult.Value);
+    }
+
+    [Fact]
+    public async Task MoveProject_WhenNotFound_ReturnsNotFound()
+    {
+        var id = Guid.NewGuid();
+        var request = new MoveProjectRequest(Guid.NewGuid());
+        _projectService
+            .Setup(s => s.MoveProjectAsync(id, request.WorkspaceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ProjectResponseDto?)null);
+
+        var result = await _controller.MoveProject(id, request, CancellationToken.None);
 
         Assert.IsType<NotFoundObjectResult>(result.Result);
     }

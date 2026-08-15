@@ -20,25 +20,54 @@ public class ProjectsController : ControllerBase
         _projectService = projectService;
     }
 
-    [HttpGet]
+    // Leading slash escapes the api/[controller] prefix.
+    [HttpGet("/api/workspaces/{workspaceId:guid}/projects")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetMyProjects(
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetWorkspaceProjects(
+        Guid workspaceId,
         CancellationToken ct
     )
     {
-        var projects = await _projectService.GetMyProjectsAsync(ct);
+        var projects = await _projectService.GetWorkspaceProjectsAsync(workspaceId, ct);
         return Ok(projects);
+    }
+
+    [HttpGet("/api/workspaces/{workspaceId:guid}/projects/trash")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetWorkspaceTrash(
+        Guid workspaceId,
+        CancellationToken ct
+    )
+    {
+        var trash = await _projectService.GetWorkspaceTrashAsync(workspaceId, ct);
+        return Ok(trash);
+    }
+
+    [HttpPost("/api/workspaces/{workspaceId:guid}/projects")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ProjectResponseDto>> CreateProject(
+        Guid workspaceId,
+        CreateProjectRequest dto,
+        CancellationToken ct
+    )
+    {
+        var response = await _projectService.CreateProjectAsync(workspaceId, dto, ct);
+        return CreatedAtAction(nameof(GetProjectById), new { id = response.Id }, response);
     }
 
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> GetMyProjectById(
+    public async Task<ActionResult<ProjectResponseDto>> GetProjectById(
         Guid id,
         CancellationToken ct
     )
     {
-        var project = await _projectService.GetMyProjectByIdAsync(id, ct);
+        var project = await _projectService.GetProjectByIdAsync(id, ct);
 
         if (project is null)
             return NotFound();
@@ -46,27 +75,17 @@ public class ProjectsController : ControllerBase
         return Ok(project);
     }
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<ActionResult<ProjectResponseDto>> CreateProject(
-        CreateProjectRequest dto,
-        CancellationToken ct
-    )
-    {
-        var response = await _projectService.CreateProjectAsync(dto, ct);
-        return CreatedAtAction(nameof(GetMyProjectById), new { id = response.Id }, response);
-    }
-
     [HttpPut("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> UpdateMyProject(
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ProjectResponseDto>> UpdateProject(
         Guid id,
         UpdateProjectRequest dto,
         CancellationToken ct
     )
     {
-        var updated = await _projectService.UpdateMyProjectAsync(id, dto, ct);
+        var updated = await _projectService.UpdateProjectAsync(id, dto, ct);
 
         if (updated is null)
             return NotFound();
@@ -77,9 +96,9 @@ public class ProjectsController : ControllerBase
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteMyProjectById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> DeleteProjectById(Guid id, CancellationToken ct)
     {
-        var success = await _projectService.DeleteMyProjectByIdAsync(id, ct);
+        var success = await _projectService.DeleteProjectByIdAsync(id, ct);
 
         if (!success)
             return NotFound(new { message = "Project not found." });
@@ -90,12 +109,13 @@ public class ProjectsController : ControllerBase
     [HttpPost("{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> RestoreMyProjectById(
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ProjectResponseDto>> RestoreProjectById(
         Guid id,
         CancellationToken ct
     )
     {
-        var restoredProject = await _projectService.RestoreMyProjectByIdAsync(id, ct);
+        var restoredProject = await _projectService.RestoreProjectByIdAsync(id, ct);
 
         if (restoredProject is null)
             return NotFound(new { message = "Project not found." });
@@ -103,14 +123,22 @@ public class ProjectsController : ControllerBase
         return Ok(restoredProject);
     }
 
-    [HttpGet("trash")]
+    [HttpPost("{id:guid}/move")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetMyDeletedProjects(
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ProjectResponseDto>> MoveProject(
+        Guid id,
+        MoveProjectRequest dto,
         CancellationToken ct
     )
     {
-        var trash = await _projectService.GetMyDeletedProjectsAsync(ct);
-        return Ok(trash);
+        var moved = await _projectService.MoveProjectAsync(id, dto.WorkspaceId, ct);
+
+        if (moved is null)
+            return NotFound(new { message = "Project not found." });
+
+        return Ok(moved);
     }
 
     // -------------------------------------------------------------------------

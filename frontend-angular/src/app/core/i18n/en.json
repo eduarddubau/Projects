@@ -336,7 +336,8 @@
       "message": "Are you sure you want to delete \"{{name}}\"? You can restore it from Trash later."
     },
     "serverErrors": {
-      "duplicateName": "You already have a project with this name."
+      "duplicateName": "This workspace already has a project with this name.",
+      "workspaceDeleted": "This project's workspace has been deleted."
     }
   },
   "admin": {

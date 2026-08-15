@@ -27,7 +27,10 @@ public class DashboardService : IDashboardService
 
     public async Task<UserDashboardDto> GetMyDashboardAsync(CancellationToken ct = default)
     {
-        var myProjects = _context.Projects.Where(p => p.CreatedBy == _currentUser.UserGuid);
+        var myProjects = _context.Projects.InWorkspacesOf(
+            _context.WorkspaceMembers,
+            _currentUser.UserGuid
+        );
 
         var activeCount = await myProjects.CountAsync(ct);
 
@@ -35,10 +38,8 @@ public class DashboardService : IDashboardService
         var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
         var deletedCount = await _context
             .Projects.IgnoreQueryFilters()
-            .CountAsync(
-                p => p.CreatedBy == _currentUser.UserGuid && p.IsDeleted && p.DeletedAt >= cutoff,
-                ct
-            );
+            .InWorkspacesOf(_context.WorkspaceMembers, _currentUser.UserGuid)
+            .CountAsync(p => p.IsDeleted && p.DeletedAt >= cutoff, ct);
 
         var recentProjects = await myProjects
             .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)

@@ -336,7 +336,8 @@
       "message": "Sigur vrei să ștergi „{{name}}”? Îl poți restaura ulterior din Coșul de gunoi."
     },
     "serverErrors": {
-      "duplicateName": "Ai deja un proiect cu acest nume."
+      "duplicateName": "Acest spațiu de lucru are deja un proiect cu acest nume.",
+      "workspaceDeleted": "Spațiul de lucru al acestui proiect a fost șters."
     }
   },
   "admin": {

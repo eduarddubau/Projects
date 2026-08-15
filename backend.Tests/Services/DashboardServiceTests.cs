@@ -17,6 +17,10 @@ public sealed class DashboardServiceTests : IDisposable
     private readonly AppDbContext _context;
     private readonly DashboardService _service;
     private readonly Guid _userId = Guid.NewGuid();
+    private readonly Guid _otherUserId = Guid.NewGuid();
+
+    private readonly Workspace _mine;
+    private readonly Workspace _theirs;
 
     public DashboardServiceTests()
     {
@@ -32,6 +36,29 @@ public sealed class DashboardServiceTests : IDisposable
         );
 
         _currentUser.Setup(c => c.UserGuid).Returns(_userId);
+
+        _mine = AddWorkspace("Mine", _userId);
+        _theirs = AddWorkspace("Theirs", _otherUserId);
+    }
+
+    private Workspace AddWorkspace(string name, Guid memberId)
+    {
+        var workspace = new Workspace
+        {
+            Name = name,
+            Members =
+            {
+                new WorkspaceMember
+                {
+                    UserId = memberId,
+                    Role = WorkspaceRole.Owner,
+                    JoinedAt = DateTime.UtcNow,
+                },
+            },
+        };
+        _context.Workspaces.Add(workspace);
+        _context.SaveChanges();
+        return workspace;
     }
 
     private User AddUser(
@@ -60,7 +87,8 @@ public sealed class DashboardServiceTests : IDisposable
     // persists these timestamps untouched.
     private Project AddProject(
         string name,
-        Guid createdBy,
+        Workspace workspace,
+        Guid? createdBy = null,
         DateTime? deletedAt = null,
         DateTime? createdAt = null,
         DateTime? updatedAt = null
@@ -69,7 +97,8 @@ public sealed class DashboardServiceTests : IDisposable
         var project = new Project
         {
             Name = name,
-            CreatedBy = createdBy,
+            CreatedBy = createdBy ?? _userId,
+            WorkspaceId = workspace.Id,
             IsDeleted = deletedAt is not null,
             DeletedAt = deletedAt,
             CreatedAt = createdAt ?? default,
@@ -83,20 +112,25 @@ public sealed class DashboardServiceTests : IDisposable
     [Fact]
     public async Task GetMyDashboardAsync_ReturnsCountsRecentAndLastActivity()
     {
-        AddProject("Older", _userId, createdAt: DateTime.UtcNow.AddDays(-10));
+        AddProject("Older", _mine, createdAt: DateTime.UtcNow.AddDays(-10));
         var newest = AddProject(
             "Newest",
-            _userId,
+            _mine,
             createdAt: DateTime.UtcNow.AddDays(-8),
             updatedAt: DateTime.UtcNow.AddDays(-1)
         );
-        AddProject("Trashed", _userId, deletedAt: DateTime.UtcNow.AddDays(-5));
+        AddProject("Trashed", _mine, deletedAt: DateTime.UtcNow.AddDays(-5));
         AddProject(
             "Expired trash",
-            _userId,
+            _mine,
             deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
         );
-        AddProject("Someone else's", Guid.NewGuid(), createdAt: DateTime.UtcNow);
+        AddProject(
+            "In a workspace I am not in",
+            _theirs,
+            createdBy: _otherUserId,
+            createdAt: DateTime.UtcNow
+        );
 
         var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
 
@@ -110,7 +144,7 @@ public sealed class DashboardServiceTests : IDisposable
     public async Task GetMyDashboardAsync_CapsRecentProjectsAtFive()
     {
         for (var i = 0; i < 7; i++)
-            AddProject($"Project {i}", _userId, createdAt: DateTime.UtcNow.AddDays(-i));
+            AddProject($"Project {i}", _mine, createdAt: DateTime.UtcNow.AddDays(-i));
 
         var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
 
@@ -121,7 +155,7 @@ public sealed class DashboardServiceTests : IDisposable
     [Fact]
     public async Task GetMyDashboardAsync_WhenNoProjects_ReturnsZerosAndNoActivity()
     {
-        AddProject("Someone else's", Guid.NewGuid());
+        AddProject("In a workspace I am not in", _theirs, createdBy: _otherUserId);
 
         var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
 
@@ -143,12 +177,13 @@ public sealed class DashboardServiceTests : IDisposable
             createdAt: DateTime.UtcNow.AddDays(-1)
         );
 
-        AddProject("Mine", _userId, createdAt: DateTime.UtcNow.AddDays(-2));
-        AddProject("Theirs", owner.Id, createdAt: DateTime.UtcNow.AddDays(-1));
+        AddProject("Mine", _mine, createdAt: DateTime.UtcNow.AddDays(-2));
+        AddProject("Theirs", _theirs, createdBy: owner.Id, createdAt: DateTime.UtcNow.AddDays(-1));
         // Admin trash has no retention window, so even old deletions count.
         AddProject(
             "Old deleted",
-            owner.Id,
+            _theirs,
+            createdBy: owner.Id,
             deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 10))
         );
 
@@ -168,7 +203,7 @@ public sealed class DashboardServiceTests : IDisposable
         for (var i = 0; i < 7; i++)
         {
             AddUser($"user{i}@example.com", createdAt: DateTime.UtcNow.AddDays(-i));
-            AddProject($"Project {i}", _userId, createdAt: DateTime.UtcNow.AddDays(-i));
+            AddProject($"Project {i}", _mine, createdAt: DateTime.UtcNow.AddDays(-i));
         }
 
         var result = await _service.GetAdminDashboardAsync(TestContext.Current.CancellationToken);

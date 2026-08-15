@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 const SERVER_ERROR_KEYS: Record<string, string> = {
   DuplicateProjectName: 'projects.serverErrors.duplicateName',
+  WorkspaceIsDeleted: 'projects.serverErrors.workspaceDeleted',
   DuplicateEmail: 'admin.users.serverErrors.duplicateEmail',
   ValueTooLong: 'common.errors.valueTooLong',
 
