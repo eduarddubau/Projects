@@ -29,7 +29,7 @@ public class ProjectService : BaseService<Project>, IProjectService
     }
 
     // A non-member gets null, which the controller turns into 404.
-    private IQueryable<Project> MyProjects =>
+    private IQueryable<Project> AccessibleProjects =>
         Context.Projects.InWorkspacesOf(Context.WorkspaceMembers, CurrentUser.UserGuid);
 
     public async Task<IEnumerable<ProjectResponseDto>> GetWorkspaceProjectsAsync(
@@ -48,7 +48,7 @@ public class ProjectService : BaseService<Project>, IProjectService
             .ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<ProjectResponseDto>> GetWorkspaceTrashAsync(
+    public async Task<IEnumerable<ProjectResponseDto>> GetWorkspaceDeletedProjectsAsync(
         Guid workspaceId,
         CancellationToken ct = default
     )
@@ -72,7 +72,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         CancellationToken ct = default
     )
     {
-        var project = await MyProjects
+        var project = await AccessibleProjects
             .Include(p => p.Creator)
             .Include(p => p.Updater)
             .Include(p => p.Workspace)
@@ -109,7 +109,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         CancellationToken ct = default
     )
     {
-        var project = await MyProjects.FirstOrDefaultAsync(p => p.Id == id, ct);
+        var project = await AccessibleProjects.FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (project is null)
             return null;
@@ -126,7 +126,7 @@ public class ProjectService : BaseService<Project>, IProjectService
 
     public async Task<bool> DeleteProjectByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var project = await MyProjects.FirstOrDefaultAsync(p => p.Id == id, ct);
+        var project = await AccessibleProjects.FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (project is null)
             return false;
@@ -184,7 +184,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         CancellationToken ct = default
     )
     {
-        var project = await MyProjects.FirstOrDefaultAsync(p => p.Id == id, ct);
+        var project = await AccessibleProjects.FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (project is null)
             return null;

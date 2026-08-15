@@ -71,7 +71,7 @@ export class TrashComponent implements OnInit, AfterViewInit {
     initialValue: this.route.snapshot.paramMap.get('workspaceId'),
   });
 
-  deleted = this.projectService.workspaceTrash(this.workspaceId);
+  deleted = this.projectService.workspaceDeletedProjects(this.workspaceId);
 
   dataSource = new ProjectsDataSource();
   displayedColumns = ['index', 'name', 'description', 'deletedAt', 'actions'];

@@ -84,9 +84,9 @@ export class ProjectDetailComponent {
     return this.workspaceContext.workspaces().find((w) => w.id === holder)?.myRole === 'Owner';
   });
 
-  // Everywhere the caller belongs that isn't already holding it. Membership of the
-  // target is all the API asks for; ownership is only required of the source.
-  moveTargets = computed<Workspace[]>(() => {
+  // Unfiltered by role on purpose: moving a project in only needs membership of
+  // the destination. Ownership is required of the source, which isOwner covers.
+  availableWorkspaces = computed<Workspace[]>(() => {
     if (!this.project.hasValue()) return [];
     const holder = this.project.value().workspaceId;
     return this.workspaceContext.workspaces().filter((w) => w.id !== holder);

@@ -31,7 +31,7 @@
                 {{ t('projects.detail.moveTo') }}
               </button>
               <mat-menu #moveMenu="matMenu">
-                @for (w of moveTargets(); track w.id) {
+                @for (w of availableWorkspaces(); track w.id) {
                   <button mat-menu-item (click)="moveTo(p, w)">
                     <mat-icon>{{ w.isPersonal ? 'person' : 'workspaces' }}</mat-icon>
                     <span>{{ w.isPersonal ? ('workspaces.personal' | transloco) : w.name }}</span>

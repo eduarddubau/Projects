@@ -40,15 +40,20 @@ public class ProjectsControllerTests
     }
 
     [Fact]
-    public async Task GetWorkspaceTrash_ReturnsOkWithProjects()
+    public async Task GetWorkspaceDeletedProjects_ReturnsOkWithProjects()
     {
         var workspaceId = Guid.NewGuid();
         var projects = new[] { SampleProject() };
         _projectService
-            .Setup(s => s.GetWorkspaceTrashAsync(workspaceId, It.IsAny<CancellationToken>()))
+            .Setup(s =>
+                s.GetWorkspaceDeletedProjectsAsync(workspaceId, It.IsAny<CancellationToken>())
+            )
             .ReturnsAsync(projects);
 
-        var result = await _controller.GetWorkspaceTrash(workspaceId, CancellationToken.None);
+        var result = await _controller.GetWorkspaceDeletedProjects(
+            workspaceId,
+            CancellationToken.None
+        );
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(projects, okResult.Value);

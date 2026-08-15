@@ -36,12 +36,12 @@ public class ProjectsController : ControllerBase
     [HttpGet("/api/workspaces/{workspaceId:guid}/projects/trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetWorkspaceTrash(
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetWorkspaceDeletedProjects(
         Guid workspaceId,
         CancellationToken ct
     )
     {
-        var trash = await _projectService.GetWorkspaceTrashAsync(workspaceId, ct);
+        var trash = await _projectService.GetWorkspaceDeletedProjectsAsync(workspaceId, ct);
         return Ok(trash);
     }
 

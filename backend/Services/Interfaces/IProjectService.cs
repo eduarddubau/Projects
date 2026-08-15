@@ -8,7 +8,7 @@ public interface IProjectService
         Guid workspaceId,
         CancellationToken ct = default
     );
-    Task<IEnumerable<ProjectResponseDto>> GetWorkspaceTrashAsync(
+    Task<IEnumerable<ProjectResponseDto>> GetWorkspaceDeletedProjectsAsync(
         Guid workspaceId,
         CancellationToken ct = default
     );

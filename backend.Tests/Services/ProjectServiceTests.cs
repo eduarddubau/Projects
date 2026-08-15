@@ -119,7 +119,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetWorkspaceProjectsAsync_WhenNotAMember_Throws()
+    public async Task GetWorkspaceProjectsAsync_WhenNotAMember_Throws404NotFound()
     {
         AddProject("Not mine to see", _foreign, createdBy: _otherUserId);
 
@@ -140,7 +140,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetWorkspaceTrashAsync_ReturnsDeletedProjectsWithinRetentionWindow()
+    public async Task GetWorkspaceDeletedProjectsAsync_ReturnsDeletedProjectsWithinRetentionWindow()
     {
         AddProject("Active", _personal);
         AddProject(
@@ -156,13 +156,13 @@ public sealed class ProjectServiceTests : IDisposable
             deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
         );
 
-        var result = await _service.GetWorkspaceTrashAsync(_personal.Id, Ct);
+        var result = await _service.GetWorkspaceDeletedProjectsAsync(_personal.Id, Ct);
 
         Assert.Equal(["RecentlyDeleted"], result.Select(p => p.Name));
     }
 
     [Fact]
-    public async Task GetWorkspaceTrashAsync_IncludesProjectsDeletedByOtherMembers()
+    public async Task GetWorkspaceDeletedProjectsAsync_IncludesProjectsDeletedByOtherMembers()
     {
         AddProject(
             "Theirs",
@@ -172,16 +172,16 @@ public sealed class ProjectServiceTests : IDisposable
             deletedAt: DateTime.UtcNow.AddDays(-1)
         );
 
-        var result = await _service.GetWorkspaceTrashAsync(_shared.Id, Ct);
+        var result = await _service.GetWorkspaceDeletedProjectsAsync(_shared.Id, Ct);
 
         Assert.Equal(["Theirs"], result.Select(p => p.Name));
     }
 
     [Fact]
-    public async Task GetWorkspaceTrashAsync_WhenNotAMember_Throws()
+    public async Task GetWorkspaceDeletedProjectsAsync_WhenNotAMember_Throws404NotFound()
     {
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _service.GetWorkspaceTrashAsync(_foreign.Id, Ct)
+            _service.GetWorkspaceDeletedProjectsAsync(_foreign.Id, Ct)
         );
     }
 
@@ -222,7 +222,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateProjectAsync_WhenNotAMember_Throws()
+    public async Task CreateProjectAsync_WhenNotAMember_Throws404NotFound()
     {
         var request = new CreateProjectRequest("New Project", null);
 
@@ -232,7 +232,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateProjectAsync_WhenNameAlreadyExistsInThatWorkspace_Throws()
+    public async Task CreateProjectAsync_WhenNameAlreadyExistsInThatWorkspace_Throws409Conflict()
     {
         AddProject("Duplicate", _personal);
         var request = new CreateProjectRequest("Duplicate", null);
@@ -255,7 +255,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task CreateProjectAsync_WhenNameIsTakenByAnotherMember_Throws()
+    public async Task CreateProjectAsync_WhenNameIsTakenByAnotherMember_Throws409Conflict()
     {
         AddProject("Roadmap", _shared, createdBy: _otherUserId);
         var request = new CreateProjectRequest("Roadmap", null);
@@ -290,7 +290,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task UpdateProjectAsync_WhenNameConflictsInsideTheSameWorkspace_Throws()
+    public async Task UpdateProjectAsync_WhenNameConflictsInsideTheSameWorkspace_Throws409Conflict()
     {
         AddProject("Taken", _personal);
         var project = AddProject("Original", _personal);
@@ -328,7 +328,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteProjectByIdAsync_WhenAPlainMemberOfTheWorkspace_IsForbidden()
+    public async Task DeleteProjectByIdAsync_WhenAPlainMemberOfTheWorkspace_Throws403Forbidden()
     {
         var project = AddProject("Shared", _shared, createdBy: _otherUserId);
 
@@ -338,7 +338,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteProjectByIdAsync_WhenAMemberDeletesTheirOwnProjectTheyDoNotOwn_IsForbidden()
+    public async Task DeleteProjectByIdAsync_WhenAMemberDeletesTheirOwnProjectTheyDoNotOwn_Throws403Forbidden()
     {
         var project = AddProject("Mine but shared", _shared, createdBy: _userId);
 
@@ -374,7 +374,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task RestoreProjectByIdAsync_WhenAPlainMemberOfTheWorkspace_IsForbidden()
+    public async Task RestoreProjectByIdAsync_WhenAPlainMemberOfTheWorkspace_Throws403Forbidden()
     {
         var project = AddProject("Deleted", _shared, createdBy: _otherUserId, isDeleted: true);
 
@@ -402,7 +402,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task RestoreProjectByIdAsync_WhenTheWorkspaceItselfIsDeleted_Throws()
+    public async Task RestoreProjectByIdAsync_WhenTheWorkspaceItselfIsDeleted_Throws409Conflict()
     {
         var project = AddProject("Deleted", _personal, isDeleted: true);
         _personal.IsDeleted = true;
@@ -428,7 +428,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task MoveProjectAsync_WhenAPlainMemberOfTheSource_IsForbidden()
+    public async Task MoveProjectAsync_WhenAPlainMemberOfTheSource_Throws403Forbidden()
     {
         var project = AddProject("Roadmap", _shared, createdBy: _otherUserId);
 
@@ -438,7 +438,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task MoveProjectAsync_WhenNotAMemberOfTheTarget_Throws()
+    public async Task MoveProjectAsync_WhenNotAMemberOfTheTarget_Throws404NotFound()
     {
         var project = AddProject("Roadmap", _personal);
 
@@ -448,7 +448,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task MoveProjectAsync_WhenTheTargetAlreadyHasThatName_Throws()
+    public async Task MoveProjectAsync_WhenTheTargetAlreadyHasThatName_Throws409Conflict()
     {
         var project = AddProject("Roadmap", _personal);
         AddProject("Roadmap", _shared, createdBy: _otherUserId);

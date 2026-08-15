@@ -13,9 +13,6 @@ export class ProjectService {
   // Read endpoints are resource factories: call them from a component's field
   // initializer so each resource lives and dies with that component. There is no
   // injection context anywhere else, so calling one from a handler throws.
-  //
-  // Collections hang off a workspace, single projects do not: an id is enough to
-  // find one, and the caller rarely knows which workspace holds it.
 
   // Returning undefined keeps the resource idle until the id is known.
   workspaceProjects(workspaceId: Signal<string | null | undefined>) {
@@ -28,7 +25,7 @@ export class ProjectService {
     );
   }
 
-  workspaceTrash(workspaceId: Signal<string | null | undefined>) {
+  workspaceDeletedProjects(workspaceId: Signal<string | null | undefined>) {
     return httpResource<Project[]>(
       () => {
         const id = workspaceId();
