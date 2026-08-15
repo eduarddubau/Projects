@@ -2,17 +2,21 @@ using Backend.Controllers;
 using Backend.DTOs.Auth;
 using Backend.Models;
 using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+// MVC has a SignInResult too, and it is a different thing entirely.
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Backend.Tests.Controllers;
 
 public class AuthControllerTests
 {
     private readonly Mock<UserManager<User>> _userManager;
+    private readonly Mock<SignInManager<User>> _signInManager;
     private readonly Mock<ITokenService> _tokenService = new();
     private readonly Mock<IRefreshTokenService> _refreshTokenService = new();
     private readonly Mock<ICurrentUserService> _currentUser = new();
@@ -35,12 +39,23 @@ public class AuthControllerTests
             null!
         );
 
+        _signInManager = new Mock<SignInManager<User>>(
+            _userManager.Object,
+            Mock.Of<IHttpContextAccessor>(),
+            Mock.Of<IUserClaimsPrincipalFactory<User>>(),
+            null!,
+            null!,
+            null!,
+            null!
+        );
+
         _refreshTokenService
             .Setup(r => r.IssueAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("refresh-token");
 
         _controller = new AuthController(
             _userManager.Object,
+            _signInManager.Object,
             Mock.Of<ILogger<AuthController>>(),
             _tokenService.Object,
             _refreshTokenService.Object,
@@ -60,7 +75,9 @@ public class AuthControllerTests
             LastName = "Lovelace",
         };
         _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
-        _userManager.Setup(m => m.CheckPasswordAsync(user, "Str0ng!Pass")).ReturnsAsync(true);
+        _signInManager
+            .Setup(s => s.CheckPasswordSignInAsync(user, "Str0ng!Pass", true))
+            .ReturnsAsync(SignInResult.Success);
         _tokenService.Setup(t => t.CreateToken(user)).ReturnsAsync("jwt-token");
 
         var result = await _controller.Login(
@@ -97,7 +114,9 @@ public class AuthControllerTests
             LastName = "Lovelace",
         };
         _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
-        _userManager.Setup(m => m.CheckPasswordAsync(user, "wrong")).ReturnsAsync(false);
+        _signInManager
+            .Setup(s => s.CheckPasswordSignInAsync(user, "wrong", true))
+            .ReturnsAsync(SignInResult.Failed);
 
         var result = await _controller.Login(
             new LoginRequest("ada@example.com", "wrong"),
@@ -105,6 +124,95 @@ public class AuthControllerTests
         );
 
         Assert.IsType<UnauthorizedObjectResult>(result);
+    }
+
+    // lockoutOnFailure is the whole point: without it Identity's lockout settings are
+    // configured and inert, which reads as protected in review and is not.
+    [Fact]
+    public async Task Login_WithWrongPassword_CountsTheFailureAgainstTheAccount()
+    {
+        var user = new User
+        {
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
+        _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
+        _signInManager
+            .Setup(s => s.CheckPasswordSignInAsync(user, "wrong", true))
+            .ReturnsAsync(SignInResult.Failed);
+
+        await _controller.Login(
+            new LoginRequest("ada@example.com", "wrong"),
+            CancellationToken.None
+        );
+
+        _signInManager.Verify(
+            s => s.CheckPasswordSignInAsync(user, "wrong", true),
+            Times.Once,
+            "the password check must be the one that records a failure"
+        );
+    }
+
+    // OWASP: the response must not distinguish a locked account from a wrong password
+    // or an unknown address, or it becomes an enumeration oracle.
+    [Fact]
+    public async Task Login_WhenLockedOut_IsIndistinguishableFromAnyOtherFailure()
+    {
+        var user = new User
+        {
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
+        _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
+        _signInManager
+            .Setup(s => s.CheckPasswordSignInAsync(user, "Str0ng!Pass", true))
+            .ReturnsAsync(SignInResult.LockedOut);
+
+        var lockedOut = await _controller.Login(
+            new LoginRequest("ada@example.com", "Str0ng!Pass"),
+            CancellationToken.None
+        );
+
+        _userManager.Setup(m => m.FindByEmailAsync("nobody@example.com")).ReturnsAsync((User?)null);
+        var unknown = await _controller.Login(
+            new LoginRequest("nobody@example.com", "Str0ng!Pass"),
+            CancellationToken.None
+        );
+
+        var lockedResult = Assert.IsType<UnauthorizedObjectResult>(lockedOut);
+        var unknownResult = Assert.IsType<UnauthorizedObjectResult>(unknown);
+
+        Assert.Equal(unknownResult.StatusCode, lockedResult.StatusCode);
+        Assert.Equal(unknownResult.Value, lockedResult.Value);
+    }
+
+    // A locked account must not be handed a token even if the password is right.
+    [Fact]
+    public async Task Login_WhenLockedOut_IssuesNoToken()
+    {
+        var user = new User
+        {
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
+        _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
+        _signInManager
+            .Setup(s => s.CheckPasswordSignInAsync(user, "Str0ng!Pass", true))
+            .ReturnsAsync(SignInResult.LockedOut);
+
+        await _controller.Login(
+            new LoginRequest("ada@example.com", "Str0ng!Pass"),
+            CancellationToken.None
+        );
+
+        _tokenService.Verify(t => t.CreateToken(It.IsAny<User>()), Times.Never);
+        _refreshTokenService.Verify(
+            r => r.IssueAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()),
+            Times.Never
+        );
     }
 
     [Fact]

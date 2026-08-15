@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Backend.Config;
 using Backend.Data;
 using Backend.Filters;
@@ -12,10 +13,14 @@ using Backend.Services.Admin.Interfaces;
 using Backend.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Formatting.Compact;
+// HttpOverrides ships an IPNetwork of its own; KnownIPNetworks wants this one.
+using IPNetwork = System.Net.IPNetwork;
 
 namespace Backend.Extensions;
 
@@ -116,6 +121,10 @@ public static class ServiceExtensions
     {
         services.AddDataProtection();
 
+        var throttle =
+            config.GetSection(AuthProtectionOptions.SectionName).Get<AuthProtectionOptions>()
+            ?? new AuthProtectionOptions();
+
         services
             .AddIdentityCore<User>(options =>
             {
@@ -125,9 +134,20 @@ public static class ServiceExtensions
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequiredLength = 8;
                 options.User.RequireUniqueEmail = true;
+
+                // Lockout is per account, which is the layer that survives an attacker
+                // rotating IPs. The per-IP limiter in AddAuthThrottling is the other half.
+                options.Lockout.MaxFailedAccessAttempts = throttle.MaxFailedAttempts;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(
+                    throttle.LockoutMinutes
+                );
+                options.Lockout.AllowedForNewUsers = true;
             })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
+            // AddIdentityCore leaves SignInManager out, and it owns the only password
+            // check that records a failure against the account.
+            .AddSignInManager()
             .AddDefaultTokenProviders();
 
         services
@@ -163,6 +183,82 @@ public static class ServiceExtensions
 
         return services;
     }
+
+    /// <summary>
+    /// Per-IP throttling for the auth endpoints, plus the forwarded-headers setup it
+    /// depends on. Both belong together: behind a proxy, an unconfigured
+    /// RemoteIpAddress is the proxy's own address, so every caller lands in one
+    /// partition and the limiter throttles the whole application as a single client.
+    /// </summary>
+    public static IServiceCollection AddAuthThrottling(
+        this IServiceCollection services,
+        IConfiguration config
+    )
+    {
+        services
+            .AddOptions<AuthProtectionOptions>()
+            .Bind(config.GetSection(AuthProtectionOptions.SectionName));
+
+        var throttle =
+            config.GetSection(AuthProtectionOptions.SectionName).Get<AuthProtectionOptions>()
+            ?? new AuthProtectionOptions();
+
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders =
+                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+            // Defaults trust a loopback proxy only, which a container never is. Clearing
+            // them and naming our own networks keeps the header unspoofable from outside.
+            options.KnownIPNetworks.Clear();
+            options.KnownProxies.Clear();
+
+            foreach (var network in throttle.TrustedProxyNetworks)
+            {
+                if (IPNetwork.TryParse(network, out var parsed))
+                    options.KnownIPNetworks.Add(parsed);
+                else
+                    throw new InvalidOperationException(
+                        $"AuthProtection:TrustedProxyNetworks contains '{network}', which is not CIDR."
+                    );
+            }
+
+            // One hop: our nginx. Allowing more lets a client prepend a forged address.
+            options.ForwardLimit = 1;
+        });
+
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Sliding rather than fixed: a fixed window lets an attacker fire a full
+            // quota either side of the boundary and get double the rate in an instant.
+            options.AddPolicy(
+                AppPolicies.AuthThrottle,
+                httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        ClientKey(httpContext),
+                        _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = throttle.PermitPerWindow,
+                            Window = TimeSpan.FromSeconds(throttle.WindowSeconds),
+                            SegmentsPerWindow = 4,
+                            QueueLimit = 0,
+                        }
+                    )
+            );
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Partitions by caller IP, falling back to a single shared bucket when there is no
+    /// address to read. The fallback throttles those callers collectively, which is the
+    /// safe direction to fail.
+    /// </summary>
+    private static string ClientKey(HttpContext httpContext) =>
+        httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
     public static IServiceCollection AddAuthorizationPolicies(this IServiceCollection services)
     {

@@ -8,16 +8,21 @@ using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+// MVC has a SignInResult too, and it is a different thing entirely.
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting(AppPolicies.AuthThrottle)]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public partial class AuthController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
     private readonly ILogger<AuthController> _logger;
     private readonly ITokenService _tokenService;
     private readonly IRefreshTokenService _refreshTokenService;
@@ -27,6 +32,7 @@ public partial class AuthController : ControllerBase
 
     public AuthController(
         UserManager<User> userManager,
+        SignInManager<User> signInManager,
         ILogger<AuthController> logger,
         ITokenService tokenService,
         IRefreshTokenService refreshTokenService,
@@ -36,6 +42,7 @@ public partial class AuthController : ControllerBase
     )
     {
         _userManager = userManager;
+        _signInManager = signInManager;
         _logger = logger;
         _tokenService = tokenService;
         _refreshTokenService = refreshTokenService;
@@ -67,14 +74,25 @@ public partial class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
-        var passwordValid =
-            user != null && await _userManager.CheckPasswordAsync(user, request.Password);
 
-        if (!passwordValid)
+        // CheckPasswordSignInAsync, not UserManager.CheckPasswordAsync: only this one
+        // records the failure against the account, which is what makes lockout work.
+        var result = user is null
+            ? SignInResult.Failed
+            : await _signInManager.CheckPasswordSignInAsync(
+                user,
+                request.Password,
+                lockoutOnFailure: true
+            );
+
+        if (!result.Succeeded)
         {
             // No email: a failed-login log would otherwise collect addresses of people
             // who never had an account here. Null user means the address is unknown.
-            LogLoginFailed(user?.Id);
+            LogLoginFailed(user?.Id, result.IsLockedOut);
+
+            // The same message whether the address is unknown, the password is wrong, or
+            // the account is locked — anything more precise is an enumeration oracle.
             return Unauthorized("Invalid credentials.");
         }
 
@@ -176,8 +194,11 @@ public partial class AuthController : ControllerBase
         return NoContent();
     }
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed login attempt for user {userId}.")]
-    private partial void LogLoginFailed(Guid? userId);
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Failed login attempt for user {userId}. Locked out: {lockedOut}."
+    )]
+    private partial void LogLoginFailed(Guid? userId, bool lockedOut);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "User {userId} logged in successfully.")]
     private partial void LogLoginSucceeded(Guid userId);

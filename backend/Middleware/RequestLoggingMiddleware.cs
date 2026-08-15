@@ -47,12 +47,18 @@ public partial class RequestLoggingMiddleware
             context.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
             ?? context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+        // Reads whatever UseForwardedHeaders resolved, so behind the proxy this is the
+        // caller rather than nginx. Without it every failed login would look like it
+        // came from the same address.
+        var clientIp = context.Connection.RemoteIpAddress?.ToString();
+
         LogRequestCompleted(
             level,
             context.Request.Method,
             context.Request.Path.Value,
             statusCode,
             userId,
+            clientIp,
             elapsedMs,
             traceId
         );
@@ -61,7 +67,7 @@ public partial class RequestLoggingMiddleware
     // Level is a parameter rather than an attribute value: the severity follows
     // the status code.
     [LoggerMessage(
-        Message = "{method} {path} responded {statusCode} for user {userId} in {elapsedMs:0.0}ms. TraceId {traceId}"
+        Message = "{method} {path} responded {statusCode} for user {userId} from {clientIp} in {elapsedMs:0.0}ms. TraceId {traceId}"
     )]
     private partial void LogRequestCompleted(
         LogLevel level,
@@ -69,6 +75,7 @@ public partial class RequestLoggingMiddleware
         string? path,
         int statusCode,
         string? userId,
+        string? clientIp,
         double elapsedMs,
         string traceId
     );

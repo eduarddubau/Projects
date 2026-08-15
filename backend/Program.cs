@@ -17,6 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddApplicationServices(builder.Configuration, builder.Environment);
 builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddAuthorizationPolicies();
+builder.Services.AddAuthThrottling(builder.Configuration);
 
 builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
@@ -42,10 +43,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Before the request log and the limiter, both of which read the client address.
+app.UseForwardedHeaders();
+
 app.UseExceptionHandler();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseCors("AllowFrontend");
+
+// Ahead of authentication: the auth endpoints are the thing being brute-forced, so
+// the limiter has to reject before any password hashing work is done.
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
