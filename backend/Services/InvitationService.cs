@@ -59,9 +59,11 @@ public class InvitationService : IInvitationService
             throw new BusinessRuleException(BusinessRuleCodes.EmailBelongsToDeletedAccount,
                 "This address belongs to a deleted account and cannot be invited.");
 
+        var role = dto.Role ?? WorkspaceRole.Member;
+
         return existing is not null
-            ? await JoinExistingUserAsync(workspaceId, existing, dto.Role, ct)
-            : await CreatePendingInvitationAsync(workspaceId, dto, normalized, ct);
+            ? await JoinExistingUserAsync(workspaceId, existing, role, ct)
+            : await CreatePendingInvitationAsync(workspaceId, dto, normalized, role, ct);
     }
 
     private async Task<InviteResultDto> JoinExistingUserAsync(
@@ -93,7 +95,7 @@ public class InvitationService : IInvitationService
     }
 
     private async Task<InviteResultDto> CreatePendingInvitationAsync(
-    Guid workspaceId, InviteRequest dto, string normalized, CancellationToken ct)
+    Guid workspaceId, InviteRequest dto, string normalized, WorkspaceRole role, CancellationToken ct)
     {
         bool pendingExists = await _context.Invitations
             .Where(i => i.WorkspaceId == workspaceId && i.NormalizedEmail == normalized)
@@ -113,7 +115,7 @@ public class InvitationService : IInvitationService
             WorkspaceId = workspaceId,
             Email = dto.Email,
             NormalizedEmail = normalized,
-            Role = dto.Role,
+            Role = role,
             TokenHash = hash,
             InvitedBy = RequireCurrentUserId(),
             CreatedAt = now,

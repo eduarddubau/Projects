@@ -169,7 +169,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         {
             WorkspaceId = id,
             UserId = dto.UserId,
-            Role = dto.Role,
+            Role = dto.Role ?? WorkspaceRole.Member,
             JoinedAt = DateTime.UtcNow
         };
 

@@ -107,7 +107,8 @@ public class WorkspaceController : ControllerBase
     public async Task<ActionResult<WorkspaceMemberResponseDto>> ChangeMemberRole(
         Guid id, Guid userId, [FromBody] ChangeMemberRoleRequest dto, CancellationToken ct)
     {
-        return Ok(await _workspaceService.ChangeRoleAsync(id, userId, dto.Role, ct));
+        // Non-null by ChangeMemberRoleRequestValidator.
+        return Ok(await _workspaceService.ChangeRoleAsync(id, userId, dto.Role!.Value, ct));
     }
 
     [HttpDelete("{id:guid}/members/{userId:guid}")]
