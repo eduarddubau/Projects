@@ -350,7 +350,8 @@
       "projects": "Projects",
       "users": "Users",
       "trash": "Trash",
-      "menu": "Admin menu"
+      "menu": "Admin menu",
+      "workspaces": "Workspaces"
     },
     "dashboard": {
       "title": "Admin Dashboard",
@@ -460,6 +461,43 @@
       "serverErrors": {
         "emailReclaimed": "{{email}} now belongs to another account. Erase this user, or have the current holder change their address first."
       }
+    },
+    "trashWorkspaces": {
+      "title": "Deleted Workspaces",
+      "subtitle": "Deleted workspaces from every user. A workspace is only deletable once it holds no projects, so purging one never orphans anything.",
+      "searchPlaceholder": "Search by name or owner...",
+      "searchAria": "Search",
+      "restoreSelected": "Restore Selected ({{count}})",
+      "purgeSelected": "Purge Selected ({{count}})",
+      "selectAllAria": "Select all rows on this page",
+      "selectRowAria": "Select {{name}}",
+      "selectPage": "Select page of deleted workspaces",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load trash. Please try again.",
+      "tableAria": "Deleted Workspaces",
+      "noSearchResults": "No deleted workspaces found matching your search.",
+      "empty": "Trash is empty.",
+      "typePersonal": "Personal",
+      "typeShared": "Shared",
+      "table": {
+        "name": "Name",
+        "type": "Type",
+        "members": "Members",
+        "createdBy": "Created By",
+        "deletedAt": "Deleted At",
+        "actions": "Actions"
+      },
+      "restoredOne": "{{count}} workspace restored.",
+      "restoredMany": "{{count}} workspaces restored.",
+      "restoreFailed": "Failed to restore workspace(s).",
+      "purgeTitleOne": "Permanently Purge Workspace",
+      "purgeTitleMany": "Permanently Purge Workspaces",
+      "purgeMessageNamed": "\"{{name}}\" will be permanently purged, along with its members and any pending invitations. This action cannot be undone.",
+      "purgeMessageOne": "{{count}} workspace will be permanently purged, along with its members and any pending invitations. This action cannot be undone.",
+      "purgeMessageMany": "{{count}} workspaces will be permanently purged, along with their members and any pending invitations. This action cannot be undone.",
+      "purgedOne": "{{count}} workspace permanently purged.",
+      "purgedMany": "{{count}} workspaces permanently purged.",
+      "purgeFailed": "Failed to purge workspace(s)."
     }
   },
   "paginator": {
@@ -491,7 +529,10 @@
       "members": "Members",
       "settings": "Workspace settings"
     },
-    "roles": { "Owner": "Owner", "Member": "Member" },
+    "roles": {
+      "Owner": "Owner",
+      "Member": "Member"
+    },
     "list": {
       "title": "Workspaces",
       "subtitle": "Switch between your workspaces or create a new one.",

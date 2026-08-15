@@ -14,20 +14,6 @@ public class AdminWorkspaceService : AdminTrashService<Workspace>, IAdminWorkspa
     public AdminWorkspaceService(AppDbContext context)
         : base(context) { }
 
-    public async Task<IEnumerable<AdminWorkspaceResponseDto>> GetAllWorkspacesAsync(
-        CancellationToken ct = default
-    )
-    {
-        return await Context
-            .Workspaces.IgnoreQueryFilters()
-            .Include(w => w.Creator)
-            .Include(w => w.Updater)
-            .Where(w => !w.IsDeleted)
-            .OrderBy(w => w.Name)
-            .MapToAdminDto()
-            .ToListAsync(ct);
-    }
-
     public async Task<IEnumerable<AdminWorkspaceResponseDto>> GetAllDeletedWorkspacesAsync(
         CancellationToken ct = default
     )

@@ -350,7 +350,8 @@
       "projects": "Proiecte",
       "users": "Utilizatori",
       "trash": "Coș de gunoi",
-      "menu": "Meniu administrare"
+      "menu": "Meniu administrare",
+      "workspaces": "Spații de lucru"
     },
     "dashboard": {
       "title": "Panou de administrare",
@@ -460,6 +461,43 @@
       "serverErrors": {
         "emailReclaimed": "{{email}} aparține acum altui cont. Șterge definitiv acest utilizator sau cere-i deținătorului actual să își schimbe adresa mai întâi."
       }
+    },
+    "trashWorkspaces": {
+      "title": "Spații de lucru șterse",
+      "subtitle": "Spațiile de lucru șterse ale tuturor utilizatorilor. Un spațiu de lucru poate fi șters doar dacă nu mai conține proiecte, așa că eliminarea lui definitivă nu lasă nimic în urmă.",
+      "searchPlaceholder": "Caută după nume sau proprietar...",
+      "searchAria": "Caută",
+      "restoreSelected": "Restaurează selecția ({{count}})",
+      "purgeSelected": "Elimină selecția ({{count}})",
+      "selectAllAria": "Selectează toate rândurile de pe această pagină",
+      "selectRowAria": "Selectează {{name}}",
+      "selectPage": "Selectează pagina de spații de lucru șterse",
+      "loading": "Se încarcă...",
+      "loadFailed": "Coșul de gunoi nu a putut fi încărcat. Încearcă din nou.",
+      "tableAria": "Spații de lucru șterse",
+      "noSearchResults": "Niciun spațiu de lucru șters nu corespunde căutării.",
+      "empty": "Coșul de gunoi este gol.",
+      "typePersonal": "Personal",
+      "typeShared": "Partajat",
+      "table": {
+        "name": "Nume",
+        "type": "Tip",
+        "members": "Membri",
+        "createdBy": "Creat de",
+        "deletedAt": "Șters la",
+        "actions": "Acțiuni"
+      },
+      "restoredOne": "{{count}} spațiu de lucru restaurat.",
+      "restoredMany": "{{count}} spații de lucru restaurate.",
+      "restoreFailed": "Spațiile de lucru nu au putut fi restaurate.",
+      "purgeTitleOne": "Elimină definitiv spațiul de lucru",
+      "purgeTitleMany": "Elimină definitiv spațiile de lucru",
+      "purgeMessageNamed": "„{{name}}” va fi eliminat definitiv, împreună cu membrii săi și cu invitațiile în așteptare. Această acțiune nu poate fi anulată.",
+      "purgeMessageOne": "{{count}} spațiu de lucru va fi eliminat definitiv, împreună cu membrii săi și cu invitațiile în așteptare. Această acțiune nu poate fi anulată.",
+      "purgeMessageMany": "{{count}} spații de lucru vor fi eliminate definitiv, împreună cu membrii lor și cu invitațiile în așteptare. Această acțiune nu poate fi anulată.",
+      "purgedOne": "{{count}} spațiu de lucru eliminat definitiv.",
+      "purgedMany": "{{count}} spații de lucru eliminate definitiv.",
+      "purgeFailed": "Spațiile de lucru nu au putut fi eliminate."
     }
   },
   "paginator": {
@@ -491,7 +529,10 @@
       "members": "Membri",
       "settings": "Setările spațiului de lucru"
     },
-    "roles": { "Owner": "Proprietar", "Member": "Membru" },
+    "roles": {
+      "Owner": "Proprietar",
+      "Member": "Membru"
+    },
     "list": {
       "title": "Spații de lucru",
       "subtitle": "Comută între spațiile tale de lucru sau creează unul nou.",

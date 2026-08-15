@@ -4,9 +4,6 @@ namespace Backend.Services.Admin.Interfaces;
 
 public interface IAdminWorkspaceService
 {
-    Task<IEnumerable<AdminWorkspaceResponseDto>> GetAllWorkspacesAsync(
-        CancellationToken ct = default
-    );
     Task<IEnumerable<AdminWorkspaceResponseDto>> GetAllDeletedWorkspacesAsync(
         CancellationToken ct = default
     );

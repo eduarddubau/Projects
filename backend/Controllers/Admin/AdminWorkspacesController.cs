@@ -20,15 +20,6 @@ public class AdminWorkspacesController : ControllerBase
         _workspaceService = workspaceService;
     }
 
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<AdminWorkspaceResponseDto>>> GetWorkspaces(
-        CancellationToken ct
-    )
-    {
-        return Ok(await _workspaceService.GetAllWorkspacesAsync(ct));
-    }
-
     [HttpGet("trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AdminWorkspaceResponseDto>>> GetDeletedWorkspaces(

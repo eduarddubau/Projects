@@ -72,21 +72,6 @@ public sealed class AdminWorkspaceServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAllWorkspacesAsync_ReturnsEveryLiveWorkspaceRegardlessOfMembership()
-    {
-        var stranger = AddUser("stranger@example.com", "Bob");
-        AddWorkspace("Mine", isPersonal: false, (_owner, WorkspaceRole.Owner));
-        AddWorkspace("Theirs", isPersonal: false, (stranger, WorkspaceRole.Owner));
-        var deleted = AddWorkspace("Gone", isPersonal: false, (stranger, WorkspaceRole.Owner));
-        deleted.IsDeleted = true;
-        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
-
-        var result = await _service.GetAllWorkspacesAsync(TestContext.Current.CancellationToken);
-
-        Assert.Equal(["Mine", "Theirs"], result.Select(w => w.Name));
-    }
-
-    [Fact]
     public async Task GetAllDeletedWorkspacesAsync_ReturnsEveryDeletedWorkspace()
     {
         var stranger = AddUser("stranger@example.com", "Bob");

@@ -56,6 +56,15 @@
         <mat-icon matListItemIcon>person_off</mat-icon>
         <span matListItemTitle>{{ t('users') }}</span>
       </a>
+      <a
+        mat-list-item
+        routerLink="/admin/trash/workspaces"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)"
+      >
+        <mat-icon matListItemIcon>folder_off</mat-icon>
+        <span matListItemTitle>{{ t('workspaces') }}</span>
+      </a>
     </mat-nav-list>
   </mat-sidenav>
 

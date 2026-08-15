@@ -2,6 +2,7 @@ import { Injectable, Signal, inject } from '@angular/core';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '@core/tokens/app.tokens';
+import { AdminWorkspace } from '@core/models/admin-workspace';
 import { Workspace, WorkspaceMember, WorkspaceRole } from '@core/models/workspace';
 
 @Injectable({ providedIn: 'root' })
@@ -69,5 +70,22 @@ export class WorkspaceService {
       () => `${this.apiUrl}/workspaces/${workspaceId()}/members`,
       { defaultValue: [] },
     );
+  }
+
+  allDeletedWorkspaces() {
+    return httpResource<AdminWorkspace[]>(() => `${this.apiUrl}/admin/workspaces/trash`, {
+      defaultValue: [],
+    });
+  }
+
+  restoreWorkspaces(ids: string[]): Observable<{ restoredCount: number }> {
+    return this.http.post<{ restoredCount: number }>(
+      `${this.apiUrl}/admin/workspaces/restore`,
+      ids,
+    );
+  }
+
+  purgeWorkspaces(ids: string[]): Observable<{ purgedCount: number }> {
+    return this.http.post<{ purgedCount: number }>(`${this.apiUrl}/admin/workspaces/purge`, ids);
   }
 }

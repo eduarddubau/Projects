@@ -40,6 +40,13 @@ export const adminRoutes: Routes = [
             loadComponent: () =>
               import('./trash/users/trash-users.component').then((m) => m.TrashUsersComponent),
           },
+          {
+            path: 'workspaces',
+            loadComponent: () =>
+              import('./trash/workspaces/trash-workspaces.component').then(
+                (m) => m.TrashWorkspacesComponent,
+              ),
+          },
         ],
       },
     ],
