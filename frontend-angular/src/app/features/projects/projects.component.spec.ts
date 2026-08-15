@@ -95,8 +95,7 @@ describe('ProjectsComponent', () => {
   });
 
   // The load path and the mutation path both run through the resource, so this
-  // is what proves the resource -> effect -> dataSource wiring actually reaches
-  // the rendered table. A broken effect still compiles and still loads.
+  // proves a local edit reaches the rendered rows and not just the resource.
   it('adds a created project to the table', async () => {
     await setup({ name: 'Gamma', description: 'New one' });
     httpMock.expectOne(listUrl).flush([alpha]);

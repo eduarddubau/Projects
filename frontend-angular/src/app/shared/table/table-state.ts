@@ -20,8 +20,7 @@ export interface TableOptions<T> {
  * Client-side filter, sort and page for a Material table, as signals.
  *
  * The table binds `pageRows()` directly, so there is no ViewChild to wire up in
- * ngAfterViewInit and no ChangeDetectorRef to nudge afterwards. Currently used by
- * the admin tables; the user-facing project pages still use ProjectsDataSource.
+ * ngAfterViewInit and no ChangeDetectorRef to nudge afterwards.
  */
 export class TableState<T> {
   private readonly options: TableOptions<T>;
