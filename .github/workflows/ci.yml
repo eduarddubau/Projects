@@ -4,7 +4,7 @@ name: CI
 # `pull_request` would double every run on a branch that already builds.
 on:
   push:
-    branches: ['**']
+    branches: ["**"]
 
 # A newer push to the same branch cancels the run it supersedes.
 concurrency:
@@ -84,7 +84,7 @@ jobs:
       # relative to the repo root, not to working-directory.
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend-angular/package-lock.json
 
@@ -95,6 +95,11 @@ jobs:
       # fix and there is no point spending test minutes behind it.
       - name: Check formatting
         run: npm run format:check
+
+      # Not an npm script: the dev container mounts only frontend-angular, so
+      # this runs where the whole repo exists. Borrows the Prettier installed here.
+      - name: Check root formatting
+        run: npx prettier --check .. --ignore-path ../.gitignore --ignore-path ../.prettierignore
 
       # --max-warnings=0 so a rule demoted to "warn" still fails the build
       # instead of quietly accumulating.
@@ -160,7 +165,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
           cache: npm
           cache-dependency-path: frontend-angular/package-lock.json
 

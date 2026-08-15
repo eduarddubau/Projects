@@ -1,0 +1,8 @@
+# Checked by its own format:check, from inside it.
+frontend-angular/
+
+# No parser for .conf; .inc is misread as something else.
+nginx/
+
+# Rewritten by `dotnet tool`.
+backend/.config/

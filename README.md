@@ -4,13 +4,13 @@ A full-stack project management application — ASP.NET Core 10 API, Angular 22 
 
 ## Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | ASP.NET Core 10, EF Core + Npgsql, ASP.NET Identity, FluentValidation |
-| Frontend | Angular 22 (standalone components, signals, OnPush), Angular Material, hybrid SSR via `@angular/ssr` + Express |
-| Database | PostgreSQL 17 |
-| Testing | xUnit (backend), Playwright (e2e) |
-| Infrastructure | Docker / Podman Compose |
+| Layer          | Technology                                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
+| Backend        | ASP.NET Core 10, EF Core + Npgsql, ASP.NET Identity, FluentValidation                                          |
+| Frontend       | Angular 22 (standalone components, signals, OnPush), Angular Material, hybrid SSR via `@angular/ssr` + Express |
+| Database       | PostgreSQL 17                                                                                                  |
+| Testing        | xUnit (backend), Playwright (e2e)                                                                              |
+| Infrastructure | Docker / Podman Compose                                                                                        |
 
 ## Architecture highlights
 

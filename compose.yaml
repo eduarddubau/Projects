@@ -73,10 +73,13 @@ services:
   frontend:
     image: node:24-alpine
     container_name: angular-frontend
-    working_dir: /app
+    working_dir: /workspaces/fullstack-app/frontend-angular
     volumes:
-      - ./frontend-angular:/app:z
-      - angular_node_modules:/app/node_modules
+      - ./frontend-angular:/workspaces/fullstack-app/frontend-angular:z
+      - angular_node_modules:/workspaces/fullstack-app/frontend-angular/node_modules
+      # Without this Prettier finds no config and silently uses defaults. One
+      # file, read-only: npm install runs package scripts as root in here.
+      - ./.prettierrc:/workspaces/fullstack-app/.prettierrc:ro,z
     ports:
       - "4200:4200"
       - "4000:4000"
