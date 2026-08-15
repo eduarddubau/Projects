@@ -209,7 +209,7 @@
     },
     "recent": {
       "title": "Recent Projects",
-      "viewAll": "View all",
+      "viewAll": "All workspaces",
       "name": "Name",
       "lastActivity": "Last activity",
       "empty": "No projects yet — create your first one."

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
 
@@ -11,17 +11,31 @@ import { Project } from '@core/models/project';
 import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
 
 const apiUrl = 'http://api.test';
+const workspaceId = '99999999-9999-9999-9999-999999999999';
+const listUrl = `${apiUrl}/workspaces/${workspaceId}/projects`;
 
 function project(id: string, name: string): Project {
   return {
     id,
     name,
     description: `${name} description`,
+    workspaceId,
+    workspaceName: 'Test Workspace',
     createdAt: '2026-06-01T10:00:00Z',
     isDeleted: false,
     isPurgeable: false,
   };
 }
+
+// The component resolves its workspace from the route, so the param has to exist
+// or the resource stays idle and nothing is ever requested.
+const routeStub = {
+  paramMap: of(convertToParamMap({ workspaceId })),
+  snapshot: {
+    paramMap: convertToParamMap({ workspaceId }),
+    queryParamMap: convertToParamMap({}),
+  },
+};
 
 const alpha = project('11111111-1111-1111-1111-111111111111', 'Alpha');
 const beta = project('22222222-2222-2222-2222-222222222222', 'Beta');
@@ -47,6 +61,7 @@ describe('ProjectsComponent', () => {
         provideTranslocoTesting(),
         { provide: API_URL, useValue: apiUrl },
         { provide: MatDialog, useValue: dialogStub(dialogResult) },
+        { provide: ActivatedRoute, useValue: routeStub },
       ],
     }).compileComponents();
 
@@ -63,7 +78,7 @@ describe('ProjectsComponent', () => {
 
   it('renders the loaded projects', async () => {
     await setup();
-    httpMock.expectOne(`${apiUrl}/projects`).flush([alpha, beta]);
+    httpMock.expectOne(listUrl).flush([alpha, beta]);
     await fixture.whenStable();
 
     expect(rowText()).toContain('Alpha');
@@ -72,9 +87,7 @@ describe('ProjectsComponent', () => {
 
   it('shows the error state when loading fails', async () => {
     await setup();
-    httpMock
-      .expectOne(`${apiUrl}/projects`)
-      .flush('boom', { status: 500, statusText: 'Server Error' });
+    httpMock.expectOne(listUrl).flush('boom', { status: 500, statusText: 'Server Error' });
     await fixture.whenStable();
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
@@ -86,12 +99,12 @@ describe('ProjectsComponent', () => {
   // the rendered table. A broken effect still compiles and still loads.
   it('adds a created project to the table', async () => {
     await setup({ name: 'Gamma', description: 'New one' });
-    httpMock.expectOne(`${apiUrl}/projects`).flush([alpha]);
+    httpMock.expectOne(listUrl).flush([alpha]);
     await fixture.whenStable();
 
     fixture.componentInstance.openCreateDialog();
     const created = project('33333333-3333-3333-3333-333333333333', 'Gamma');
-    httpMock.expectOne({ url: `${apiUrl}/projects`, method: 'POST' }).flush(created);
+    httpMock.expectOne({ url: listUrl, method: 'POST' }).flush(created);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -101,7 +114,7 @@ describe('ProjectsComponent', () => {
 
   it('removes a deleted project from the table', async () => {
     await setup(true);
-    httpMock.expectOne(`${apiUrl}/projects`).flush([alpha, beta]);
+    httpMock.expectOne(listUrl).flush([alpha, beta]);
     await fixture.whenStable();
 
     fixture.componentInstance.confirmDelete(alpha);

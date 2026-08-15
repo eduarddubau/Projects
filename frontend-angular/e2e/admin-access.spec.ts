@@ -27,9 +27,9 @@ test.describe('Admin access', () => {
 
     await page.goto('/admin');
 
-    // adminGuard redirects authenticated non-admins to their own projects.
-    await expect(page).toHaveURL(/\/projects$/);
-    await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
+    // adminGuard redirects authenticated non-admins home. Not to a project list:
+    // that now needs a workspace id the guard has no business resolving.
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByRole('heading', { name: 'Admin Dashboard' })).toHaveCount(0);
   });
 });

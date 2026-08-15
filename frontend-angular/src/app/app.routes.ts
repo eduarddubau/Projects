@@ -21,29 +21,6 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
-    path: 'projects',
-    canActivate: [authGuard],
-    children: [
-      {
-        path: '',
-        loadComponent: () =>
-          import('./features/projects/projects.component').then((m) => m.ProjectsComponent),
-      },
-      {
-        path: 'trash',
-        loadComponent: () =>
-          import('./features/projects/trash/trash.component').then((m) => m.TrashComponent),
-      },
-      {
-        path: ':id',
-        loadComponent: () =>
-          import('./features/projects/detail/project-detail.component').then(
-            (m) => m.ProjectDetailComponent,
-          ),
-      },
-    ],
-  },
-  {
     path: 'workspaces',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -55,6 +32,23 @@ export const routes: Routes = [
     path: 'w/:workspaceId',
     canActivate: [authGuard, workspaceGuard],
     children: [
+      {
+        path: 'projects',
+        loadComponent: () =>
+          import('./features/projects/projects.component').then((m) => m.ProjectsComponent),
+      },
+      {
+        path: 'projects/trash',
+        loadComponent: () =>
+          import('./features/projects/trash/trash.component').then((m) => m.TrashComponent),
+      },
+      {
+        path: 'projects/:id',
+        loadComponent: () =>
+          import('./features/projects/detail/project-detail.component').then(
+            (m) => m.ProjectDetailComponent,
+          ),
+      },
       {
         path: 'members',
         loadComponent: () =>

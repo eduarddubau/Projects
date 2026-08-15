@@ -22,6 +22,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { ProjectService } from '@core/services/project.service';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { LanguageService } from '@core/services/language.service';
 import { Project } from '@core/models/project';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
@@ -50,6 +51,7 @@ export class ProjectDetailComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private projectService = inject(ProjectService);
+  private workspaceContext = inject(WorkspaceContextService);
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
@@ -67,7 +69,16 @@ export class ProjectDetailComponent {
   // Route params are read once here rather than watched: this route is only
   // reachable per-id, so the component is rebuilt when the id changes.
   private projectId = signal(this.route.snapshot.paramMap.get('id') ?? undefined);
-  project = this.projectService.myProject(this.projectId);
+  workspaceId = this.route.snapshot.paramMap.get('workspaceId');
+  project = this.projectService.project(this.projectId);
+
+  // Read off the project, not the URL: this route resolves a project by id alone,
+  // so the workspace in the path is a display detail and can name a different one.
+  isOwner = computed(() => {
+    if (!this.project.hasValue()) return false;
+    const holder = this.project.value().workspaceId;
+    return this.workspaceContext.workspaces().find((w) => w.id === holder)?.myRole === 'Owner';
+  });
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -104,14 +115,14 @@ export class ProjectDetailComponent {
       .subscribe((confirmed: boolean | undefined) => {
         if (!confirmed) return;
 
-        this.projectService.deleteMyProject(project.id).subscribe({
+        this.projectService.deleteProject(project.id).subscribe({
           next: () => {
             this.snackBar.open(
               this.transloco.translate('projects.notifications.deleted'),
               this.transloco.translate('common.actions.close'),
               { duration: 3000 },
             );
-            this.router.navigate(['/projects']);
+            this.router.navigate(['/w', this.workspaceId, 'projects']);
           },
           error: () =>
             this.snackBar.open(

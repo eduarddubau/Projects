@@ -18,7 +18,7 @@ test.describe('Dashboard as home', () => {
     await page.waitForURL(/\/dashboard$/);
 
     // From elsewhere in the app, the brand logo returns to the dashboard ("home").
-    await page.goto('/projects');
+    await page.locator('.nav-inline a', { hasText: 'Projects' }).click();
     await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
     await page.locator('a.brand').click();
     await page.waitForURL(/\/dashboard$/);

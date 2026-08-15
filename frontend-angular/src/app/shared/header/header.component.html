@@ -29,9 +29,14 @@
         <a class="nav-link" routerLink="/dashboard" routerLinkActive="active-link">{{
           t('nav.dashboard')
         }}</a>
-        <a class="nav-link" routerLink="/projects" routerLinkActive="active-link">{{
-          t('nav.projects')
-        }}</a>
+        @if (currentWorkspaceId(); as id) {
+          <a
+            class="nav-link"
+            [routerLink]="['/w', id, 'projects']"
+            routerLinkActive="active-link"
+            >{{ t('nav.projects') }}</a
+          >
+        }
       }
       @if (isAdmin()) {
         <a class="nav-link" routerLink="/admin" routerLinkActive="active-link">{{
@@ -131,14 +136,16 @@
         <mat-icon>person</mat-icon>
         <span>{{ t('menu.profile') }}</span>
       </button>
-      <button mat-menu-item routerLink="/projects">
-        <mat-icon>folder</mat-icon>
-        <span>{{ t('menu.projects') }}</span>
-      </button>
-      <button mat-menu-item routerLink="/projects/trash">
-        <mat-icon>delete_outline</mat-icon>
-        <span>{{ t('menu.trash') }}</span>
-      </button>
+      @if (currentWorkspaceId(); as id) {
+        <button mat-menu-item [routerLink]="['/w', id, 'projects']">
+          <mat-icon>folder</mat-icon>
+          <span>{{ t('menu.projects') }}</span>
+        </button>
+        <button mat-menu-item [routerLink]="['/w', id, 'projects', 'trash']">
+          <mat-icon>delete_outline</mat-icon>
+          <span>{{ t('menu.trash') }}</span>
+        </button>
+      }
       @if (isAdmin()) {
         <mat-divider></mat-divider>
         <button mat-menu-item routerLink="/admin">

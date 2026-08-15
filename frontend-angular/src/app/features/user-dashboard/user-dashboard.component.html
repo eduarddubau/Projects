@@ -35,7 +35,7 @@
     <section class="overview">
       <app-weather-widget (loaded)="onWeatherLoaded($event)"></app-weather-widget>
 
-      <a class="kpi" routerLink="/projects">
+      <a class="kpi" routerLink="/workspaces">
         <span class="kpi-value">{{ d.activeProjectCount }}</span>
         <span class="kpi-meta">
           <mat-icon class="kpi-icon projects">folder</mat-icon>
@@ -43,7 +43,7 @@
         </span>
       </a>
 
-      <a class="kpi" routerLink="/projects/trash">
+      <a class="kpi" routerLink="/workspaces">
         <span class="kpi-value">{{ d.deletedProjectCount }}</span>
         <span class="kpi-meta">
           <mat-icon class="kpi-icon deleted">delete_outline</mat-icon>
@@ -56,11 +56,15 @@
       <mat-card-header>
         <mat-card-title>{{ t('userDashboard.recent.title') }}</mat-card-title>
         <div class="card-header-actions">
-          <a mat-flat-button routerLink="/projects" [queryParams]="{ new: 1 }">
+          <a
+            mat-flat-button
+            [routerLink]="['/w', currentWorkspaceId(), 'projects']"
+            [queryParams]="{ new: 1 }"
+          >
             <mat-icon>add</mat-icon>
             {{ t('projects.list.newProject') }}
           </a>
-          <a mat-button routerLink="/projects">{{ t('userDashboard.recent.viewAll') }}</a>
+          <a mat-button routerLink="/workspaces">{{ t('userDashboard.recent.viewAll') }}</a>
         </div>
       </mat-card-header>
       <mat-card-content>

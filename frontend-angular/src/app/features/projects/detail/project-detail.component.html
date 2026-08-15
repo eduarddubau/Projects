@@ -10,7 +10,9 @@
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
       <p>{{ t('projects.detail.notFound') }}</p>
-      <a mat-stroked-button routerLink="/projects">{{ t('projects.detail.backToProjects') }}</a>
+      <a mat-stroked-button [routerLink]="['/w', workspaceId, 'projects']">{{
+        t('projects.detail.backToProjects')
+      }}</a>
     </div>
   } @else if (project.hasValue()) {
     @let p = project.value();
@@ -23,10 +25,12 @@
               <mat-icon>edit</mat-icon>
               {{ t('common.actions.edit') }}
             </button>
-            <button mat-stroked-button class="button-danger" (click)="confirmDelete(p)">
-              <mat-icon>delete</mat-icon>
-              {{ t('common.actions.delete') }}
-            </button>
+            @if (isOwner()) {
+              <button mat-stroked-button class="button-danger" (click)="confirmDelete(p)">
+                <mat-icon>delete</mat-icon>
+                {{ t('common.actions.delete') }}
+              </button>
+            }
           </div>
         }
       </mat-card-header>

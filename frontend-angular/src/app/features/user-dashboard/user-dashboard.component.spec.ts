@@ -22,6 +22,8 @@ const sampleDashboard: UserDashboard = {
   lastActivityAt: '2026-07-01T09:00:00Z',
   recentProjects: [
     {
+      workspaceId: '99999999-9999-9999-9999-999999999999',
+      workspaceName: 'Test Workspace',
       id: '22222222-2222-2222-2222-222222222222',
       name: 'Rocket Plans',
       createdAt: '2026-06-20T10:00:00Z',

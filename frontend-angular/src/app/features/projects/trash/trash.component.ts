@@ -19,14 +19,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs/operators';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectsDataSource } from '../projects-datasource';
 import { ProjectService } from '@core/services/project.service';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { Project } from '@core/models/project';
 
@@ -57,12 +58,20 @@ export class TrashComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   private projectService = inject(ProjectService);
+  private workspaceContext = inject(WorkspaceContextService);
+
+  isOwner = this.workspaceContext.isOwner;
+  private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  deleted = this.projectService.myDeletedProjects();
+  workspaceId = toSignal(this.route.paramMap.pipe(map((p) => p.get('workspaceId'))), {
+    initialValue: this.route.snapshot.paramMap.get('workspaceId'),
+  });
+
+  deleted = this.projectService.workspaceTrash(this.workspaceId);
 
   dataSource = new ProjectsDataSource();
   displayedColumns = ['index', 'name', 'description', 'deletedAt', 'actions'];
@@ -108,7 +117,7 @@ export class TrashComponent implements OnInit, AfterViewInit {
   }
 
   restoreProject(project: Project): void {
-    this.projectService.restoreMyProject(project.id).subscribe({
+    this.projectService.restoreProject(project.id).subscribe({
       next: () => {
         this.deleted.update((list) => list.filter((p) => p.id !== project.id));
         this.snackBar.open(

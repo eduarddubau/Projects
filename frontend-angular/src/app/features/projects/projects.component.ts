@@ -24,13 +24,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, map, startWith } from 'rxjs/operators';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { ProjectsDataSource } from './projects-datasource';
 import { ProjectService } from '@core/services/project.service';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { Project } from '@core/models/project';
 import {
   ProjectFormDialogComponent,
@@ -66,6 +67,9 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   private projectService = inject(ProjectService);
+  private workspaceContext = inject(WorkspaceContextService);
+
+  isOwner = this.workspaceContext.isOwner;
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
@@ -74,7 +78,13 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  projects = this.projectService.myProjects();
+  // From paramMap, not the snapshot: switching workspace navigates between two
+  // instances of this same route, and Angular reuses the component.
+  workspaceId = toSignal(this.route.paramMap.pipe(map((p) => p.get('workspaceId'))), {
+    initialValue: this.route.snapshot.paramMap.get('workspaceId'),
+  });
+
+  projects = this.projectService.workspaceProjects(this.workspaceId);
 
   dataSource = new ProjectsDataSource();
   displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
@@ -136,7 +146,10 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
       .subscribe((result: ProjectFormResult | undefined) => {
         if (!result) return;
 
-        this.projectService.createProject(result).subscribe({
+        const workspaceId = this.workspaceId();
+        if (!workspaceId) return;
+
+        this.projectService.createProject(workspaceId, result).subscribe({
           next: (project) => {
             this.projects.update((list) => [project, ...list]);
             this.snackBar.open(
@@ -156,7 +169,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
   }
 
   openDetail(project: Project): void {
-    this.router.navigate(['/projects', project.id]);
+    this.router.navigate(['/w', this.workspaceId(), 'projects', project.id]);
   }
 
   confirmDelete(project: Project): void {
@@ -177,7 +190,7 @@ export class ProjectsComponent implements OnInit, AfterViewInit {
       .subscribe((confirmed: boolean | undefined) => {
         if (!confirmed) return;
 
-        this.projectService.deleteMyProject(project.id).subscribe({
+        this.projectService.deleteProject(project.id).subscribe({
           next: () => {
             this.projects.update((list) => list.filter((p) => p.id !== project.id));
             this.snackBar.open(

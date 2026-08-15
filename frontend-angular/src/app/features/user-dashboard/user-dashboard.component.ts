@@ -17,6 +17,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { DashboardService } from '@core/services/dashboard.service';
 import { AuthService } from '@core/services/auth.service';
 import { LanguageService } from '@core/services/language.service';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { CurrentWeather } from '@core/models/weather';
 import { Project } from '@core/models/project';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
@@ -46,6 +47,9 @@ export class UserDashboardComponent {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private languageService = inject(LanguageService);
+  private workspaceContext = inject(WorkspaceContextService);
+
+  currentWorkspaceId = this.workspaceContext.currentWorkspaceId;
 
   /** Locale for the date pipes; 'ro' locale data is registered in provideI18n. */
   dateLocale = computed(() => (this.languageService.lang() === 'ro' ? 'ro' : 'en-US'));
@@ -90,7 +94,7 @@ export class UserDashboardComponent {
   }
 
   openProject(project: Project): void {
-    this.router.navigate(['/projects', project.id]);
+    this.router.navigate(['/w', project.workspaceId, 'projects', project.id]);
   }
 
   lastActivity(project: Project): string {

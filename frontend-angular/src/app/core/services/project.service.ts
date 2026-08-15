@@ -13,17 +13,33 @@ export class ProjectService {
   // Read endpoints are resource factories: call them from a component's field
   // initializer so each resource lives and dies with that component. There is no
   // injection context anywhere else, so calling one from a handler throws.
-  myProjects() {
-    return httpResource<Project[]>(() => `${this.apiUrl}/projects`, { defaultValue: [] });
-  }
+  //
+  // Collections hang off a workspace, single projects do not: an id is enough to
+  // find one, and the caller rarely knows which workspace holds it.
 
   // Returning undefined keeps the resource idle until the id is known.
-  myProject(id: Signal<string | undefined>) {
-    return httpResource<Project>(() => (id() ? `${this.apiUrl}/projects/${id()}` : undefined));
+  workspaceProjects(workspaceId: Signal<string | null | undefined>) {
+    return httpResource<Project[]>(
+      () => {
+        const id = workspaceId();
+        return id ? `${this.apiUrl}/workspaces/${id}/projects` : undefined;
+      },
+      { defaultValue: [] },
+    );
   }
 
-  myDeletedProjects() {
-    return httpResource<Project[]>(() => `${this.apiUrl}/projects/trash`, { defaultValue: [] });
+  workspaceTrash(workspaceId: Signal<string | null | undefined>) {
+    return httpResource<Project[]>(
+      () => {
+        const id = workspaceId();
+        return id ? `${this.apiUrl}/workspaces/${id}/projects/trash` : undefined;
+      },
+      { defaultValue: [] },
+    );
+  }
+
+  project(id: Signal<string | undefined>) {
+    return httpResource<Project>(() => (id() ? `${this.apiUrl}/projects/${id()}` : undefined));
   }
 
   allProjects() {
@@ -38,20 +54,27 @@ export class ProjectService {
 
   // Standard user
 
-  createProject(payload: { name: string; description?: string }): Observable<Project> {
-    return this.http.post<Project>(`${this.apiUrl}/projects`, payload);
+  createProject(
+    workspaceId: string,
+    payload: { name: string; description?: string },
+  ): Observable<Project> {
+    return this.http.post<Project>(`${this.apiUrl}/workspaces/${workspaceId}/projects`, payload);
   }
 
   updateProject(id: string, payload: { name: string; description?: string }): Observable<Project> {
     return this.http.put<Project>(`${this.apiUrl}/projects/${id}`, payload);
   }
 
-  deleteMyProject(id: string): Observable<void> {
+  deleteProject(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/projects/${id}`);
   }
 
-  restoreMyProject(id: string): Observable<Project> {
+  restoreProject(id: string): Observable<Project> {
     return this.http.post<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
+  }
+
+  moveProject(id: string, workspaceId: string): Observable<Project> {
+    return this.http.post<Project>(`${this.apiUrl}/projects/${id}/move`, { workspaceId });
   }
 
   // Admin
