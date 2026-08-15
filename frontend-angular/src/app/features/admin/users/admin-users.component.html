@@ -18,9 +18,9 @@
         <mat-icon matPrefix>search</mat-icon>
         <input
           matInput
-          [formControl]="searchControl"
           [placeholder]="t('admin.users.searchPlaceholder')"
           [attr.aria-label]="t('admin.users.searchAria')"
+          (input)="table.setSearch($any($event.target).value)"
         />
       </mat-form-field>
     </div>
@@ -35,21 +35,18 @@
         <mat-icon color="warn">error_outline</mat-icon>
         <p>{{ t('admin.users.loadFailed') }}</p>
       </div>
-    }
-
-    <div [hidden]="users.isLoading() || users.error()">
+    } @else {
       <table
         mat-table
-        [dataSource]="dataSource"
+        [dataSource]="table.pageRows()"
         matSort
+        (matSortChange)="table.setSort($event)"
         class="full-width-table"
         [attr.aria-label]="t('admin.users.tableAria')"
       >
         <ng-container matColumnDef="index">
           <th mat-header-cell *matHeaderCellDef>#</th>
-          <td mat-cell *matCellDef="let row; let i = index">
-            {{ paginator.pageIndex * paginator.pageSize + (i + 1) }}
-          </td>
+          <td mat-cell *matCellDef="let row; let i = index">{{ table.rowNumber(i) }}</td>
         </ng-container>
 
         <ng-container matColumnDef="name">
@@ -98,14 +95,14 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
 
-      @if (dataSource.data.length > 0 && dataSource.filteredData.length === 0) {
+      @if (table.hasNoMatches()) {
         <div class="state-container">
           <mat-icon>search_off</mat-icon>
           <p>{{ t('admin.users.noSearchResults') }}</p>
         </div>
       }
 
-      @if (dataSource.data.length === 0) {
+      @if (table.isEmpty()) {
         <div class="state-container">
           <mat-icon>group_off</mat-icon>
           <p>{{ t('admin.users.empty') }}</p>
@@ -113,11 +110,14 @@
       }
 
       <mat-paginator
-        #paginator
+        [length]="table.total()"
+        [pageIndex]="table.pageIndex()"
+        [pageSize]="table.pageSize()"
         [pageSizeOptions]="[5, 10, 20]"
+        (page)="table.setPage($event)"
         [attr.aria-label]="t('projects.table.selectPage')"
       >
       </mat-paginator>
-    </div>
+    }
   </div>
 </div>

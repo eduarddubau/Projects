@@ -1,18 +1,14 @@
 import {
-  AfterViewInit,
-  Component,
-  ViewChild,
-  inject,
-  DestroyRef,
   ChangeDetectionStrategy,
-  OnInit,
-  ChangeDetectorRef,
-  effect,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
 } from '@angular/core';
-import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, MatPaginator, MatPaginatorIntl } from '@angular/material/paginator';
-import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatPaginatorModule, MatPaginatorIntl } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -23,17 +19,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, startWith } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
-import { ProjectsDataSource } from '@features/projects/projects-datasource';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
+import { TableState } from '@shared/table/table-state';
+import { TableSelection } from '@shared/table/table-selection';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 
 type AgeFilter = 'all' | '30' | '60' | '90';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'app-trash-projects',
@@ -49,113 +46,59 @@ type AgeFilter = 'all' | '30' | '60' | '90';
     MatProgressSpinnerModule,
     MatIconModule,
     MatButtonModule,
-    ReactiveFormsModule,
     DatePipe,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
-export class TrashProjectsComponent implements OnInit, AfterViewInit {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
-
+export class TrashProjectsComponent {
   private projectService = inject(ProjectService);
-  private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
   deleted = this.projectService.allDeletedProjects();
-  selection = new SelectionModel<Project>(true, []);
 
-  dataSource = new ProjectsDataSource();
+  table = new TableState<Project>({
+    source: () => (this.deleted.hasValue() ? this.deleted.value() : []),
+    searchText: (p) => p.name,
+    sortValue: (p, column) => {
+      switch (column) {
+        case 'name':
+          return p.name.toLowerCase();
+        case 'createdBy':
+          return p.createdByDisplayName?.toLowerCase() ?? '';
+        case 'deletedAt':
+          return p.deletedAt ?? '';
+        default:
+          return '';
+      }
+    },
+  });
+
+  selection = new TableSelection(this.table.matching, this.table.pageRows);
+
+  ageFilter = signal<AgeFilter>('all');
   displayedColumns = ['select', 'index', 'name', 'createdBy', 'deletedAt', 'actions'];
-  searchControl = new FormControl('');
-  ageFilterControl = new FormControl<AgeFilter>('all');
 
-  constructor() {
-    // The table reads a plain property, not a signal, so the resource's value has
-    // to be pushed across; every local edit below goes through the resource too,
-    // which keeps this the single place the table is filled.
-    effect(() => {
-      // value() throws while the resource is in its error state, and an effect
-      // that throws takes change detection down with it.
-      if (!this.deleted.hasValue()) return;
-
-      this.dataSource.data = this.deleted.value();
-      this.dataSource.triggerUpdate();
-      this.cdr.markForCheck();
-    });
-  }
-
-  ngOnInit() {
-    this.searchControl.valueChanges
-      .pipe(
-        startWith(this.searchControl.value),
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(() => this.applyFilters());
-
-    this.ageFilterControl.valueChanges
-      .pipe(startWith(this.ageFilterControl.value), takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.applyFilters());
-  }
-
-  ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.triggerUpdate();
-    this.cdr.detectChanges();
-  }
-
-  private applyFilters(): void {
-    const ageFilter = this.ageFilterControl.value;
-    this.dataSource.state = {
-      searchQuery: this.searchControl.value?.trim().toLowerCase() ?? '',
-      minAgeDays: ageFilter && ageFilter !== 'all' ? Number(ageFilter) : undefined,
-    };
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.pageIndex = 0;
-    }
-    this.cdr.markForCheck();
-  }
-
-  /** Rows currently rendered on screen — "select all" must never reach past this into other pages. */
-  private get rowsInView(): Project[] {
-    return this.dataSource.getCurrentPageData();
-  }
-
-  private get purgeableSelected(): Project[] {
-    return this.selection.selected.filter((p) => p.isPurgeable);
-  }
-
-  canPurgeSelected(): boolean {
-    const selected = this.selection.selected;
+  /** Purge is refused server-side inside the retention window, so offer it only when every pick qualifies. */
+  canPurgeSelected = computed(() => {
+    const selected = this.selection.selected();
     return selected.length > 0 && selected.every((p) => p.isPurgeable);
-  }
+  });
 
-  isAllSelected(): boolean {
-    const rows = this.rowsInView;
-    return rows.length > 0 && rows.every((p) => this.selection.isSelected(p));
-  }
+  setAgeFilter(value: AgeFilter): void {
+    this.ageFilter.set(value);
 
-  toggleSelection(row: Project): void {
-    this.selection.toggle(row);
-    this.cdr.markForCheck();
-  }
-
-  toggleSelectAll(): void {
-    const rows = this.rowsInView;
-    if (this.isAllSelected()) {
-      rows.forEach((p) => this.selection.deselect(p));
-    } else {
-      this.selection.select(...rows);
+    if (value === 'all') {
+      this.table.setFilter(null);
+      return;
     }
-    this.cdr.markForCheck();
+
+    const cutoff = Date.now() - Number(value) * DAY_MS;
+    this.table.setFilter((p) => !!p.deletedAt && new Date(p.deletedAt).getTime() < cutoff);
   }
 
   restoreProject(project: Project): void {
@@ -163,37 +106,25 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   }
 
   confirmRestoreSelected(): void {
-    const selected = this.selection.selected;
-    if (selected.length === 0) return;
-
-    this.restoreMany(selected);
+    this.restoreMany(this.selection.selected());
   }
 
-  private restoreMany(projects: Project[]): void {
+  private restoreMany(projects: readonly Project[]): void {
+    if (projects.length === 0) return;
+
     const ids = projects.map((p) => p.id);
     this.projectService.restoreProjects(ids).subscribe({
       next: ({ restoredCount }) => {
         this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
-        projects.forEach((p) => this.selection.deselect(p));
-        this.dataSource.triggerUpdate();
-        this.cdr.markForCheck();
-        this.snackBar.open(
-          this.transloco.translate(
-            restoredCount === 1
-              ? 'admin.trashProjects.restoredOne'
-              : 'admin.trashProjects.restoredMany',
-            { count: restoredCount },
-          ),
-          this.transloco.translate('common.actions.close'),
-          { duration: 3000 },
+        this.selection.deselect(projects);
+        this.notify(
+          restoredCount === 1
+            ? 'admin.trashProjects.restoredOne'
+            : 'admin.trashProjects.restoredMany',
+          { count: restoredCount },
         );
       },
-      error: () =>
-        this.snackBar.open(
-          this.transloco.translate('admin.trashProjects.restoreFailed'),
-          this.transloco.translate('common.actions.close'),
-          { duration: 5000 },
-        ),
+      error: () => this.notify('admin.trashProjects.restoreFailed', undefined, 5000),
     });
   }
 
@@ -205,7 +136,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
   }
 
   confirmPurgeSelected(): void {
-    const purgeable = this.purgeableSelected;
+    const purgeable = this.selection.selected().filter((p) => p.isPurgeable);
     if (purgeable.length === 0) return;
 
     this.purge(
@@ -219,7 +150,7 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
     );
   }
 
-  private purge(projects: Project[], message: string): void {
+  private purge(projects: readonly Project[], message: string): void {
     this.dialog
       .open(ConfirmDialogComponent, {
         width: '420px',
@@ -243,27 +174,24 @@ export class TrashProjectsComponent implements OnInit, AfterViewInit {
         this.projectService.purgeProjects(ids).subscribe({
           next: ({ purgedCount }) => {
             this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
-            projects.forEach((p) => this.selection.deselect(p));
-            this.dataSource.triggerUpdate();
-            this.cdr.markForCheck();
-            this.snackBar.open(
-              this.transloco.translate(
-                purgedCount === 1
-                  ? 'admin.trashProjects.purgedOne'
-                  : 'admin.trashProjects.purgedMany',
-                { count: purgedCount },
-              ),
-              this.transloco.translate('common.actions.close'),
-              { duration: 3000 },
+            this.selection.deselect(projects);
+            this.notify(
+              purgedCount === 1
+                ? 'admin.trashProjects.purgedOne'
+                : 'admin.trashProjects.purgedMany',
+              { count: purgedCount },
             );
           },
-          error: () =>
-            this.snackBar.open(
-              this.transloco.translate('admin.trashProjects.purgeFailed'),
-              this.transloco.translate('common.actions.close'),
-              { duration: 5000 },
-            ),
+          error: () => this.notify('admin.trashProjects.purgeFailed', undefined, 5000),
         });
       });
+  }
+
+  private notify(key: string, params?: Record<string, unknown>, duration = 3000): void {
+    this.snackBar.open(
+      this.transloco.translate(key, params),
+      this.transloco.translate('common.actions.close'),
+      { duration },
+    );
   }
 }
