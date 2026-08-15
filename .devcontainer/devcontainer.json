@@ -8,6 +8,7 @@
     "vscode": {
       "extensions": [
         "ms-dotnettools.csdevkit",
+        "csharpier.csharpier-vscode",
         "ckolkman.vscode-postgres",
         "Angular.ng-template",
         "esbenp.prettier-vscode",

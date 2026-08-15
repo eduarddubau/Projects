@@ -10,6 +10,8 @@ insert_final_newline = true
 
 [*.cs]
 indent_size = 4
+# CSharpier reads this as its print width.
+max_line_length = 100
 
 # EF writes these; marking them as what they are rather than restyling them.
 # The leading **/ matters — a bare Migrations/*.cs only matches at the repo root.
@@ -48,6 +50,9 @@ csharp_style_pattern_matching_over_as_with_null_check = true:warning
 csharp_style_prefer_pattern_matching = true:warning
 csharp_prefer_simple_using_statement = true:warning
 csharp_using_directive_placement = outside_namespace:warning
+
+# One rule ID for every formatting option, several disagreeing with CSharpier.
+dotnet_diagnostic.IDE0055.severity = none
 
 # var stays a judgement call: the distinction every style guide turns on
 # (transient pass-through) has no .editorconfig setting, so enforcing either

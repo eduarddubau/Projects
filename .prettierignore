@@ -5,4 +5,4 @@ frontend-angular/
 nginx/
 
 # Rewritten by `dotnet tool`.
-backend/.config/
+.config/

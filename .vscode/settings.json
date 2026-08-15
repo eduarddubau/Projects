@@ -1,8 +1,13 @@
 {
-  // Format-on-save is enabled per-language rather than globally: the backend is C#
-  // and belongs to the C# extension, and Markdown is excluded because `.claude` is a
-  // symlink into the notes repo — reformatting memory files from this workspace
-  // would dirty a different repository.
+  // Format-on-save is enabled per-language rather than globally. Markdown is
+  // excluded because `.claude` is a symlink into the notes repo — reformatting
+  // memory files from this workspace would dirty a different repository.
+
+  // Not the C# extension: on save its formatter would undo CSharpier's output.
+  "[csharp]": {
+    "editor.defaultFormatter": "csharpier.csharpier-vscode",
+    "editor.formatOnSave": true
+  },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true

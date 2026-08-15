@@ -1,0 +1,6 @@
+# EF writes these; .editorconfig already marks them generated_code.
+**/Migrations/*.cs
+
+# CSharpier strips the blank lines that group the ItemGroups.
+*.csproj
+*.props
