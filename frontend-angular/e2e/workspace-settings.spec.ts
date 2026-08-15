@@ -69,7 +69,9 @@ test.describe('Workspace settings', () => {
     createdName = renamed;
   });
 
-  test('deleting refuses until the workspace name is typed back', async ({ page }) => {
+  // The typed-name confirmation was relaxed to a plain warn confirm once deleting
+  // became recoverable; see the trash spec for where the workspace goes.
+  test('deleting asks once, then removes it from the list and the switcher', async ({ page }) => {
     createdName = `E2E Delete ${Date.now()}`;
     const name = createdName;
     await login(page, OWNER);
@@ -79,16 +81,8 @@ test.describe('Workspace settings', () => {
     await page.getByRole('button', { name: 'Delete workspace' }).click();
 
     const dialog = page.getByRole('dialog');
-    const confirm = dialog.getByRole('button', { name: 'Delete workspace' });
-    await expect(confirm).toBeDisabled();
-
-    // Exact, not a prefix.
-    await dialog.getByRole('textbox').fill(name.slice(0, -1));
-    await expect(confirm).toBeDisabled();
-
-    await dialog.getByRole('textbox').fill(name);
-    await expect(confirm).toBeEnabled();
-    await confirm.click();
+    await expect(dialog).toContainText(name);
+    await dialog.getByRole('button', { name: 'Delete workspace' }).click();
 
     await expect(page).toHaveURL(/\/workspaces$/);
     await expect(page.locator('.ws-grid')).not.toContainText(name);

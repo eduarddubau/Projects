@@ -28,6 +28,14 @@ export const routes: Routes = [
       import('./features/workspaces/list/workspaces.component').then((m) => m.WorkspacesComponent),
   },
   {
+    path: 'workspaces/trash',
+    canActivate: [authGuard, standardUserGuard],
+    loadComponent: () =>
+      import('./features/workspaces/trash/workspace-trash.component').then(
+        (m) => m.WorkspaceTrashComponent,
+      ),
+  },
+  {
     // authGuard first: guards run in sequence and stop at the first refusal, so
     // reversed, a signed-out user would fire a 401 before being sent to /login.
     path: 'w/:workspaceId',

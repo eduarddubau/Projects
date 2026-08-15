@@ -34,6 +34,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    path: 'workspaces/**',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: 'invitations/**',
     renderMode: RenderMode.Client,
   },

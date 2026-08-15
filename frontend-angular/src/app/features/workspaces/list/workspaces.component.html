@@ -4,6 +4,10 @@
   <div class="page-header">
     <h1 class="page-title">{{ t('workspaces.list.title') }}</h1>
     <div class="header-actions">
+      <button mat-stroked-button routerLink="/workspaces/trash">
+        <mat-icon>delete_outline</mat-icon>
+        {{ t('workspaces.list.trash') }}
+      </button>
       <button mat-flat-button (click)="openCreateDialog()">
         <mat-icon>add</mat-icon>
         {{ t('workspaces.list.newWorkspace') }}
@@ -23,7 +27,7 @@
       @for (w of workspaces(); track w.id) {
         <button
           type="button"
-          class="ws-card"
+          class="ws-card is-selectable"
           [class.is-current]="w.id === currentWorkspaceId()"
           [attr.aria-current]="w.id === currentWorkspaceId() ? 'true' : null"
           (click)="select(w.id)"

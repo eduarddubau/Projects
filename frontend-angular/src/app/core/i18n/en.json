@@ -15,7 +15,8 @@
       "create": "Create",
       "restore": "Restore",
       "erase": "Erase",
-      "purge": "Purge"
+      "purge": "Purge",
+      "undo": "Undo"
     },
     "errors": {
       "unexpected": "An unexpected error occurred.",
@@ -541,7 +542,19 @@
       "memberCount": "Members: {{count}}",
       "current": "Current",
       "created": "Workspace created.",
-      "createFailed": "Could not create the workspace. Please try again."
+      "createFailed": "Could not create the workspace. Please try again.",
+      "trash": "Trash"
+    },
+    "trash": {
+      "title": "Deleted Workspaces",
+      "subtitle": "Workspaces you own that have been deleted. Restoring one puts it back in your switcher exactly as it was.",
+      "backToList": "All workspaces",
+      "loading": "Loading...",
+      "loadFailed": "Failed to load deleted workspaces. Please try again.",
+      "empty": "Nothing deleted.",
+      "deletedAt": "Deleted {{date}}",
+      "restored": "\"{{name}}\" restored.",
+      "restoreFailed": "Failed to restore workspace."
     },
     "members": {
       "title": "Members",
@@ -578,14 +591,14 @@
       "delete": "Delete workspace",
       "deleteTitle": "Delete this workspace?",
       "deleteMessage": "{{name}} will be removed for everyone in it, and you won't be able to restore it.",
-      "deleteConfirmLabel": "Type the workspace name to confirm",
       "saved": "Workspace updated.",
       "deleted": "Workspace deleted.",
       "saveFailed": "Could not save the changes. Please try again.",
       "deleteFailed": "Could not delete the workspace. Please try again.",
       "personalNotice": "Your personal workspace can't be renamed or deleted.",
       "memberNotice": "Only the owner can change these settings.",
-      "backToMembers": "View members"
+      "backToMembers": "View members",
+      "undoFailed": "Could not undo. The workspace is in Trash and can be restored from there."
     }
   },
   "invitations": {

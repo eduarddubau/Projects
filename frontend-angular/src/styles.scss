@@ -500,6 +500,89 @@ table.mat-mdc-table {
 }
 
 // ============================================================
+// Workspace cards (workspace list + its trash)
+// ============================================================
+.ws-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+// Flat at rest: hairline border, no shadow. Elevation stays semantic.
+.ws-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1.25rem;
+  // --app-hairline is a whole `border` shorthand, not a colour.
+  border: var(--app-hairline);
+  border-radius: var(--app-radius-card);
+  background: var(--mat-sys-surface-container-lowest);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+  text-align: start;
+
+  // The list's cards are buttons; the trash's are plain containers.
+  &.is-selectable {
+    cursor: pointer;
+
+    &:hover {
+      background: var(--mat-sys-surface-container);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+
+  &.is-current {
+    border-color: var(--mat-sys-primary);
+  }
+}
+
+.ws-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.ws-card-name {
+  font: var(--mat-sys-title-medium);
+}
+
+.ws-card-desc {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Pushed to the bottom so member counts line up across cards whose descriptions
+// differ in length — grid already makes the cards equal height.
+.ws-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.ws-card-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--mat-sys-primary);
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+// ============================================================
 // Theme switching
 // ============================================================
 // Default crossfade is disabled: ThemeService clips the new theme in as a

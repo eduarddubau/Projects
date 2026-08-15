@@ -110,6 +110,8 @@ export class WorkspaceSettingsComponent {
     // Captured up front: the delete navigates away and destroys this component.
     const id = this.workspaceId();
 
+    // A plain confirm, not a typed name: typing the name is the tier for something
+    // unrecoverable, and this now lands in a trash the owner can restore from.
     const data: ConfirmDialogData = {
       title: this.transloco.translate('workspaces.settings.deleteTitle'),
       message: this.transloco.translate('workspaces.settings.deleteMessage', {
@@ -117,8 +119,6 @@ export class WorkspaceSettingsComponent {
       }),
       confirmLabel: this.transloco.translate('workspaces.settings.delete'),
       warn: true,
-      confirmPhrase: workspace.name,
-      confirmPhraseLabel: this.transloco.translate('workspaces.settings.deleteConfirmLabel'),
     };
 
     this.dialog
@@ -141,13 +141,44 @@ export class WorkspaceSettingsComponent {
           // list that still holds this id.
           this.context.remove(id);
           this.router.navigate(['/workspaces']);
-          this.toast('workspaces.settings.deleted');
+          this.offerUndo(id);
         },
         error: (err) => {
           this.isBusy.set(false);
           this.toast(serverErrorKey(err, 'workspaces.settings.deleteFailed'), 5000);
         },
       });
+  }
+
+  /**
+   * Undo is the quick path; the trash at /workspaces/trash is the durable one. The
+   * snackbar is deliberately not the only way back — a missed snackbar must not be
+   * the difference between recoverable and not.
+   *
+   * No takeUntilDestroyed on either subscription: the delete navigates away and
+   * destroys this component immediately, so tying them to its lifetime cancels the
+   * undo before the user can reach it. Both are bounded anyway — the snackbar
+   * completes when it dismisses, and the restore is a single response.
+   */
+  private offerUndo(id: string): void {
+    this.snackBar
+      .open(
+        this.transloco.translate('workspaces.settings.deleted'),
+        this.transloco.translate('common.actions.undo'),
+        { duration: 8000 },
+      )
+      .onAction()
+      .subscribe(() => this.undoDelete(id));
+  }
+
+  private undoDelete(id: string): void {
+    this.api.restoreWorkspace(id).subscribe({
+      next: (restored) => {
+        this.context.upsert(restored);
+        this.router.navigate(['/w', restored.id, 'settings']);
+      },
+      error: (err) => this.toast(serverErrorKey(err, 'workspaces.settings.undoFailed'), 5000),
+    });
   }
 
   private toast(key: string, duration = 3000): void {

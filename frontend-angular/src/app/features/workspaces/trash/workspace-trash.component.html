@@ -1,0 +1,56 @@
+<app-aurora></app-aurora>
+
+<div class="page-container" *transloco="let t">
+  <div class="page-header">
+    <h1 class="page-title">{{ t('workspaces.trash.title') }}</h1>
+    <div class="header-actions">
+      <button mat-stroked-button routerLink="/workspaces">
+        <mat-icon>arrow_back</mat-icon>
+        {{ t('workspaces.trash.backToList') }}
+      </button>
+    </div>
+  </div>
+
+  <p class="page-subtitle">{{ t('workspaces.trash.subtitle') }}</p>
+
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ t('workspaces.trash.loading') }}</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ t('workspaces.trash.loadFailed') }}</p>
+    </div>
+  } @else if (deleted().length === 0) {
+    <div class="state-container">
+      <mat-icon>delete_outline</mat-icon>
+      <p>{{ t('workspaces.trash.empty') }}</p>
+    </div>
+  } @else {
+    <div class="ws-grid">
+      @for (w of deleted(); track w.id) {
+        <div class="ws-card">
+          <span class="ws-card-head">
+            <span class="ws-card-name">{{ w.name }}</span>
+          </span>
+
+          @if (w.description) {
+            <span class="ws-card-desc">{{ w.description }}</span>
+          }
+
+          <span class="ws-card-foot">
+            <span class="ws-card-members">
+              {{ t('workspaces.trash.deletedAt', { date: w.deletedAt | date: 'yyyy-MM-dd' }) }}
+            </span>
+            <button mat-stroked-button (click)="restore(w)">
+              <mat-icon>restore</mat-icon>
+              {{ t('common.actions.restore') }}
+            </button>
+          </span>
+        </div>
+      }
+    </div>
+  }
+</div>

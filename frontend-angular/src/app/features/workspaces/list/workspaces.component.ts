@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
@@ -25,8 +25,7 @@ import {
 @Component({
   selector: 'app-workspaces',
   templateUrl: './workspaces.component.html',
-  styleUrl: './workspaces.component.scss',
-  imports: [MatButtonModule, MatIconModule, AuroraComponent, TranslocoDirective],
+  imports: [MatButtonModule, MatIconModule, RouterLink, AuroraComponent, TranslocoDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkspacesComponent {

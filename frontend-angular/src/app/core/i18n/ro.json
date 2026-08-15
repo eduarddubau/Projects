@@ -15,7 +15,8 @@
       "create": "Creează",
       "restore": "Restaurează",
       "erase": "Șterge definitiv",
-      "purge": "Elimină definitiv"
+      "purge": "Elimină definitiv",
+      "undo": "Anulează"
     },
     "errors": {
       "unexpected": "A apărut o eroare neașteptată.",
@@ -541,7 +542,19 @@
       "memberCount": "Membri: {{count}}",
       "current": "Curent",
       "created": "Spațiul de lucru a fost creat.",
-      "createFailed": "Spațiul de lucru nu a putut fi creat. Încearcă din nou."
+      "createFailed": "Spațiul de lucru nu a putut fi creat. Încearcă din nou.",
+      "trash": "Coș de gunoi"
+    },
+    "trash": {
+      "title": "Spații de lucru șterse",
+      "subtitle": "Spațiile de lucru pe care le deții și care au fost șterse. Restaurarea îl readuce în comutator exact cum era.",
+      "backToList": "Toate spațiile de lucru",
+      "loading": "Se încarcă...",
+      "loadFailed": "Spațiile de lucru șterse nu au putut fi încărcate. Încearcă din nou.",
+      "empty": "Nimic șters.",
+      "deletedAt": "Șters la {{date}}",
+      "restored": "„{{name}}” restaurat.",
+      "restoreFailed": "Spațiul de lucru nu a putut fi restaurat."
     },
     "members": {
       "title": "Membri",
@@ -578,14 +591,14 @@
       "delete": "Șterge spațiul de lucru",
       "deleteTitle": "Ștergi acest spațiu de lucru?",
       "deleteMessage": "{{name}} va fi eliminat pentru toți cei din el și nu îl vei putea restaura.",
-      "deleteConfirmLabel": "Scrie numele spațiului de lucru pentru a confirma",
       "saved": "Spațiul de lucru a fost actualizat.",
       "deleted": "Spațiul de lucru a fost șters.",
       "saveFailed": "Modificările nu au putut fi salvate. Încearcă din nou.",
       "deleteFailed": "Spațiul de lucru nu a putut fi șters. Încearcă din nou.",
       "personalNotice": "Spațiul tău de lucru personal nu poate fi redenumit sau șters.",
       "memberNotice": "Doar proprietarul poate modifica aceste setări.",
-      "backToMembers": "Vezi membrii"
+      "backToMembers": "Vezi membrii",
+      "undoFailed": "Anularea nu a reușit. Spațiul de lucru este în coșul de gunoi și poate fi restaurat de acolo."
     }
   },
   "invitations": {
