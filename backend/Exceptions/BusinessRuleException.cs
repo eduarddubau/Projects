@@ -6,14 +6,21 @@ public class BusinessRuleException : Exception
 
     public IReadOnlyDictionary<string, string>? Params { get; }
 
-    public BusinessRuleException(string message) : base(message) { }
+    public BusinessRuleException(string message)
+        : base(message) { }
 
-    public BusinessRuleException(string code, string message) : base(message)
+    public BusinessRuleException(string code, string message)
+        : base(message)
     {
         Code = code;
     }
 
-    public BusinessRuleException(string code, string message, IReadOnlyDictionary<string, string> parameters) : base(message)
+    public BusinessRuleException(
+        string code,
+        string message,
+        IReadOnlyDictionary<string, string> parameters
+    )
+        : base(message)
     {
         Code = code;
         Params = parameters;

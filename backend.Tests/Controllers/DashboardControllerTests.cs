@@ -26,9 +26,11 @@ public class DashboardControllerTests
             ActiveProjectCount = 2,
             DeletedProjectCount = 1,
             LastActivityAt = DateTime.UtcNow,
-            RecentProjects = [new ProjectResponseDto { Id = Guid.NewGuid(), Name = "My Project" }]
+            RecentProjects = [new ProjectResponseDto { Id = Guid.NewGuid(), Name = "My Project" }],
         };
-        _dashboardService.Setup(s => s.GetMyDashboardAsync(It.IsAny<CancellationToken>())).ReturnsAsync(dashboard);
+        _dashboardService
+            .Setup(s => s.GetMyDashboardAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(dashboard);
 
         var result = await _controller.GetMyDashboard(CancellationToken.None);
 
@@ -46,9 +48,11 @@ public class DashboardControllerTests
             ActiveUserCount = 3,
             DeletedUserCount = 1,
             RecentProjects = [new ProjectResponseDto { Id = Guid.NewGuid(), Name = "A Project" }],
-            RecentUsers = [new UserResponseDto { Id = Guid.NewGuid(), Email = "ada@example.com" }]
+            RecentUsers = [new UserResponseDto { Id = Guid.NewGuid(), Email = "ada@example.com" }],
         };
-        _dashboardService.Setup(s => s.GetAdminDashboardAsync(It.IsAny<CancellationToken>())).ReturnsAsync(dashboard);
+        _dashboardService
+            .Setup(s => s.GetAdminDashboardAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(dashboard);
 
         var result = await _controller.GetAdminDashboard(CancellationToken.None);
 

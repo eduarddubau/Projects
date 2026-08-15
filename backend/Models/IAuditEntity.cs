@@ -1,4 +1,3 @@
-
 namespace Backend.Models;
 
 public interface IAuditEntity

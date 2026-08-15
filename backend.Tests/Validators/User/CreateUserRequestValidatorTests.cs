@@ -7,12 +7,13 @@ public class CreateUserRequestValidatorTests
 {
     private readonly CreateUserRequestValidator _validator = new();
 
-    private static CreateUserRequest ValidRequest() => new()
-    {
-        FirstName = "Ada",
-        LastName = "Lovelace",
-        Email = "ada@example.com"
-    };
+    private static CreateUserRequest ValidRequest() =>
+        new()
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+        };
 
     [Fact]
     public void Validate_WithValidRequest_HasNoErrors()

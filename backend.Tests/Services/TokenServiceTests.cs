@@ -16,15 +16,27 @@ public class TokenServiceTests
     public TokenServiceTests()
     {
         var store = new Mock<IUserStore<User>>();
-        _userManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+        _userManager = new Mock<UserManager<User>>(
+            store.Object,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!
+        );
 
-        var options = Options.Create(new JwtOptions
-        {
-            Key = new string('k', 64),
-            Issuer = "test-issuer",
-            Audience = "test-audience",
-            DurationInMinutes = 60
-        });
+        var options = Options.Create(
+            new JwtOptions
+            {
+                Key = new string('k', 64),
+                Issuer = "test-issuer",
+                Audience = "test-audience",
+                DurationInMinutes = 60,
+            }
+        );
 
         _service = new TokenService(options, _userManager.Object);
     }
@@ -37,7 +49,7 @@ public class TokenServiceTests
             Id = Guid.NewGuid(),
             Email = "ada@example.com",
             FirstName = "Ada",
-            LastName = "Lovelace"
+            LastName = "Lovelace",
         };
         _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([]);
 
@@ -61,7 +73,7 @@ public class TokenServiceTests
             Email = "ada@example.com",
             FirstName = "Ada",
             LastName = "Lovelace",
-            Nickname = "Countess"
+            Nickname = "Countess",
         };
         _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([]);
 
@@ -79,7 +91,7 @@ public class TokenServiceTests
             Id = Guid.NewGuid(),
             Email = "ada@example.com",
             FirstName = "Ada",
-            LastName = "Lovelace"
+            LastName = "Lovelace",
         };
         _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([]);
 
@@ -92,13 +104,21 @@ public class TokenServiceTests
     [Fact]
     public async Task CreateToken_IncludesRoleClaims()
     {
-        var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
         _userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync([AppRoles.Admin]);
 
         var token = await _service.CreateToken(user);
 
         var jwt = new JsonWebTokenHandler().ReadJsonWebToken(token);
-        var roleClaims = jwt.Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role).Select(c => c.Value);
+        var roleClaims = jwt
+            .Claims.Where(c => c.Type == System.Security.Claims.ClaimTypes.Role)
+            .Select(c => c.Value);
         Assert.Contains(AppRoles.Admin, roleClaims);
     }
 }

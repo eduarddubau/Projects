@@ -18,7 +18,10 @@ public class FluentValidationFilter : IAsyncActionFilter
         _problemDetails = problemDetails;
     }
 
-    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    public async Task OnActionExecutionAsync(
+        ActionExecutingContext context,
+        ActionExecutionDelegate next
+    )
     {
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
@@ -34,7 +37,9 @@ public class FluentValidationFilter : IAsyncActionFilter
                 continue;
 
             var result = await validator.ValidateAsync(
-                new ValidationContext<object>(argument), context.HttpContext.RequestAborted);
+                new ValidationContext<object>(argument),
+                context.HttpContext.RequestAborted
+            );
 
             foreach (var failure in result.Errors)
                 context.ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
@@ -45,7 +50,11 @@ public class FluentValidationFilter : IAsyncActionFilter
             // The factory, not a bare ValidationProblemDetails: only it matches the
             // 400 [ApiController] produces for binding failures.
             context.Result = new BadRequestObjectResult(
-                _problemDetails.CreateValidationProblemDetails(context.HttpContext, context.ModelState));
+                _problemDetails.CreateValidationProblemDetails(
+                    context.HttpContext,
+                    context.ModelState
+                )
+            );
             return;
         }
 

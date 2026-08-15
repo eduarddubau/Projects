@@ -2,11 +2,11 @@ using System.Security.Claims;
 using System.Text;
 using Backend.Config;
 using Backend.Models;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Backend.Services.Interfaces;
 
 namespace Backend.Services;
 
@@ -31,7 +31,7 @@ public class TokenService : ITokenService
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email!),
             new(JwtRegisteredClaimNames.GivenName, user.FirstName),
-            new(JwtRegisteredClaimNames.FamilyName, user.LastName)
+            new(JwtRegisteredClaimNames.FamilyName, user.LastName),
         };
 
         if (!string.IsNullOrWhiteSpace(user.Nickname))
@@ -49,7 +49,10 @@ public class TokenService : ITokenService
             Expires = DateTime.UtcNow.AddMinutes(_options.DurationInMinutes),
             Issuer = _options.Issuer,
             Audience = _options.Audience,
-            SigningCredentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature)
+            SigningCredentials = new SigningCredentials(
+                _key,
+                SecurityAlgorithms.HmacSha512Signature
+            ),
         };
 
         var tokenHandler = new JsonWebTokenHandler();

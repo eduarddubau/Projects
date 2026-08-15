@@ -17,7 +17,10 @@ public class GlobalExceptionHandlerTests
         var env = new Mock<IWebHostEnvironment>();
         env.SetupGet(e => e.EnvironmentName).Returns("Production");
 
-        _handler = new GlobalExceptionHandler(Mock.Of<ILogger<GlobalExceptionHandler>>(), env.Object);
+        _handler = new GlobalExceptionHandler(
+            Mock.Of<ILogger<GlobalExceptionHandler>>(),
+            env.Object
+        );
     }
 
     /// <summary>Runs the handler over a throwaway context and returns the serialised body,
@@ -37,10 +40,13 @@ public class GlobalExceptionHandlerTests
     [Fact]
     public async Task BusinessRuleException_WithParams_SerialisesCodeAndParams()
     {
-        var body = await HandleAsync(new BusinessRuleException(
-            "SoleOwnerOfWorkspaces",
-            "This user is the only owner of: Acme Team.",
-            new Dictionary<string, string> { ["workspaces"] = "Acme Team" }));
+        var body = await HandleAsync(
+            new BusinessRuleException(
+                "SoleOwnerOfWorkspaces",
+                "This user is the only owner of: Acme Team.",
+                new Dictionary<string, string> { ["workspaces"] = "Acme Team" }
+            )
+        );
 
         Assert.Equal(StatusCodes.Status409Conflict, body.GetProperty("statusCode").GetInt32());
         Assert.Equal("SoleOwnerOfWorkspaces", body.GetProperty("code").GetString());
@@ -72,7 +78,10 @@ public class GlobalExceptionHandlerTests
     {
         var body = await HandleAsync(new InvalidOperationException("Connection string is bad."));
 
-        Assert.Equal(StatusCodes.Status500InternalServerError, body.GetProperty("statusCode").GetInt32());
+        Assert.Equal(
+            StatusCodes.Status500InternalServerError,
+            body.GetProperty("statusCode").GetInt32()
+        );
         Assert.DoesNotContain("Connection string", body.GetProperty("message").GetString());
         // Outside Development the stack trace must not travel to the client.
         Assert.Equal(JsonValueKind.Null, body.GetProperty("details").ValueKind);

@@ -13,31 +13,45 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
 {
     private readonly IWorkspaceAccessService _accessService;
 
-    public WorkspaceService(AppDbContext context, ICurrentUserService currentUser, IWorkspaceAccessService accessService)
+    public WorkspaceService(
+        AppDbContext context,
+        ICurrentUserService currentUser,
+        IWorkspaceAccessService accessService
+    )
         : base(context, currentUser)
     {
         _accessService = accessService;
     }
 
-    public async Task<IEnumerable<WorkspaceResponseDto>> GetMyWorkspacesAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<WorkspaceResponseDto>> GetMyWorkspacesAsync(
+        CancellationToken ct = default
+    )
     {
-        return await Context.Workspaces
-            .Where(w => w.Members.Any(m => m.UserId == CurrentUser.UserGuid))
+        return await Context
+            .Workspaces.Where(w => w.Members.Any(m => m.UserId == CurrentUser.UserGuid))
             .OrderByDescending(w => w.IsPersonal)
             .ThenBy(w => w.Name)
             .MapToDto(CurrentUser.UserGuid)
             .ToListAsync(ct);
     }
 
-    public async Task<WorkspaceResponseDto?> GetWorkspaceByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<WorkspaceResponseDto?> GetWorkspaceByIdAsync(
+        Guid id,
+        CancellationToken ct = default
+    )
     {
-        return await Context.Workspaces
-            .Where(w => w.Id == id && w.Members.Any(m => m.UserId == CurrentUser.UserGuid))
+        return await Context
+            .Workspaces.Where(w =>
+                w.Id == id && w.Members.Any(m => m.UserId == CurrentUser.UserGuid)
+            )
             .MapToDto(CurrentUser.UserGuid)
             .FirstOrDefaultAsync(ct);
     }
 
-    public async Task<WorkspaceResponseDto> CreateWorkspaceAsync(CreateWorkspaceRequest dto, CancellationToken ct = default)
+    public async Task<WorkspaceResponseDto> CreateWorkspaceAsync(
+        CreateWorkspaceRequest dto,
+        CancellationToken ct = default
+    )
     {
         var userId = RequireCurrentUserId();
 
@@ -52,9 +66,9 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
                 {
                     UserId = userId,
                     Role = WorkspaceRole.Owner,
-                    JoinedAt = DateTime.UtcNow
-                }
-            }
+                    JoinedAt = DateTime.UtcNow,
+                },
+            },
         };
 
         Context.Workspaces.Add(workspace);
@@ -63,11 +77,16 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         return await ReadWorkspaceDtoAsync(workspace.Id, ct);
     }
 
-    public async Task<WorkspaceResponseDto> UpdateWorkspaceAsync(Guid id, UpdateWorkspaceRequest dto, CancellationToken ct = default)
+    public async Task<WorkspaceResponseDto> UpdateWorkspaceAsync(
+        Guid id,
+        UpdateWorkspaceRequest dto,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireOwnerAsync(id, ct);
 
-        var workspace = await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+        var workspace =
+            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         // Clients render a personal workspace from a translation key rather than this column,
@@ -75,8 +94,10 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         // lui X", a different construction entirely, so a stored name cannot be translated.
         // Allowing a rename that nothing ever displays would be worse than refusing it.
         if (workspace.IsPersonal)
-            throw new BusinessRuleException(BusinessRuleCodes.PersonalWorkspaceNotRenamable,
-                "Your personal workspace cannot be renamed.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.PersonalWorkspaceNotRenamable,
+                "Your personal workspace cannot be renamed."
+            );
 
         workspace.Name = dto.Name;
         workspace.Description = dto.Description;
@@ -90,12 +111,15 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
     {
         await _accessService.RequireOwnerAsync(id, ct);
 
-        var workspace = await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+        var workspace =
+            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         if (workspace.IsPersonal)
-            throw new BusinessRuleException(BusinessRuleCodes.PersonalWorkspaceNotDeletable,
-                "Your personal workspace cannot be deleted.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.PersonalWorkspaceNotDeletable,
+                "Your personal workspace cannot be deleted."
+            );
 
         // TODO(stage 2): also refuse when the workspace holds any project, active or trashed.
         // Not expressible until Project.WorkspaceId exists.
@@ -108,69 +132,95 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         await Context.SaveChangesAsync(ct);
     }
 
-    public async Task<WorkspaceResponseDto> RestoreWorkspaceAsync(Guid id, CancellationToken ct = default)
+    public async Task<WorkspaceResponseDto> RestoreWorkspaceAsync(
+        Guid id,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireOwnerAsync(id, ct);
 
-        _ = await RestoreAnyByIdAsync(id, ct)
+        _ =
+            await RestoreAnyByIdAsync(id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         return await ReadWorkspaceDtoAsync(id, ct);
     }
 
-    public async Task<IEnumerable<WorkspaceResponseDto>> GetDeletedWorkspacesAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<WorkspaceResponseDto>> GetDeletedWorkspacesAsync(
+        CancellationToken ct = default
+    )
     {
-        return await Context.Workspaces
-            .IgnoreQueryFilters()
-            .Where(w => w.IsDeleted && w.Members.Any(m =>
-                m.UserId == CurrentUser.UserGuid && m.Role == WorkspaceRole.Owner))
+        return await Context
+            .Workspaces.IgnoreQueryFilters()
+            .Where(w =>
+                w.IsDeleted
+                && w.Members.Any(m =>
+                    m.UserId == CurrentUser.UserGuid && m.Role == WorkspaceRole.Owner
+                )
+            )
             .OrderByDescending(w => w.DeletedAt)
             .MapToDto(CurrentUser.UserGuid)
             .ToListAsync(ct);
     }
 
-    public async Task<IEnumerable<WorkspaceMemberResponseDto>> GetMembersAsync(Guid id, CancellationToken ct = default)
+    public async Task<IEnumerable<WorkspaceMemberResponseDto>> GetMembersAsync(
+        Guid id,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireMemberAsync(id, ct);
 
-        return await Context.WorkspaceMembers
-            .Where(m => m.WorkspaceId == id)
+        return await Context
+            .WorkspaceMembers.Where(m => m.WorkspaceId == id)
             .OrderByDescending(m => m.Role)
             .ThenBy(m => m.JoinedAt)
             .MapToDto()
             .ToListAsync(ct);
     }
 
-    public async Task<WorkspaceMemberResponseDto> AddMemberAsync(Guid id, AddMemberRequest dto, CancellationToken ct = default)
+    public async Task<WorkspaceMemberResponseDto> AddMemberAsync(
+        Guid id,
+        AddMemberRequest dto,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireOwnerAsync(id, ct);
 
-        var workspace = await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+        var workspace =
+            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         if (workspace.IsPersonal)
-            throw new BusinessRuleException(BusinessRuleCodes.PersonalWorkspaceNoMembers,
-                "A personal workspace cannot have other members.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.PersonalWorkspaceNoMembers,
+                "A personal workspace cannot have other members."
+            );
 
-        var userExists = await Context.Users
-            .AnyAsync(u => u.Id == dto.UserId && !u.IsAnonymized, ct);
+        var userExists = await Context.Users.AnyAsync(
+            u => u.Id == dto.UserId && !u.IsAnonymized,
+            ct
+        );
 
         if (!userExists)
             throw new NotFoundException("User not found.");
 
-        bool alreadyMember = await Context.WorkspaceMembers
-            .AnyAsync(m => m.WorkspaceId == id && m.UserId == dto.UserId, ct);
+        bool alreadyMember = await Context.WorkspaceMembers.AnyAsync(
+            m => m.WorkspaceId == id && m.UserId == dto.UserId,
+            ct
+        );
 
         if (alreadyMember)
-            throw new BusinessRuleException(BusinessRuleCodes.AlreadyWorkspaceMember,
-                "This user is already a member of the workspace.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.AlreadyWorkspaceMember,
+                "This user is already a member of the workspace."
+            );
 
         var member = new WorkspaceMember
         {
             WorkspaceId = id,
             UserId = dto.UserId,
             Role = dto.Role ?? WorkspaceRole.Member,
-            JoinedAt = DateTime.UtcNow
+            JoinedAt = DateTime.UtcNow,
         };
 
         Context.WorkspaceMembers.Add(member);
@@ -179,7 +229,12 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         return await ReadMemberDtoAsync(id, dto.UserId, ct);
     }
 
-    public async Task<WorkspaceMemberResponseDto> ChangeRoleAsync(Guid id, Guid userId, WorkspaceRole newRole, CancellationToken ct = default)
+    public async Task<WorkspaceMemberResponseDto> ChangeRoleAsync(
+        Guid id,
+        Guid userId,
+        WorkspaceRole newRole,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireOwnerAsync(id, ct);
 
@@ -212,12 +267,15 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         var role = await _accessService.RequireMemberAsync(id, ct);
         var userId = RequireCurrentUserId();
 
-        var workspace = await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+        var workspace =
+            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         if (workspace.IsPersonal)
-            throw new BusinessRuleException(BusinessRuleCodes.PersonalWorkspaceNotLeavable,
-                "You cannot leave your personal workspace.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.PersonalWorkspaceNotLeavable,
+                "You cannot leave your personal workspace."
+            );
 
         if (role == WorkspaceRole.Owner)
             await RequireNotLastOwnerAsync(id, userId, ct);
@@ -230,26 +288,31 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
 
     public async Task EnsurePersonalWorkspaceAsync(User user, CancellationToken ct = default)
     {
-        bool exists = await Context.Workspaces
-            .AnyAsync(w => w.IsPersonal && w.Members.Any(m => m.UserId == user.Id), ct);
+        bool exists = await Context.Workspaces.AnyAsync(
+            w => w.IsPersonal && w.Members.Any(m => m.UserId == user.Id),
+            ct
+        );
 
-        if (exists) return;
+        if (exists)
+            return;
 
-        Context.Workspaces.Add(new Workspace
-        {
-            Name = PersonalWorkspaceName(user),
-            IsPersonal = true,
-            CreatedBy = user.Id,
-            Members =
+        Context.Workspaces.Add(
+            new Workspace
             {
-                new WorkspaceMember
+                Name = PersonalWorkspaceName(user),
+                IsPersonal = true,
+                CreatedBy = user.Id,
+                Members =
                 {
-                    UserId = user.Id,
-                    Role = WorkspaceRole.Owner,
-                    JoinedAt = DateTime.UtcNow
-                }
+                    new WorkspaceMember
+                    {
+                        UserId = user.Id,
+                        Role = WorkspaceRole.Owner,
+                        JoinedAt = DateTime.UtcNow,
+                    },
+                },
             }
-        });
+        );
 
         await Context.SaveChangesAsync(ct);
     }
@@ -276,33 +339,45 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
     private Guid RequireCurrentUserId() =>
         CurrentUser.UserGuid ?? throw new UnauthorizedAccessException("No authenticated user.");
 
-    private async Task<WorkspaceMember> FindMemberAsync(Guid workspaceId, Guid userId, CancellationToken ct) =>
-        await Context.WorkspaceMembers
-            .FirstOrDefaultAsync(m => m.WorkspaceId == workspaceId && m.UserId == userId, ct)
-        ?? throw new NotFoundException("This user is not a member of the workspace.");
+    private async Task<WorkspaceMember> FindMemberAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken ct
+    ) =>
+        await Context.WorkspaceMembers.FirstOrDefaultAsync(
+            m => m.WorkspaceId == workspaceId && m.UserId == userId,
+            ct
+        ) ?? throw new NotFoundException("This user is not a member of the workspace.");
 
     private async Task RequireNotLastOwnerAsync(Guid workspaceId, Guid userId, CancellationToken ct)
     {
-        bool anotherOwnerExists = await Context.WorkspaceMembers
-            .AnyAsync(m => m.WorkspaceId == workspaceId
-                        && m.UserId != userId
-                        && m.Role == WorkspaceRole.Owner, ct);
+        bool anotherOwnerExists = await Context.WorkspaceMembers.AnyAsync(
+            m =>
+                m.WorkspaceId == workspaceId && m.UserId != userId && m.Role == WorkspaceRole.Owner,
+            ct
+        );
 
         if (!anotherOwnerExists)
-            throw new BusinessRuleException(BusinessRuleCodes.WorkspaceMustHaveOwner,
-                "A workspace must have at least one owner.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.WorkspaceMustHaveOwner,
+                "A workspace must have at least one owner."
+            );
     }
 
     private async Task<WorkspaceResponseDto> ReadWorkspaceDtoAsync(Guid id, CancellationToken ct) =>
-        await Context.Workspaces
-            .IgnoreQueryFilters()
+        await Context
+            .Workspaces.IgnoreQueryFilters()
             .Where(w => w.Id == id)
             .MapToDto(CurrentUser.UserGuid)
             .FirstAsync(ct);
 
-    private async Task<WorkspaceMemberResponseDto> ReadMemberDtoAsync(Guid workspaceId, Guid userId, CancellationToken ct) =>
-        await Context.WorkspaceMembers
-            .Where(m => m.WorkspaceId == workspaceId && m.UserId == userId)
+    private async Task<WorkspaceMemberResponseDto> ReadMemberDtoAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken ct
+    ) =>
+        await Context
+            .WorkspaceMembers.Where(m => m.WorkspaceId == workspaceId && m.UserId == userId)
             .MapToDto()
             .FirstAsync(ct);
 }

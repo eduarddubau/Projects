@@ -1,5 +1,5 @@
-using Backend.Models;
 using Backend.Config;
+using Backend.Models;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +20,8 @@ public static partial class DbSeeder
         AdminSeedOptions adminOptions,
         ILookupNormalizer normalizer,
         IWorkspaceService workspaceService,
-        bool isDevelopment)
+        bool isDevelopment
+    )
     {
         LogSeedingStarted(logger);
 
@@ -29,7 +30,13 @@ public static partial class DbSeeder
 
         if (isDevelopment)
         {
-            await SeedDevelopmentDataAsync(userManager, context, logger, retentionOptions, normalizer);
+            await SeedDevelopmentDataAsync(
+                userManager,
+                context,
+                logger,
+                retentionOptions,
+                normalizer
+            );
         }
 
         await SeedPersonalWorkspacesAsync(context, workspaceService, logger);
@@ -37,24 +44,33 @@ public static partial class DbSeeder
         LogSeedingCompleted(logger);
     }
 
-    private static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager, ILogger logger)
+    private static async Task SeedRolesAsync(
+        RoleManager<IdentityRole<Guid>> roleManager,
+        ILogger logger
+    )
     {
         foreach (var roleName in new[] { AppRoles.Admin, AppRoles.User })
         {
-            if (await roleManager.RoleExistsAsync(roleName)) continue;
+            if (await roleManager.RoleExistsAsync(roleName))
+                continue;
 
             LogCreatingRole(logger, roleName);
             await roleManager.CreateAsync(new IdentityRole<Guid> { Name = roleName });
         }
     }
 
-    private static async Task SeedAdminAsync(UserManager<User> userManager, ILogger logger, AdminSeedOptions options)
+    private static async Task SeedAdminAsync(
+        UserManager<User> userManager,
+        ILogger logger,
+        AdminSeedOptions options
+    )
     {
         if (string.IsNullOrWhiteSpace(options.Email) || string.IsNullOrWhiteSpace(options.Password))
             throw new InvalidOperationException(
-                $"No admin credentials configured. Set {AdminSeedOptions.SectionName}:Email and " +
-                $"{AdminSeedOptions.SectionName}:Password via configuration/secrets " +
-                $"(e.g. {AdminSeedOptions.SectionName}__Email / {AdminSeedOptions.SectionName}__Password).");
+                $"No admin credentials configured. Set {AdminSeedOptions.SectionName}:Email and "
+                    + $"{AdminSeedOptions.SectionName}:Password via configuration/secrets "
+                    + $"(e.g. {AdminSeedOptions.SectionName}__Email / {AdminSeedOptions.SectionName}__Password)."
+            );
 
         var existing = await userManager.FindByEmailAsync(options.Email);
         if (existing is not null)
@@ -72,13 +88,17 @@ public static partial class DbSeeder
             Email = options.Email,
             FirstName = options.FirstName,
             LastName = options.LastName,
-            EmailConfirmed = true
+            EmailConfirmed = true,
         };
 
         var result = await userManager.CreateAsync(admin, options.Password);
         if (!result.Succeeded)
         {
-            LogAdminSeedFailed(logger, options.Email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            LogAdminSeedFailed(
+                logger,
+                options.Email,
+                string.Join(", ", result.Errors.Select(e => e.Description))
+            );
             return;
         }
 
@@ -90,17 +110,25 @@ public static partial class DbSeeder
         AppDbContext context,
         ILogger logger,
         ProjectRetentionOptions retentionOptions,
-        ILookupNormalizer normalizer)
+        ILookupNormalizer normalizer
+    )
     {
         var devUsers = new List<User>();
 
         for (var index = 1; index <= UserCount; index++)
         {
             var user = await SeedUserAsync(userManager, context, logger, normalizer, index);
-            if (user is null) continue;
+            if (user is null)
+                continue;
 
             devUsers.Add(user);
-            await SeedProjectsForUserAsync(context, logger, user, index, retentionOptions.TrashWindowDays);
+            await SeedProjectsForUserAsync(
+                context,
+                logger,
+                user,
+                index,
+                retentionOptions.TrashWindowDays
+            );
         }
 
         await SeedSharedWorkspaceAsync(context, logger, devUsers);
@@ -109,11 +137,16 @@ public static partial class DbSeeder
     /// <summary>Delegates to the service rather than reimplementing it: this used to be a
     /// near-verbatim copy, which meant the derived-name overflow had to be fixed twice.</summary>
     private static async Task SeedPersonalWorkspacesAsync(
-        AppDbContext context, IWorkspaceService workspaceService, ILogger logger)
+        AppDbContext context,
+        IWorkspaceService workspaceService,
+        ILogger logger
+    )
     {
-        var users = await context.Users
-            .Where(u => !u.IsAnonymized)
-            .Where(u => !context.Workspaces.Any(w => w.IsPersonal && w.Members.Any(m => m.UserId == u.Id)))
+        var users = await context
+            .Users.Where(u => !u.IsAnonymized)
+            .Where(u =>
+                !context.Workspaces.Any(w => w.IsPersonal && w.Members.Any(m => m.UserId == u.Id))
+            )
             .ToListAsync();
 
         if (users.Count == 0)
@@ -132,8 +165,12 @@ public static partial class DbSeeder
     }
 
     private static async Task<User?> SeedUserAsync(
-        UserManager<User> userManager, AppDbContext context, ILogger logger,
-        ILookupNormalizer normalizer, int index)
+        UserManager<User> userManager,
+        AppDbContext context,
+        ILogger logger,
+        ILookupNormalizer normalizer,
+        int index
+    )
     {
         var email = $"dev{index}@example.com";
 
@@ -146,8 +183,8 @@ public static partial class DbSeeder
         // EF's parameter extraction, which works here but is not something to depend on.
         var normalizedEmail = normalizer.NormalizeEmail(email);
 
-        var existingUser = await context.Users
-            .IgnoreQueryFilters()
+        var existingUser = await context
+            .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.NormalizedEmail == normalizedEmail);
 
         if (existingUser is not null)
@@ -173,13 +210,17 @@ public static partial class DbSeeder
             FirstName = "Dev",
             LastName = $"User{index}",
             Nickname = $"dev{index}",
-            EmailConfirmed = true
+            EmailConfirmed = true,
         };
 
         var result = await userManager.CreateAsync(user, DefaultPassword);
         if (!result.Succeeded)
         {
-            LogUserSeedFailed(logger, email, string.Join(", ", result.Errors.Select(e => e.Description)));
+            LogUserSeedFailed(
+                logger,
+                email,
+                string.Join(", ", result.Errors.Select(e => e.Description))
+            );
             return null;
         }
 
@@ -190,7 +231,12 @@ public static partial class DbSeeder
     }
 
     private static async Task SeedProjectsForUserAsync(
-        AppDbContext context, ILogger logger, User user, int index, int trashWindowDays)
+        AppDbContext context,
+        ILogger logger,
+        User user,
+        int index,
+        int trashWindowDays
+    )
     {
         if (await context.Projects.AnyAsync(p => p.CreatedBy == user.Id))
         {
@@ -206,14 +252,14 @@ public static partial class DbSeeder
             {
                 Name = $"{user.FirstName}'s First Project",
                 Description = "Automatically generated starter project.",
-                CreatedBy = user.Id
+                CreatedBy = user.Id,
             },
             new Project
             {
                 Name = $"Ongoing Research Project no {index}",
                 Description = "A project for tracking long-term goals.",
-                CreatedBy = user.Id
-            }
+                CreatedBy = user.Id,
+            },
         };
 
         // Tiered ages relative to the retention window, so the admin purge filters
@@ -224,17 +270,20 @@ public static partial class DbSeeder
             5,
             trashWindowDays + 5,
             trashWindowDays + 35,
-            trashWindowDays + 65
+            trashWindowDays + 65,
         };
 
-        var deletedProjects = deletedAges.Select(ageDays => new Project
-        {
-            Name = $"{user.FirstName}'s Project Deleted {ageDays} Days Ago",
-            Description = ageDays <= trashWindowDays
-                ? "Soft-deleted recently; still within the trash retention window."
-                : $"Soft-deleted {ageDays} days ago; past the {trashWindowDays}-day retention window.",
-            CreatedBy = user.Id
-        }).ToArray();
+        var deletedProjects = deletedAges
+            .Select(ageDays => new Project
+            {
+                Name = $"{user.FirstName}'s Project Deleted {ageDays} Days Ago",
+                Description =
+                    ageDays <= trashWindowDays
+                        ? "Soft-deleted recently; still within the trash retention window."
+                        : $"Soft-deleted {ageDays} days ago; past the {trashWindowDays}-day retention window.",
+                CreatedBy = user.Id,
+            })
+            .ToArray();
 
         context.Projects.AddRange(activeProjects);
         context.Projects.AddRange(deletedProjects);
@@ -253,7 +302,11 @@ public static partial class DbSeeder
 
     /// <summary>One shared workspace so the switcher, the members page and the multi-owner
     /// and last-owner guards have something real to run against.</summary>
-    private static async Task SeedSharedWorkspaceAsync(AppDbContext context, ILogger logger, List<User> devUsers)
+    private static async Task SeedSharedWorkspaceAsync(
+        AppDbContext context,
+        ILogger logger,
+        List<User> devUsers
+    )
     {
         const string sharedName = "Acme Team";
 
@@ -269,7 +322,6 @@ public static partial class DbSeeder
             return;
         }
 
-
         LogSeedingSharedWorkspace(logger, sharedName);
 
         var workspace = new Workspace
@@ -279,17 +331,19 @@ public static partial class DbSeeder
             IsPersonal = false,
             // No HTTP context at startup, so SaveChangesAsync can't infer the creator.
             // devUsers is filled dev1..devN in order, so the first is dev1.
-            CreatedBy = devUsers[0].Id
+            CreatedBy = devUsers[0].Id,
         };
 
         for (var i = 0; i < devUsers.Count; i++)
         {
-            workspace.Members.Add(new WorkspaceMember
-            {
-                UserId = devUsers[i].Id,
-                Role = i == 0 ? WorkspaceRole.Owner : WorkspaceRole.Member,
-                JoinedAt = DateTime.UtcNow
-            });
+            workspace.Members.Add(
+                new WorkspaceMember
+                {
+                    UserId = devUsers[i].Id,
+                    Role = i == 0 ? WorkspaceRole.Owner : WorkspaceRole.Member,
+                    JoinedAt = DateTime.UtcNow,
+                }
+            );
         }
 
         context.Workspaces.Add(workspace);
@@ -299,13 +353,19 @@ public static partial class DbSeeder
     [LoggerMessage(Level = LogLevel.Information, Message = "Starting database seeding...")]
     private static partial void LogSeedingStarted(ILogger logger);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Database seeding completed successfully.")]
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Database seeding completed successfully."
+    )]
     private static partial void LogSeedingCompleted(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Creating role: {roleName}")]
     private static partial void LogCreatingRole(ILogger logger, string roleName);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Admin account {email} already exists. Skipping admin seed.")]
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Admin account {email} already exists. Skipping admin seed."
+    )]
     private static partial void LogAdminExists(ILogger logger, string email);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeding admin account: {email}")]
@@ -314,16 +374,25 @@ public static partial class DbSeeder
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to seed admin {email}: {errors}")]
     private static partial void LogAdminSeedFailed(ILogger logger, string email, string errors);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Every user already has a personal workspace.")]
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Every user already has a personal workspace."
+    )]
     private static partial void LogAllWorkspacesPresent(ILogger logger);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Seeding personal workspace for user: {userId}")]
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Seeding personal workspace for user: {userId}"
+    )]
     private static partial void LogSeedingPersonalWorkspace(ILogger logger, Guid userId);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeded {count} personal workspace(s).")]
     private static partial void LogSeededPersonalWorkspaces(ILogger logger, int count);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "Dev user {email} is deleted. Leaving it alone.")]
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "Dev user {email} is deleted. Leaving it alone."
+    )]
     private static partial void LogDevUserDeleted(ILogger logger, string email);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeding user: {email}")]
@@ -332,13 +401,19 @@ public static partial class DbSeeder
     [LoggerMessage(Level = LogLevel.Error, Message = "Failed to seed user {email}: {errors}")]
     private static partial void LogUserSeedFailed(ILogger logger, string email, string errors);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "User {email} already has projects. Skipping project seed.")]
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "User {email} already has projects. Skipping project seed."
+    )]
     private static partial void LogUserHasProjects(ILogger logger, string? email);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeding projects for user: {email}")]
     private static partial void LogSeedingProjects(ILogger logger, string? email);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "No dev users to place in the shared workspace. Skipping.")]
+    [LoggerMessage(
+        Level = LogLevel.Debug,
+        Message = "No dev users to place in the shared workspace. Skipping."
+    )]
     private static partial void LogNoDevUsersForSharedWorkspace(ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Shared workspace already seeded. Skipping.")]

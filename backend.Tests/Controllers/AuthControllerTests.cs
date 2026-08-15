@@ -23,7 +23,17 @@ public class AuthControllerTests
     public AuthControllerTests()
     {
         var store = new Mock<IUserStore<User>>();
-        _userManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+        _userManager = new Mock<UserManager<User>>(
+            store.Object,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!
+        );
 
         _refreshTokenService
             .Setup(r => r.IssueAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -36,18 +46,27 @@ public class AuthControllerTests
             _refreshTokenService.Object,
             _currentUser.Object,
             _workspaceService.Object,
-            _invitationService.Object);
+            _invitationService.Object
+        );
     }
 
     [Fact]
     public async Task Login_WithValidCredentials_ReturnsOkWithToken()
     {
-        var user = new User { Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
+        var user = new User
+        {
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
         _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
         _userManager.Setup(m => m.CheckPasswordAsync(user, "Str0ng!Pass")).ReturnsAsync(true);
         _tokenService.Setup(t => t.CreateToken(user)).ReturnsAsync("jwt-token");
 
-        var result = await _controller.Login(new LoginRequest("ada@example.com", "Str0ng!Pass"), CancellationToken.None);
+        var result = await _controller.Login(
+            new LoginRequest("ada@example.com", "Str0ng!Pass"),
+            CancellationToken.None
+        );
 
         var okResult = Assert.IsType<OkObjectResult>(result);
         Assert.NotNull(okResult.Value);
@@ -56,9 +75,14 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_WithUnknownEmail_ReturnsUnauthorized()
     {
-        _userManager.Setup(m => m.FindByEmailAsync("missing@example.com")).ReturnsAsync((User?)null);
+        _userManager
+            .Setup(m => m.FindByEmailAsync("missing@example.com"))
+            .ReturnsAsync((User?)null);
 
-        var result = await _controller.Login(new LoginRequest("missing@example.com", "Str0ng!Pass"), CancellationToken.None);
+        var result = await _controller.Login(
+            new LoginRequest("missing@example.com", "Str0ng!Pass"),
+            CancellationToken.None
+        );
 
         Assert.IsType<UnauthorizedObjectResult>(result);
     }
@@ -66,11 +90,19 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_WithWrongPassword_ReturnsUnauthorized()
     {
-        var user = new User { Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
+        var user = new User
+        {
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
         _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(user);
         _userManager.Setup(m => m.CheckPasswordAsync(user, "wrong")).ReturnsAsync(false);
 
-        var result = await _controller.Login(new LoginRequest("ada@example.com", "wrong"), CancellationToken.None);
+        var result = await _controller.Login(
+            new LoginRequest("ada@example.com", "wrong"),
+            CancellationToken.None
+        );
 
         Assert.IsType<UnauthorizedObjectResult>(result);
     }
@@ -91,7 +123,7 @@ public class AuthControllerTests
             FirstName = "Ada",
             LastName = "Lovelace",
             Email = "ada@example.com",
-            Password = "Str0ng!Pass"
+            Password = "Str0ng!Pass",
         };
 
         var result = await _controller.Register(request, CancellationToken.None);
@@ -116,15 +148,19 @@ public class AuthControllerTests
             FirstName = "Ada",
             LastName = "Lovelace",
             Email = "ada@example.com",
-            Password = "Str0ng!Pass"
+            Password = "Str0ng!Pass",
         };
 
         await _controller.Register(request, CancellationToken.None);
 
         _workspaceService.Verify(
-            w => w.EnsurePersonalWorkspaceAsync(
-                It.Is<User>(u => u.Email == "ada@example.com"), It.IsAny<CancellationToken>()),
-            Times.Once);
+            w =>
+                w.EnsurePersonalWorkspaceAsync(
+                    It.Is<User>(u => u.Email == "ada@example.com"),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -143,15 +179,19 @@ public class AuthControllerTests
             FirstName = "Ada",
             LastName = "Lovelace",
             Email = "ada@example.com",
-            Password = "Str0ng!Pass"
+            Password = "Str0ng!Pass",
         };
 
         await _controller.Register(request, CancellationToken.None);
 
         _invitationService.Verify(
-            i => i.RedeemPendingForEmailAsync(
-                It.Is<User>(u => u.Email == "ada@example.com"), It.IsAny<CancellationToken>()),
-            Times.Once);
+            i =>
+                i.RedeemPendingForEmailAsync(
+                    It.Is<User>(u => u.Email == "ada@example.com"),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -159,21 +199,30 @@ public class AuthControllerTests
     {
         _userManager
             .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "DuplicateEmail", Description = "Email already taken." }));
+            .ReturnsAsync(
+                IdentityResult.Failed(
+                    new IdentityError
+                    {
+                        Code = "DuplicateEmail",
+                        Description = "Email already taken.",
+                    }
+                )
+            );
 
         var request = new RegisterRequest
         {
             FirstName = "Ada",
             LastName = "Lovelace",
             Email = "ada@example.com",
-            Password = "Str0ng!Pass"
+            Password = "Str0ng!Pass",
         };
 
         await _controller.Register(request, CancellationToken.None);
 
         _invitationService.Verify(
             i => i.RedeemPendingForEmailAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+            Times.Never
+        );
     }
 
     [Fact]
@@ -181,21 +230,30 @@ public class AuthControllerTests
     {
         _userManager
             .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "DuplicateEmail", Description = "Email already taken." }));
+            .ReturnsAsync(
+                IdentityResult.Failed(
+                    new IdentityError
+                    {
+                        Code = "DuplicateEmail",
+                        Description = "Email already taken.",
+                    }
+                )
+            );
 
         var request = new RegisterRequest
         {
             FirstName = "Ada",
             LastName = "Lovelace",
             Email = "ada@example.com",
-            Password = "Str0ng!Pass"
+            Password = "Str0ng!Pass",
         };
 
         await _controller.Register(request, CancellationToken.None);
 
         _workspaceService.Verify(
             w => w.EnsurePersonalWorkspaceAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+            Times.Never
+        );
     }
 
     [Fact]
@@ -203,14 +261,22 @@ public class AuthControllerTests
     {
         _userManager
             .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "DuplicateEmail", Description = "Email already taken." }));
+            .ReturnsAsync(
+                IdentityResult.Failed(
+                    new IdentityError
+                    {
+                        Code = "DuplicateEmail",
+                        Description = "Email already taken.",
+                    }
+                )
+            );
 
         var request = new RegisterRequest
         {
             FirstName = "Ada",
             LastName = "Lovelace",
             Email = "ada@example.com",
-            Password = "Str0ng!Pass"
+            Password = "Str0ng!Pass",
         };
 
         var result = await _controller.Register(request, CancellationToken.None);
@@ -221,7 +287,12 @@ public class AuthControllerTests
     [Fact]
     public async Task GetCurrentUser_WhenAuthenticated_ReturnsOkWithUser()
     {
-        var user = new User { Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
+        var user = new User
+        {
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
         _currentUser.Setup(c => c.UserId).Returns(user.Id.ToString());
         _userManager.Setup(m => m.FindByIdAsync(user.Id.ToString())).ReturnsAsync(user);
 
@@ -255,7 +326,13 @@ public class AuthControllerTests
     [Fact]
     public async Task Refresh_WithValidToken_ReturnsOkWithNewTokens()
     {
-        var user = new User { Id = Guid.NewGuid(), Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" };
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
         _refreshTokenService
             .Setup(r => r.RotateAsync("rt", It.IsAny<CancellationToken>()))
             .ReturnsAsync(new RefreshRotationResult(true, user.Id, "new-rt"));
@@ -299,6 +376,9 @@ public class AuthControllerTests
         var result = await _controller.Logout(new RefreshRequest("rt"), CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
-        _refreshTokenService.Verify(r => r.RevokeAsync("rt", It.IsAny<CancellationToken>()), Times.Once);
+        _refreshTokenService.Verify(
+            r => r.RevokeAsync("rt", It.IsAny<CancellationToken>()),
+            Times.Once
+        );
     }
 }

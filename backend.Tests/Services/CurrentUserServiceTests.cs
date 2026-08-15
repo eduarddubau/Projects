@@ -19,15 +19,14 @@ public class CurrentUserServiceTests
 
     private void SetUser(ClaimsPrincipal principal)
     {
-        _httpContextAccessor.Setup(a => a.HttpContext).Returns(new DefaultHttpContext { User = principal });
+        _httpContextAccessor
+            .Setup(a => a.HttpContext)
+            .Returns(new DefaultHttpContext { User = principal });
     }
 
     private static ClaimsPrincipal AuthenticatedPrincipal(Guid userId, params Claim[] extraClaims)
     {
-        var claims = new List<Claim>
-        {
-            new(JwtRegisteredClaimNames.Sub, userId.ToString())
-        };
+        var claims = new List<Claim> { new(JwtRegisteredClaimNames.Sub, userId.ToString()) };
         claims.AddRange(extraClaims);
 
         var identity = new ClaimsIdentity(claims, "TestAuth");
@@ -103,7 +102,12 @@ public class CurrentUserServiceTests
     [Fact]
     public void Email_WhenEmailClaimPresent_ReturnsItsValue()
     {
-        SetUser(AuthenticatedPrincipal(Guid.NewGuid(), new Claim(JwtRegisteredClaimNames.Email, "ada@example.com")));
+        SetUser(
+            AuthenticatedPrincipal(
+                Guid.NewGuid(),
+                new Claim(JwtRegisteredClaimNames.Email, "ada@example.com")
+            )
+        );
 
         Assert.Equal("ada@example.com", _service.Email);
     }
@@ -111,10 +115,13 @@ public class CurrentUserServiceTests
     [Fact]
     public void FullName_WhenFirstAndLastNamePresent_ReturnsCombinedName()
     {
-        SetUser(AuthenticatedPrincipal(
-            Guid.NewGuid(),
-            new Claim(JwtRegisteredClaimNames.GivenName, "Ada"),
-            new Claim(JwtRegisteredClaimNames.FamilyName, "Lovelace")));
+        SetUser(
+            AuthenticatedPrincipal(
+                Guid.NewGuid(),
+                new Claim(JwtRegisteredClaimNames.GivenName, "Ada"),
+                new Claim(JwtRegisteredClaimNames.FamilyName, "Lovelace")
+            )
+        );
 
         Assert.Equal("Ada Lovelace", _service.FullName);
     }
@@ -130,10 +137,13 @@ public class CurrentUserServiceTests
     [Fact]
     public void Roles_ReturnsAllRoleClaims()
     {
-        SetUser(AuthenticatedPrincipal(
-            Guid.NewGuid(),
-            new Claim(ClaimTypes.Role, AppRoles.User),
-            new Claim(ClaimTypes.Role, AppRoles.Admin)));
+        SetUser(
+            AuthenticatedPrincipal(
+                Guid.NewGuid(),
+                new Claim(ClaimTypes.Role, AppRoles.User),
+                new Claim(ClaimTypes.Role, AppRoles.Admin)
+            )
+        );
 
         Assert.Equal(new[] { AppRoles.User, AppRoles.Admin }, _service.Roles);
     }

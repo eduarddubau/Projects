@@ -14,7 +14,11 @@ public partial class RefreshTokenService : IRefreshTokenService
     private readonly JwtOptions _options;
     private readonly ILogger<RefreshTokenService> _logger;
 
-    public RefreshTokenService(AppDbContext db, IOptions<JwtOptions> options, ILogger<RefreshTokenService> logger)
+    public RefreshTokenService(
+        AppDbContext db,
+        IOptions<JwtOptions> options,
+        ILogger<RefreshTokenService> logger
+    )
     {
         _db = db;
         _options = options.Value;
@@ -29,7 +33,10 @@ public partial class RefreshTokenService : IRefreshTokenService
         return raw;
     }
 
-    public async Task<RefreshRotationResult> RotateAsync(string rawToken, CancellationToken ct = default)
+    public async Task<RefreshRotationResult> RotateAsync(
+        string rawToken,
+        CancellationToken ct = default
+    )
     {
         var hash = SecureToken.Hash(rawToken);
         var token = await _db.RefreshTokens.FirstOrDefaultAsync(rt => rt.TokenHash == hash, ct);
@@ -79,8 +86,8 @@ public partial class RefreshTokenService : IRefreshTokenService
     private async Task RevokeAllActiveForUserAsync(Guid userId, CancellationToken ct)
     {
         var now = DateTime.UtcNow;
-        var active = await _db.RefreshTokens
-            .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+        var active = await _db
+            .RefreshTokens.Where(rt => rt.UserId == userId && rt.RevokedAt == null)
             .ToListAsync(ct);
 
         foreach (var t in active)
@@ -89,23 +96,33 @@ public partial class RefreshTokenService : IRefreshTokenService
         await _db.SaveChangesAsync(ct);
     }
 
-    private RefreshToken NewToken(Guid userId, string hash) => new()
-    {
-        UserId = userId,
-        TokenHash = hash,
-        CreatedAt = DateTime.UtcNow,
-        ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDurationInDays)
-    };
+    private RefreshToken NewToken(Guid userId, string hash) =>
+        new()
+        {
+            UserId = userId,
+            TokenHash = hash,
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddDays(_options.RefreshTokenDurationInDays),
+        };
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Refresh rejected: token not recognized.")]
     private partial void LogTokenNotRecognized();
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Refresh rejected: reuse of a revoked token detected for user {userId}. Revoking all active tokens.")]
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Refresh rejected: reuse of a revoked token detected for user {userId}. Revoking all active tokens."
+    )]
     private partial void LogRevokedTokenReused(Guid userId);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Refresh rejected: expired token for user {userId}.")]
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Refresh rejected: expired token for user {userId}."
+    )]
     private partial void LogTokenExpired(Guid userId);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Rotated refresh token for user {userId}.")]
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Rotated refresh token for user {userId}."
+    )]
     private partial void LogTokenRotated(Guid userId);
 }

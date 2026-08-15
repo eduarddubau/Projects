@@ -1,7 +1,7 @@
 using Backend.Config;
 using Backend.Data;
-using Backend.Services.Interfaces;
 using Backend.Models;
+using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -30,9 +30,16 @@ public static partial class MigrationExtensions
                 await context.Database.MigrateAsync();
 
             await DbSeeder.SeedAsync(
-                userManager, roleManager, context, logger,
-                retentionOptions.Value, adminOptions.Value, normalizer, workspaceService,
-                app.Environment.IsDevelopment());
+                userManager,
+                roleManager,
+                context,
+                logger,
+                retentionOptions.Value,
+                adminOptions.Value,
+                normalizer,
+                workspaceService,
+                app.Environment.IsDevelopment()
+            );
         }
         catch (Exception ex)
         {
@@ -41,6 +48,9 @@ public static partial class MigrationExtensions
         }
     }
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred during migration or seeding.")]
+    [LoggerMessage(
+        Level = LogLevel.Error,
+        Message = "An error occurred during migration or seeding."
+    )]
     private static partial void LogMigrationFailed(ILogger logger, Exception ex);
 }

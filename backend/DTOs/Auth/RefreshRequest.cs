@@ -1,5 +1,3 @@
 namespace Backend.DTOs.Auth;
 
-public record RefreshRequest(
-    string RefreshToken
-);
+public record RefreshRequest(string RefreshToken);

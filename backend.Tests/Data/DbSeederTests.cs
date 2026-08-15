@@ -24,13 +24,29 @@ public sealed class DbSeederTests : IDisposable
     {
         var userStore = new Mock<IUserStore<User>>();
         _userManager = new Mock<UserManager<User>>(
-            userStore.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+            userStore.Object,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!
+        );
 
         var roleStore = new Mock<IRoleStore<IdentityRole<Guid>>>();
         _roleManager = new Mock<RoleManager<IdentityRole<Guid>>>(
-            roleStore.Object, null!, null!, null!, null!);
+            roleStore.Object,
+            null!,
+            null!,
+            null!,
+            null!
+        );
         _roleManager.Setup(r => r.RoleExistsAsync(It.IsAny<string>())).ReturnsAsync(false);
-        _roleManager.Setup(r => r.CreateAsync(It.IsAny<IdentityRole<Guid>>())).ReturnsAsync(IdentityResult.Success);
+        _roleManager
+            .Setup(r => r.CreateAsync(It.IsAny<IdentityRole<Guid>>()))
+            .ReturnsAsync(IdentityResult.Success);
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -41,20 +57,41 @@ public sealed class DbSeederTests : IDisposable
         // The real service, not a mock: the seeder now delegates personal-workspace creation
         // to it, so these tests assert on its actual behaviour (naming, owner membership).
         _workspaceService = new WorkspaceService(
-            _context, currentUser, new WorkspaceAccessService(_context, currentUser));
+            _context,
+            currentUser,
+            new WorkspaceAccessService(_context, currentUser)
+        );
     }
 
     private Task Seed(AdminSeedOptions admin, bool isDevelopment) =>
-        DbSeeder.SeedAsync(_userManager.Object, _roleManager.Object, _context, _logger, _retention, admin,
-            _normalizer, _workspaceService, isDevelopment);
+        DbSeeder.SeedAsync(
+            _userManager.Object,
+            _roleManager.Object,
+            _context,
+            _logger,
+            _retention,
+            admin,
+            _normalizer,
+            _workspaceService,
+            isDevelopment
+        );
 
     /// <summary>Admin options whose account already exists, so admin seeding is a no-op and the
     /// test can focus on what follows it.</summary>
     private AdminSeedOptions ExistingAdmin()
     {
         var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
-        _userManager.Setup(m => m.FindByEmailAsync(admin.Email))
-            .ReturnsAsync(new User { Email = admin.Email, UserName = admin.Email, FirstName = "Site", LastName = "Admin" });
+        _userManager
+            .Setup(m => m.FindByEmailAsync(admin.Email))
+            .ReturnsAsync(
+                new User
+                {
+                    Email = admin.Email,
+                    UserName = admin.Email,
+                    FirstName = "Site",
+                    LastName = "Admin",
+                }
+            );
         return admin;
     }
 
@@ -71,7 +108,7 @@ public sealed class DbSeederTests : IDisposable
             NormalizedUserName = _normalizer.NormalizeName(email),
             FirstName = firstName,
             LastName = "Tester",
-            Nickname = nickname
+            Nickname = nickname,
         };
         _context.Users.Add(user);
         _context.SaveChanges();
@@ -88,8 +125,8 @@ public sealed class DbSeederTests : IDisposable
         await Seed(admin, isDevelopment: false);
 
         // Include: there are no lazy-loading proxies, so Members is empty without it.
-        var personal = await _context.Workspaces
-            .Include(w => w.Members)
+        var personal = await _context
+            .Workspaces.Include(w => w.Members)
             .Where(w => w.IsPersonal)
             .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
@@ -107,7 +144,15 @@ public sealed class DbSeederTests : IDisposable
 
         await Seed(admin, isDevelopment: false);
 
-        Assert.Equal("Alan's Workspace", (await _context.Workspaces.FirstAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken)).Name);
+        Assert.Equal(
+            "Alan's Workspace",
+            (
+                await _context.Workspaces.FirstAsync(
+                    w => w.IsPersonal,
+                    cancellationToken: TestContext.Current.CancellationToken
+                )
+            ).Name
+        );
     }
 
     [Fact]
@@ -119,7 +164,13 @@ public sealed class DbSeederTests : IDisposable
         await Seed(admin, isDevelopment: false);
         await Seed(admin, isDevelopment: false);
 
-        Assert.Equal(1, await _context.Workspaces.CountAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(
+            1,
+            await _context.Workspaces.CountAsync(
+                w => w.IsPersonal,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
@@ -132,7 +183,13 @@ public sealed class DbSeederTests : IDisposable
 
         await Seed(admin, isDevelopment: false);
 
-        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(
+            0,
+            await _context.Workspaces.CountAsync(
+                w => w.IsPersonal,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
@@ -145,9 +202,11 @@ public sealed class DbSeederTests : IDisposable
         await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
-        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _userManager
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
-        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _userManager
+            .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
 
         var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
@@ -156,18 +215,27 @@ public sealed class DbSeederTests : IDisposable
 
         _userManager.Verify(
             m => m.CreateAsync(It.Is<User>(u => u.Email == "dev1@example.com"), It.IsAny<string>()),
-            Times.Never);
+            Times.Never
+        );
         // Deleted users get no personal workspace either.
-        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal && w.CreatedBy == deleted.Id, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(
+            0,
+            await _context.Workspaces.CountAsync(
+                w => w.IsPersonal && w.CreatedBy == deleted.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
     public async Task SeedAsync_InDevelopment_SeedsSharedWorkspaceOnceAcrossRuns()
     {
         _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
-        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _userManager
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
-        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _userManager
+            .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
 
         var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
@@ -175,8 +243,8 @@ public sealed class DbSeederTests : IDisposable
         await Seed(admin, isDevelopment: true);
         await Seed(admin, isDevelopment: true);
 
-        var shared = await _context.Workspaces
-            .Include(w => w.Members)
+        var shared = await _context
+            .Workspaces.Include(w => w.Members)
             .Where(w => !w.IsPersonal && w.Name == "Acme Team")
             .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
@@ -189,8 +257,9 @@ public sealed class DbSeederTests : IDisposable
     [InlineData(false)]
     public async Task SeedAsync_WithoutAdminCredentials_ThrowsInEveryEnvironment(bool isDevelopment)
     {
-        await Assert.ThrowsAsync<InvalidOperationException>(
-            () => Seed(new AdminSeedOptions(), isDevelopment));
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Seed(new AdminSeedOptions(), isDevelopment)
+        );
     }
 
     [Fact]
@@ -198,21 +267,40 @@ public sealed class DbSeederTests : IDisposable
     {
         var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
         _userManager.Setup(m => m.FindByEmailAsync(admin.Email)).ReturnsAsync((User?)null);
-        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), admin.Password)).ReturnsAsync(IdentityResult.Success);
-        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+        _userManager
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), admin.Password))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManager
+            .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
 
         await Seed(admin, isDevelopment: false);
 
-        _userManager.Verify(m => m.CreateAsync(It.Is<User>(u => u.Email == admin.Email), admin.Password), Times.Once);
-        _userManager.Verify(m => m.AddToRoleAsync(It.Is<User>(u => u.Email == admin.Email), AppRoles.Admin), Times.Once);
+        _userManager.Verify(
+            m => m.CreateAsync(It.Is<User>(u => u.Email == admin.Email), admin.Password),
+            Times.Once
+        );
+        _userManager.Verify(
+            m => m.AddToRoleAsync(It.Is<User>(u => u.Email == admin.Email), AppRoles.Admin),
+            Times.Once
+        );
     }
 
     [Fact]
     public async Task SeedAsync_WhenAdminAlreadyExists_DoesNotCreateAgain()
     {
         var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
-        _userManager.Setup(m => m.FindByEmailAsync(admin.Email))
-            .ReturnsAsync(new User { Email = admin.Email, UserName = admin.Email, FirstName = "Site", LastName = "Admin" });
+        _userManager
+            .Setup(m => m.FindByEmailAsync(admin.Email))
+            .ReturnsAsync(
+                new User
+                {
+                    Email = admin.Email,
+                    UserName = admin.Email,
+                    FirstName = "Site",
+                    LastName = "Admin",
+                }
+            );
 
         await Seed(admin, isDevelopment: false);
 
@@ -225,17 +313,30 @@ public sealed class DbSeederTests : IDisposable
         // Development seeds the configured admin first, then the dev dataset; mock
         // the identity calls so the dev-user seeding can complete.
         _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
-        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
-        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(IdentityResult.Success);
+        _userManager
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
+        _userManager
+            .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(IdentityResult.Success);
 
         var admin = new AdminSeedOptions { Email = "admin@acme.com", Password = "Adm1n!Secure9" };
 
         await Seed(admin, isDevelopment: true);
 
-        _userManager.Verify(m => m.CreateAsync(It.Is<User>(u => u.Email == admin.Email), admin.Password), Times.Once);
-        _userManager.Verify(m => m.AddToRoleAsync(It.Is<User>(u => u.Email == admin.Email), AppRoles.Admin), Times.Once);
+        _userManager.Verify(
+            m => m.CreateAsync(It.Is<User>(u => u.Email == admin.Email), admin.Password),
+            Times.Once
+        );
+        _userManager.Verify(
+            m => m.AddToRoleAsync(It.Is<User>(u => u.Email == admin.Email), AppRoles.Admin),
+            Times.Once
+        );
         // Dev users are also seeded (e.g. dev1@example.com).
-        _userManager.Verify(m => m.CreateAsync(It.Is<User>(u => u.Email == "dev1@example.com"), It.IsAny<string>()), Times.Once);
+        _userManager.Verify(
+            m => m.CreateAsync(It.Is<User>(u => u.Email == "dev1@example.com"), It.IsAny<string>()),
+            Times.Once
+        );
     }
 
     public void Dispose() => _context.Dispose();

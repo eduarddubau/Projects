@@ -18,13 +18,19 @@ public class WorkspaceAccessService : IWorkspaceAccessService
         _currentUser = currentUser;
     }
 
-    public async Task<WorkspaceRole> RequireMemberAsync(Guid workspaceId, CancellationToken ct = default)
+    public async Task<WorkspaceRole> RequireMemberAsync(
+        Guid workspaceId,
+        CancellationToken ct = default
+    )
     {
         // The row, not a projection: FirstOrDefaultAsync over a projected enum
         // returns default(WorkspaceRole), so a non-member would read as a Member.
-        var membership = await _context.WorkspaceMembers
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.WorkspaceId == workspaceId && m.UserId == _currentUser.UserGuid, ct);
+        var membership = await _context
+            .WorkspaceMembers.AsNoTracking()
+            .FirstOrDefaultAsync(
+                m => m.WorkspaceId == workspaceId && m.UserId == _currentUser.UserGuid,
+                ct
+            );
 
         return membership?.Role ?? throw new NotFoundException("Workspace not found.");
     }

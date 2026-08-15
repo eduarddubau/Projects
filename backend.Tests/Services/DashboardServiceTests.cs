@@ -28,13 +28,18 @@ public sealed class DashboardServiceTests : IDisposable
         _service = new DashboardService(
             _context,
             _currentUser.Object,
-            Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays }));
+            Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays })
+        );
 
         _currentUser.Setup(c => c.UserGuid).Returns(_userId);
     }
 
-    private User AddUser(string email, bool isDeleted = false, bool isAnonymized = false,
-        DateTime? createdAt = null)
+    private User AddUser(
+        string email,
+        bool isDeleted = false,
+        bool isAnonymized = false,
+        DateTime? createdAt = null
+    )
     {
         var user = new User
         {
@@ -44,7 +49,7 @@ public sealed class DashboardServiceTests : IDisposable
             LastName = "Turing",
             IsDeleted = isDeleted,
             IsAnonymized = isAnonymized,
-            CreatedAt = createdAt ?? default
+            CreatedAt = createdAt ?? default,
         };
         _context.Users.Add(user);
         _context.SaveChanges();
@@ -53,8 +58,13 @@ public sealed class DashboardServiceTests : IDisposable
 
     // Audit stamping lives in SaveChangesAsync only, so the sync save here
     // persists these timestamps untouched.
-    private Project AddProject(string name, Guid createdBy, DateTime? deletedAt = null,
-        DateTime? createdAt = null, DateTime? updatedAt = null)
+    private Project AddProject(
+        string name,
+        Guid createdBy,
+        DateTime? deletedAt = null,
+        DateTime? createdAt = null,
+        DateTime? updatedAt = null
+    )
     {
         var project = new Project
         {
@@ -63,7 +73,7 @@ public sealed class DashboardServiceTests : IDisposable
             IsDeleted = deletedAt is not null,
             DeletedAt = deletedAt,
             CreatedAt = createdAt ?? default,
-            UpdatedAt = updatedAt
+            UpdatedAt = updatedAt,
         };
         _context.Projects.Add(project);
         _context.SaveChanges();
@@ -74,10 +84,18 @@ public sealed class DashboardServiceTests : IDisposable
     public async Task GetMyDashboardAsync_ReturnsCountsRecentAndLastActivity()
     {
         AddProject("Older", _userId, createdAt: DateTime.UtcNow.AddDays(-10));
-        var newest = AddProject("Newest", _userId,
-            createdAt: DateTime.UtcNow.AddDays(-8), updatedAt: DateTime.UtcNow.AddDays(-1));
+        var newest = AddProject(
+            "Newest",
+            _userId,
+            createdAt: DateTime.UtcNow.AddDays(-8),
+            updatedAt: DateTime.UtcNow.AddDays(-1)
+        );
         AddProject("Trashed", _userId, deletedAt: DateTime.UtcNow.AddDays(-5));
-        AddProject("Expired trash", _userId, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
+        AddProject(
+            "Expired trash",
+            _userId,
+            deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
+        );
         AddProject("Someone else's", Guid.NewGuid(), createdAt: DateTime.UtcNow);
 
         var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
@@ -118,12 +136,21 @@ public sealed class DashboardServiceTests : IDisposable
     {
         var owner = AddUser("owner@example.com", createdAt: DateTime.UtcNow.AddDays(-3));
         AddUser("deleted@example.com", isDeleted: true, createdAt: DateTime.UtcNow.AddDays(-2));
-        AddUser("erased@example.com", isDeleted: true, isAnonymized: true, createdAt: DateTime.UtcNow.AddDays(-1));
+        AddUser(
+            "erased@example.com",
+            isDeleted: true,
+            isAnonymized: true,
+            createdAt: DateTime.UtcNow.AddDays(-1)
+        );
 
         AddProject("Mine", _userId, createdAt: DateTime.UtcNow.AddDays(-2));
         AddProject("Theirs", owner.Id, createdAt: DateTime.UtcNow.AddDays(-1));
         // Admin trash has no retention window, so even old deletions count.
-        AddProject("Old deleted", owner.Id, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 10)));
+        AddProject(
+            "Old deleted",
+            owner.Id,
+            deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 10))
+        );
 
         var result = await _service.GetAdminDashboardAsync(TestContext.Current.CancellationToken);
 

@@ -1,13 +1,13 @@
-using Backend.Services.Interfaces;
-using Backend.DTOs.Auth;
-using Backend.Models;
-using Backend.Mappings;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Backend.Config;
+using Backend.DTOs.Auth;
 using Backend.DTOs.User;
 using Backend.Exceptions;
+using Backend.Mappings;
+using Backend.Models;
+using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
@@ -32,7 +32,8 @@ public partial class AuthController : ControllerBase
         IRefreshTokenService refreshTokenService,
         ICurrentUserService currentUser,
         IWorkspaceService workspaceService,
-        IInvitationService invitationService)
+        IInvitationService invitationService
+    )
     {
         _userManager = userManager;
         _logger = logger;
@@ -49,11 +50,13 @@ public partial class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponseDto>> GetCurrentUser(CancellationToken ct)
     {
-        if (_currentUser.UserId is null) return Unauthorized();
+        if (_currentUser.UserId is null)
+            return Unauthorized();
 
         var user = await _userManager.FindByIdAsync(_currentUser.UserId);
 
-        if (user is null) return NotFound();
+        if (user is null)
+            return NotFound();
 
         return Ok(user.MapToDto());
     }
@@ -64,7 +67,8 @@ public partial class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
-        var passwordValid = user != null && await _userManager.CheckPasswordAsync(user, request.Password);
+        var passwordValid =
+            user != null && await _userManager.CheckPasswordAsync(user, request.Password);
 
         if (!passwordValid)
         {
@@ -78,18 +82,23 @@ public partial class AuthController : ControllerBase
         var refreshToken = await _refreshTokenService.IssueAsync(user!.Id, ct);
         LogLoginSucceeded(user.Id);
 
-        return Ok(new
-        {
-            Token = token,
-            RefreshToken = refreshToken,
-            User = user.MapToDto()
-        });
+        return Ok(
+            new
+            {
+                Token = token,
+                RefreshToken = refreshToken,
+                User = user.MapToDto(),
+            }
+        );
     }
 
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
+    public async Task<IActionResult> Register(
+        [FromBody] RegisterRequest request,
+        CancellationToken ct
+    )
     {
         var user = request.ToEntity();
 
@@ -120,18 +129,24 @@ public partial class AuthController : ControllerBase
         var refreshToken = await _refreshTokenService.IssueAsync(user.Id, ct);
         LogUserRegistered(user.Id);
 
-        return StatusCode(StatusCodes.Status201Created, new
-        {
-            Token = token,
-            RefreshToken = refreshToken,
-            User = user.MapToDto()
-        });
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new
+            {
+                Token = token,
+                RefreshToken = refreshToken,
+                User = user.MapToDto(),
+            }
+        );
     }
 
     [HttpPost("refresh")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Refresh([FromBody] RefreshRequest request, CancellationToken ct)
+    public async Task<IActionResult> Refresh(
+        [FromBody] RefreshRequest request,
+        CancellationToken ct
+    )
     {
         var rotation = await _refreshTokenService.RotateAsync(request.RefreshToken, ct);
         if (!rotation.Succeeded)
@@ -143,12 +158,14 @@ public partial class AuthController : ControllerBase
 
         var token = await _tokenService.CreateToken(user);
 
-        return Ok(new
-        {
-            Token = token,
-            RefreshToken = rotation.NewRawToken,
-            User = user.MapToDto()
-        });
+        return Ok(
+            new
+            {
+                Token = token,
+                RefreshToken = rotation.NewRawToken,
+                User = user.MapToDto(),
+            }
+        );
     }
 
     [HttpPost("logout")]

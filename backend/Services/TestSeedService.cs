@@ -21,7 +21,9 @@ public class TestSeedService : ITestSeedService
     }
 
     public async Task<IReadOnlyList<SeededProjectDto>> SeedDeletedProjectsAsync(
-        SeedDeletedProjectsRequest request, CancellationToken ct = default)
+        SeedDeletedProjectsRequest request,
+        CancellationToken ct = default
+    )
     {
         var items = request.Projects;
 
@@ -29,7 +31,7 @@ public class TestSeedService : ITestSeedService
             .Select(p => new Project
             {
                 Name = p.Name,
-                Description = "Seeded by an E2E test."
+                Description = "Seeded by an E2E test.",
                 // CreatedBy is set to the current user by the audit hook in SaveChanges.
             })
             .ToList();
@@ -47,8 +49,6 @@ public class TestSeedService : ITestSeedService
         }
         await _context.SaveChangesAsync(ct);
 
-        return projects
-            .Select(p => new SeededProjectDto { Id = p.Id, Name = p.Name })
-            .ToList();
+        return projects.Select(p => new SeededProjectDto { Id = p.Id, Name = p.Name }).ToList();
     }
 }

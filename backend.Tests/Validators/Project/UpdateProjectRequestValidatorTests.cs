@@ -10,7 +10,9 @@ public class UpdateProjectRequestValidatorTests
     [Fact]
     public void Validate_WithValidRequest_HasNoErrors()
     {
-        var result = _validator.Validate(new UpdateProjectRequest("My Project", "A short description"));
+        var result = _validator.Validate(
+            new UpdateProjectRequest("My Project", "A short description")
+        );
 
         Assert.True(result.IsValid);
     }
@@ -44,9 +46,14 @@ public class UpdateProjectRequestValidatorTests
     [Fact]
     public void Validate_WithDescriptionTooLong_HasError()
     {
-        var result = _validator.Validate(new UpdateProjectRequest("My Project", new string('a', 501)));
+        var result = _validator.Validate(
+            new UpdateProjectRequest("My Project", new string('a', 501))
+        );
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdateProjectRequest.Description));
+        Assert.Contains(
+            result.Errors,
+            e => e.PropertyName == nameof(UpdateProjectRequest.Description)
+        );
     }
 }

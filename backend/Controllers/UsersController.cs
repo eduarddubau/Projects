@@ -17,9 +17,7 @@ public partial class UsersController : ControllerBase
     private readonly IUserService _userService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(
-        IUserService userService,
-        ILogger<UsersController> logger)
+    public UsersController(IUserService userService, ILogger<UsersController> logger)
     {
         _userService = userService;
         _logger = logger;
@@ -52,7 +50,10 @@ public partial class UsersController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<UserResponseDto>> CreateUser(CreateUserRequest createUserDto, CancellationToken ct)
+    public async Task<ActionResult<UserResponseDto>> CreateUser(
+        CreateUserRequest createUserDto,
+        CancellationToken ct
+    )
     {
         var createdUser = await _userService.CreateUserAsync(createUserDto, ct);
         return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
@@ -89,7 +90,9 @@ public partial class UsersController : ControllerBase
 
     [HttpGet("trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetDeletedUsers(CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetDeletedUsers(
+        CancellationToken ct
+    )
     {
         var trash = await _userService.GetDeletedUsersAsync(ct);
         return Ok(trash);
@@ -114,9 +117,15 @@ public partial class UsersController : ControllerBase
     [LoggerMessage(Level = LogLevel.Warning, Message = "User with ID {userId} not found.")]
     private partial void LogUserNotFound(Guid userId);
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "User with ID {userId} not found for deletion.")]
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "User with ID {userId} not found for deletion."
+    )]
     private partial void LogUserNotFoundForDeletion(Guid userId);
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "User with ID {userId} not found for anonymization.")]
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "User with ID {userId} not found for anonymization."
+    )]
     private partial void LogUserNotFoundForAnonymization(Guid userId);
 }

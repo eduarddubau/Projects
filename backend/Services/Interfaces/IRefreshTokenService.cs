@@ -1,7 +1,11 @@
 namespace Backend.Services.Interfaces;
 
 /// <summary>Outcome of a rotation: the owning user and the new raw token on success.</summary>
-public record RefreshRotationResult(bool Succeeded, Guid UserId = default, string? NewRawToken = null)
+public record RefreshRotationResult(
+    bool Succeeded,
+    Guid UserId = default,
+    string? NewRawToken = null
+)
 {
     public static readonly RefreshRotationResult Failure = new(false);
 }

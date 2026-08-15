@@ -22,7 +22,8 @@ public class UserService : BaseService<User>, IUserService
         ICurrentUserService currentUser,
         UserManager<User> userManager,
         IWorkspaceService workspaceService,
-        ILookupNormalizer normalizer)
+        ILookupNormalizer normalizer
+    )
         : base(context, currentUser)
     {
         _userManager = userManager;
@@ -33,25 +34,30 @@ public class UserService : BaseService<User>, IUserService
     public async Task<UserResponseDto?> GetMyProfileAsync(CancellationToken ct = default)
     {
         var userId = CurrentUser.UserGuid;
-        if (userId is null) return null;
+        if (userId is null)
+            return null;
 
-        var user = await Context.Users
-            .Include(u => u.Creator)
+        var user = await Context
+            .Users.Include(u => u.Creator)
             .Include(u => u.Updater)
             .FirstOrDefaultAsync(u => u.Id == userId, ct);
 
         return user?.MapToDto();
     }
 
-    public async Task<UserResponseDto?> UpdateMyProfileAsync(UpdateProfileRequest dto, CancellationToken ct = default)
+    public async Task<UserResponseDto?> UpdateMyProfileAsync(
+        UpdateProfileRequest dto,
+        CancellationToken ct = default
+    )
     {
         var userId = CurrentUser.UserGuid;
-        if (userId is null) return null;
+        if (userId is null)
+            return null;
 
-        var user = await Context.Users
-            .FirstOrDefaultAsync(u => u.Id == userId, ct);
+        var user = await Context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
 
-        if (user is null) return null;
+        if (user is null)
+            return null;
 
         // Names first, without saving: SetEmailAsync calls UpdateAsync, which saves the whole
         // tracked context — so these commit in the same write. Reversing the order gives two
@@ -69,23 +75,22 @@ public class UserService : BaseService<User>, IUserService
             // A live holder is caught here by Identity's validator; a concurrent race is caught
             // by the partial unique index and translated in AppDbContext.SaveChangesAsync.
             if (!result.Succeeded)
-                throw new BusinessRuleException(BusinessRuleCodes.DuplicateEmail,
-                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                throw new BusinessRuleException(
+                    BusinessRuleCodes.DuplicateEmail,
+                    string.Join(", ", result.Errors.Select(e => e.Description))
+                );
         }
 
         // No-op when SetEmailAsync already saved; needed when only the name changed.
         await Context.SaveChangesAsync(ct);
 
-        return await Context.Users
-            .Where(u => u.Id == userId)
-            .MapToDto()
-            .FirstAsync(ct);
+        return await Context.Users.Where(u => u.Id == userId).MapToDto().FirstAsync(ct);
     }
 
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(CancellationToken ct = default)
     {
-        return await Context.Users
-            .IgnoreQueryFilters()
+        return await Context
+            .Users.IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
             .OrderByDescending(u => u.CreatedAt)
@@ -95,8 +100,8 @@ public class UserService : BaseService<User>, IUserService
 
     public async Task<UserResponseDto?> GetAnyUserByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await Context.Users
-            .IgnoreQueryFilters()
+        var user = await Context
+            .Users.IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
             .FirstOrDefaultAsync(u => u.Id == id, ct);
@@ -104,12 +109,17 @@ public class UserService : BaseService<User>, IUserService
         return user?.MapToDto();
     }
 
-    public async Task<UserResponseDto> CreateUserAsync(CreateUserRequest dto, CancellationToken ct = default)
+    public async Task<UserResponseDto> CreateUserAsync(
+        CreateUserRequest dto,
+        CancellationToken ct = default
+    )
     {
         var emailExists = await _userManager.FindByEmailAsync(dto.Email) != null;
         if (emailExists)
-            throw new BusinessRuleException(BusinessRuleCodes.DuplicateEmail,
-                "A user with this email already exists.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.DuplicateEmail,
+                "A user with this email already exists."
+            );
 
         var user = dto.ToEntity();
 
@@ -117,8 +127,10 @@ public class UserService : BaseService<User>, IUserService
         var result = await _userManager.CreateAsync(user, tempPassword);
 
         if (!result.Succeeded)
-            throw new BusinessRuleException(BusinessRuleCodes.IdentityError,
-                string.Join(", ", result.Errors.Select(e => e.Description)));
+            throw new BusinessRuleException(
+                BusinessRuleCodes.IdentityError,
+                string.Join(", ", result.Errors.Select(e => e.Description))
+            );
 
         await _userManager.AddToRoleAsync(user, AppRoles.User);
         await _workspaceService.EnsurePersonalWorkspaceAsync(user, ct);
@@ -126,44 +138,49 @@ public class UserService : BaseService<User>, IUserService
         return user.MapToDto();
     }
 
-    public Task<bool> DeleteAnyUserAsync(Guid id, CancellationToken ct = default) => SoftDeleteAnyByIdAsync(id, ct);
+    public Task<bool> DeleteAnyUserAsync(Guid id, CancellationToken ct = default) =>
+        SoftDeleteAnyByIdAsync(id, ct);
 
     public async Task<UserResponseDto?> RestoreAnyUserAsync(Guid id, CancellationToken ct = default)
     {
-        var deleted = await Context.Users
-            .IgnoreQueryFilters()
+        var deleted = await Context
+            .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Id == id, ct);
 
-        if (deleted is null) return null;
+        if (deleted is null)
+            return null;
 
         if (deleted.IsDeleted)
         {
             // Uniqueness is scoped to live rows, so restoring re-enters the partial index.
             // Only a live holder blocks it — another deleted row isn't in the index either.
             // Email only: UserName is derived from the row's own id, so it cannot collide.
-            bool taken = await Context.Users
-                .AnyAsync(u => u.Id != id && u.NormalizedEmail == deleted.NormalizedEmail, ct);
+            bool taken = await Context.Users.AnyAsync(
+                u => u.Id != id && u.NormalizedEmail == deleted.NormalizedEmail,
+                ct
+            );
 
             if (taken)
-                throw new BusinessRuleException(BusinessRuleCodes.EmailReclaimed,
+                throw new BusinessRuleException(
+                    BusinessRuleCodes.EmailReclaimed,
                     $"{deleted.Email} now belongs to another account. Erase this one, or have the current holder change their address first.",
-                    new Dictionary<string, string> { ["email"] = deleted.Email ?? string.Empty });
+                    new Dictionary<string, string> { ["email"] = deleted.Email ?? string.Empty }
+                );
 
             deleted.IsDeleted = false;
             deleted.DeletedAt = null;
             await Context.SaveChangesAsync(ct);
         }
 
-        return await Context.Users
-            .Where(u => u.Id == id)
-            .MapToDto()
-            .FirstAsync(ct);
+        return await Context.Users.Where(u => u.Id == id).MapToDto().FirstAsync(ct);
     }
 
-    public async Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync(
+        CancellationToken ct = default
+    )
     {
-        return await Context.Users
-            .IgnoreQueryFilters()
+        return await Context
+            .Users.IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
             .Where(u => u.IsDeleted && !u.IsAnonymized)
@@ -179,16 +196,19 @@ public class UserService : BaseService<User>, IUserService
     /// </summary>
     public async Task<bool> AnonymizeUserAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await Context.Users
-            .IgnoreQueryFilters()
+        var user = await Context
+            .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Id == id && u.IsDeleted && !u.IsAnonymized, ct);
 
-        if (user is null) return false;
+        if (user is null)
+            return false;
 
-        var soleOwnedNames = await Context.Workspaces
-            .Where(w => !w.IsPersonal
-                    && w.Members.Any(m => m.UserId == id && m.Role == WorkspaceRole.Owner)
-                    && !w.Members.Any(m => m.UserId != id && m.Role == WorkspaceRole.Owner))
+        var soleOwnedNames = await Context
+            .Workspaces.Where(w =>
+                !w.IsPersonal
+                && w.Members.Any(m => m.UserId == id && m.Role == WorkspaceRole.Owner)
+                && !w.Members.Any(m => m.UserId != id && m.Role == WorkspaceRole.Owner)
+            )
             .OrderBy(w => w.Name)
             .Select(w => w.Name)
             .ToListAsync(ct);
@@ -197,18 +217,18 @@ public class UserService : BaseService<User>, IUserService
         {
             var names = string.Join(", ", soleOwnedNames);
 
-            throw new BusinessRuleException(BusinessRuleCodes.SoleOwnerOfWorkspaces,
+            throw new BusinessRuleException(
+                BusinessRuleCodes.SoleOwnerOfWorkspaces,
                 $"This user is the only owner of: {names}. Promote another owner or delete those workspaces first.",
-                new Dictionary<string, string> { ["workspaces"] = names });
+                new Dictionary<string, string> { ["workspaces"] = names }
+            );
         }
 
-        var personalWorkspaces = await Context.Workspaces
-            .Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))
+        var personalWorkspaces = await Context
+            .Workspaces.Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))
             .ToListAsync(ct);
 
-        var memberships = await Context.WorkspaceMembers
-            .Where(m => m.UserId == id)
-            .ToListAsync(ct);
+        var memberships = await Context.WorkspaceMembers.Where(m => m.UserId == id).ToListAsync(ct);
 
         // A real delete: the user stops appearing in member lists rather than lingering
         // as "Deleted User".
@@ -260,11 +280,12 @@ public class UserService : BaseService<User>, IUserService
             lower[RandomNumberGenerator.GetInt32(lower.Length)],
             upper[RandomNumberGenerator.GetInt32(upper.Length)],
             digits[RandomNumberGenerator.GetInt32(digits.Length)],
-            symbols[RandomNumberGenerator.GetInt32(symbols.Length)]
+            symbols[RandomNumberGenerator.GetInt32(symbols.Length)],
         };
 
-        password.AddRange(Enumerable.Range(0, 12)
-            .Select(_ => all[RandomNumberGenerator.GetInt32(all.Length)]));
+        password.AddRange(
+            Enumerable.Range(0, 12).Select(_ => all[RandomNumberGenerator.GetInt32(all.Length)])
+        );
 
         // Shuffle so the guaranteed characters aren't always in the same positions.
         for (int i = password.Count - 1; i > 0; i--)

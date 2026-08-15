@@ -14,22 +14,28 @@ public class ProfileControllerTests
 
     public ProfileControllerTests()
     {
-        _controller = new ProfileController(_userService.Object, Mock.Of<ILogger<ProfileController>>());
+        _controller = new ProfileController(
+            _userService.Object,
+            Mock.Of<ILogger<ProfileController>>()
+        );
     }
 
-    private static UserResponseDto SampleProfile() => new()
-    {
-        Id = Guid.NewGuid(),
-        Email = "ada@example.com",
-        FirstName = "Ada",
-        LastName = "Lovelace"
-    };
+    private static UserResponseDto SampleProfile() =>
+        new()
+        {
+            Id = Guid.NewGuid(),
+            Email = "ada@example.com",
+            FirstName = "Ada",
+            LastName = "Lovelace",
+        };
 
     [Fact]
     public async Task GetProfile_WhenFound_ReturnsOk()
     {
         var profile = SampleProfile();
-        _userService.Setup(s => s.GetMyProfileAsync(It.IsAny<CancellationToken>())).ReturnsAsync(profile);
+        _userService
+            .Setup(s => s.GetMyProfileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(profile);
 
         var result = await _controller.GetProfile(CancellationToken.None);
 
@@ -40,7 +46,9 @@ public class ProfileControllerTests
     [Fact]
     public async Task GetProfile_WhenNotFound_ReturnsNotFound()
     {
-        _userService.Setup(s => s.GetMyProfileAsync(It.IsAny<CancellationToken>())).ReturnsAsync((UserResponseDto?)null);
+        _userService
+            .Setup(s => s.GetMyProfileAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UserResponseDto?)null);
 
         var result = await _controller.GetProfile(CancellationToken.None);
 
@@ -51,8 +59,15 @@ public class ProfileControllerTests
     public async Task UpdateProfile_WhenFound_ReturnsOk()
     {
         var profile = SampleProfile();
-        var request = new UpdateProfileRequest { FirstName = profile.FirstName, LastName = profile.LastName, Email = "me@example.com" };
-        _userService.Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>())).ReturnsAsync(profile);
+        var request = new UpdateProfileRequest
+        {
+            FirstName = profile.FirstName,
+            LastName = profile.LastName,
+            Email = "me@example.com",
+        };
+        _userService
+            .Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(profile);
 
         var result = await _controller.UpdateProfile(request, CancellationToken.None);
 
@@ -63,8 +78,15 @@ public class ProfileControllerTests
     [Fact]
     public async Task UpdateProfile_WhenNotFound_ReturnsNotFound()
     {
-        var request = new UpdateProfileRequest { FirstName = "Ada", LastName = "Lovelace", Email = "me@example.com" };
-        _userService.Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>())).ReturnsAsync((UserResponseDto?)null);
+        var request = new UpdateProfileRequest
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "me@example.com",
+        };
+        _userService
+            .Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((UserResponseDto?)null);
 
         var result = await _controller.UpdateProfile(request, CancellationToken.None);
 

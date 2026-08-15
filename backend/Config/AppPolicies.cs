@@ -1,4 +1,3 @@
-
 namespace Backend.Config;
 
 public static class AppPolicies

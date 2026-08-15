@@ -7,12 +7,13 @@ public class UpdateProfileRequestValidatorTests
 {
     private readonly UpdateProfileRequestValidator _validator = new();
 
-    private static UpdateProfileRequest ValidRequest() => new()
-    {
-        FirstName = "Ada",
-        LastName = "Lovelace",
-        Email = "ada@example.com"
-    };
+    private static UpdateProfileRequest ValidRequest() =>
+        new()
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+        };
 
     [Fact]
     public void Validate_WithValidRequest_HasNoErrors()
@@ -30,7 +31,10 @@ public class UpdateProfileRequestValidatorTests
         var result = _validator.Validate(request);
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdateProfileRequest.FirstName));
+        Assert.Contains(
+            result.Errors,
+            e => e.PropertyName == nameof(UpdateProfileRequest.FirstName)
+        );
     }
 
     [Fact]
@@ -41,7 +45,10 @@ public class UpdateProfileRequestValidatorTests
         var result = _validator.Validate(request);
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdateProfileRequest.FirstName));
+        Assert.Contains(
+            result.Errors,
+            e => e.PropertyName == nameof(UpdateProfileRequest.FirstName)
+        );
     }
 
     [Fact]
@@ -52,7 +59,10 @@ public class UpdateProfileRequestValidatorTests
         var result = _validator.Validate(request);
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdateProfileRequest.LastName));
+        Assert.Contains(
+            result.Errors,
+            e => e.PropertyName == nameof(UpdateProfileRequest.LastName)
+        );
     }
 
     [Fact]
@@ -63,7 +73,10 @@ public class UpdateProfileRequestValidatorTests
         var result = _validator.Validate(request);
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdateProfileRequest.LastName));
+        Assert.Contains(
+            result.Errors,
+            e => e.PropertyName == nameof(UpdateProfileRequest.LastName)
+        );
     }
 
     [Fact]
@@ -74,7 +87,10 @@ public class UpdateProfileRequestValidatorTests
         var result = _validator.Validate(request);
 
         Assert.False(result.IsValid);
-        Assert.Contains(result.Errors, e => e.PropertyName == nameof(UpdateProfileRequest.Nickname));
+        Assert.Contains(
+            result.Errors,
+            e => e.PropertyName == nameof(UpdateProfileRequest.Nickname)
+        );
     }
 
     [Fact]

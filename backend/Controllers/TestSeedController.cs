@@ -1,8 +1,8 @@
 using Backend.Config;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Backend.DTOs.TestSeed;
 using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
@@ -35,7 +35,10 @@ public class TestSeedController : ControllerBase
     /// </summary>
     [HttpPost("deleted-projects")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> SeedDeletedProjects(SeedDeletedProjectsRequest request, CancellationToken ct)
+    public async Task<IActionResult> SeedDeletedProjects(
+        SeedDeletedProjectsRequest request,
+        CancellationToken ct
+    )
     {
         if (!_env.IsDevelopment())
             return NotFound();

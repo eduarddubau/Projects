@@ -7,13 +7,14 @@ public class RegisterRequestValidatorTests
 {
     private readonly RegisterRequestValidator _validator = new();
 
-    private static RegisterRequest ValidRequest() => new()
-    {
-        FirstName = "Ada",
-        LastName = "Lovelace",
-        Email = "ada@example.com",
-        Password = "Str0ng!Pass"
-    };
+    private static RegisterRequest ValidRequest() =>
+        new()
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+            Password = "Str0ng!Pass",
+        };
 
     [Fact]
     public void Validate_WithValidRequest_HasNoErrors()
@@ -37,11 +38,11 @@ public class RegisterRequestValidatorTests
     }
 
     [Theory]
-    [InlineData("short1!")]          // too short
-    [InlineData("nouppercase1!")]    // missing uppercase
-    [InlineData("NOLOWERCASE1!")]    // missing lowercase
-    [InlineData("NoNumbersHere!")]   // missing digit
-    [InlineData("NoSpecialChar1")]   // missing special character
+    [InlineData("short1!")] // too short
+    [InlineData("nouppercase1!")] // missing uppercase
+    [InlineData("NOLOWERCASE1!")] // missing lowercase
+    [InlineData("NoNumbersHere!")] // missing digit
+    [InlineData("NoSpecialChar1")] // missing special character
     public void Validate_WithWeakPassword_HasError(string password)
     {
         var request = ValidRequest() with { Password = password };

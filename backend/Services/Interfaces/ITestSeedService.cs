@@ -4,5 +4,8 @@ namespace Backend.Services.Interfaces;
 
 public interface ITestSeedService
 {
-    Task<IReadOnlyList<SeededProjectDto>> SeedDeletedProjectsAsync(SeedDeletedProjectsRequest request, CancellationToken ct = default);
+    Task<IReadOnlyList<SeededProjectDto>> SeedDeletedProjectsAsync(
+        SeedDeletedProjectsRequest request,
+        CancellationToken ct = default
+    );
 }

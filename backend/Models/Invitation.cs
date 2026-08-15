@@ -14,6 +14,7 @@ public class Invitation
     public DateTime CreatedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
     public DateTime? AcceptedAt { get; set; }
+
     // Bearer semantics: whoever holds the link may redeem it, so this is not
     // necessarily the user matching Email.
     public Guid? AcceptedBy { get; set; }

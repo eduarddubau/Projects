@@ -32,9 +32,11 @@ public sealed class RefreshTokenServiceTests : IDisposable
         var raw = await _service.IssueAsync(_userId, TestContext.Current.CancellationToken);
 
         Assert.False(string.IsNullOrWhiteSpace(raw));
-        var stored = await _context.RefreshTokens.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context.RefreshTokens.SingleAsync(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Equal(_userId, stored.UserId);
-        Assert.NotEqual(raw, stored.TokenHash);   // only the hash is stored, never the raw token
+        Assert.NotEqual(raw, stored.TokenHash); // only the hash is stored, never the raw token
         Assert.Null(stored.RevokedAt);
         Assert.True(stored.ExpiresAt > DateTime.UtcNow);
     }
@@ -51,16 +53,21 @@ public sealed class RefreshTokenServiceTests : IDisposable
         Assert.False(string.IsNullOrWhiteSpace(result.NewRawToken));
         Assert.NotEqual(raw, result.NewRawToken);
 
-        var tokens = await _context.RefreshTokens.ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var tokens = await _context.RefreshTokens.ToListAsync(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Equal(2, tokens.Count);
-        Assert.Single(tokens, t => t.RevokedAt != null);   // the presented token is revoked
-        Assert.Single(tokens, t => t.RevokedAt == null);   // the replacement is active
+        Assert.Single(tokens, t => t.RevokedAt != null); // the presented token is revoked
+        Assert.Single(tokens, t => t.RevokedAt == null); // the replacement is active
     }
 
     [Fact]
     public async Task RotateAsync_WithUnknownToken_Fails()
     {
-        var result = await _service.RotateAsync("not-a-real-token", TestContext.Current.CancellationToken);
+        var result = await _service.RotateAsync(
+            "not-a-real-token",
+            TestContext.Current.CancellationToken
+        );
 
         Assert.False(result.Succeeded);
     }
@@ -69,7 +76,9 @@ public sealed class RefreshTokenServiceTests : IDisposable
     public async Task RotateAsync_WithExpiredToken_Fails()
     {
         var raw = await _service.IssueAsync(_userId, TestContext.Current.CancellationToken);
-        var stored = await _context.RefreshTokens.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context.RefreshTokens.SingleAsync(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         stored.ExpiresAt = DateTime.UtcNow.AddSeconds(-1);
         await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
@@ -82,14 +91,17 @@ public sealed class RefreshTokenServiceTests : IDisposable
     public async Task RotateAsync_ReusingRevokedToken_RevokesEntireFamily()
     {
         var raw = await _service.IssueAsync(_userId, TestContext.Current.CancellationToken);
-        var first = await _service.RotateAsync(raw, TestContext.Current.CancellationToken);   // raw is now revoked, a new token is active
+        var first = await _service.RotateAsync(raw, TestContext.Current.CancellationToken); // raw is now revoked, a new token is active
         Assert.True(first.Succeeded);
 
-        var reuse = await _service.RotateAsync(raw, TestContext.Current.CancellationToken);   // replaying the revoked token
+        var reuse = await _service.RotateAsync(raw, TestContext.Current.CancellationToken); // replaying the revoked token
 
         Assert.False(reuse.Succeeded);
-        var active = await _context.RefreshTokens.CountAsync(t => t.UserId == _userId && t.RevokedAt == null, cancellationToken: TestContext.Current.CancellationToken);
-        Assert.Equal(0, active);   // reuse detection revoked every active token
+        var active = await _context.RefreshTokens.CountAsync(
+            t => t.UserId == _userId && t.RevokedAt == null,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.Equal(0, active); // reuse detection revoked every active token
     }
 
     [Fact]
@@ -99,7 +111,9 @@ public sealed class RefreshTokenServiceTests : IDisposable
 
         await _service.RevokeAsync(raw, TestContext.Current.CancellationToken);
 
-        var stored = await _context.RefreshTokens.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context.RefreshTokens.SingleAsync(
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.NotNull(stored.RevokedAt);
 
         var result = await _service.RotateAsync(raw, TestContext.Current.CancellationToken);
@@ -111,7 +125,11 @@ public sealed class RefreshTokenServiceTests : IDisposable
     {
         await _service.RevokeAsync("nope", TestContext.Current.CancellationToken);
 
-        Assert.Empty(await _context.RefreshTokens.ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Empty(
+            await _context.RefreshTokens.ToListAsync(
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
     }
 
     public void Dispose() => _context.Dispose();

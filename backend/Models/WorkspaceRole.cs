@@ -4,5 +4,5 @@ namespace Backend.Models;
 public enum WorkspaceRole
 {
     Member,
-    Owner
+    Owner,
 }

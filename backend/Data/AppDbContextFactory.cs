@@ -10,7 +10,8 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         // Resolves the connection the same way Program.cs does, so design time and
         // runtime can't drift; the container's env var still wins over the JSON.
-        var environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
+        var environment =
+            Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT")
             ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
             ?? "Development";
 
@@ -22,16 +23,16 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
+        var connectionString =
+            configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException(
                 "No DefaultConnection configured. Set it once with: dotnet user-secrets set "
-                + "\"ConnectionStrings:DefaultConnection\" \"<connection string>\"");
+                    + "\"ConnectionStrings:DefaultConnection\" \"<connection string>\""
+            );
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-        optionsBuilder
-            .UseNpgsql(connectionString)
-            .UseSnakeCaseNamingConvention();
+        optionsBuilder.UseNpgsql(connectionString).UseSnakeCaseNamingConvention();
 
         return new AppDbContext(optionsBuilder.Options, new DesignTimeUserService());
     }

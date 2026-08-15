@@ -8,7 +8,8 @@ namespace Backend.Services;
 /// <summary>Shared soft-delete and restore for entities an admin manages through
 /// the trash views. Inherit only to reuse those — services that merely need the
 /// context should take it directly.</summary>
-public abstract class BaseService<T> where T : class, IAuditEntity
+public abstract class BaseService<T>
+    where T : class, IAuditEntity
 {
     protected AppDbContext Context { get; }
     protected ICurrentUserService CurrentUser { get; }
@@ -21,11 +22,13 @@ public abstract class BaseService<T> where T : class, IAuditEntity
 
     protected async Task<bool> SoftDeleteAnyByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var entity = await Context.Set<T>()
+        var entity = await Context
+            .Set<T>()
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
-        if (entity is null) return false;
+        if (entity is null)
+            return false;
 
         // Set the flags rather than Remove(): Remove marks loaded dependents Deleted before
         // SaveChangesAsync can intercept, and dependents that aren't IAuditEntity never get
@@ -40,12 +43,15 @@ public abstract class BaseService<T> where T : class, IAuditEntity
 
     protected async Task<T?> RestoreAnyByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var entity = await Context.Set<T>()
+        var entity = await Context
+            .Set<T>()
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(e => e.Id == id, ct);
 
-        if (entity is null) return null;
-        if (!entity.IsDeleted) return entity;
+        if (entity is null)
+            return null;
+        if (!entity.IsDeleted)
+            return entity;
 
         entity.IsDeleted = false;
         entity.DeletedAt = null;

@@ -27,8 +27,9 @@ public class InvitationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IEnumerable<InvitationResponseDto>>> GetPending(
-        Guid workspaceId, CancellationToken ct)
-        => Ok(await _invitationService.GetPendingAsync(workspaceId, ct));
+        Guid workspaceId,
+        CancellationToken ct
+    ) => Ok(await _invitationService.GetPendingAsync(workspaceId, ct));
 
     // Ok, not CreatedAtAction: the two outcomes create different resources (a membership row
     // or an invitation row), so there is no single Location to point at. InviteOutcome in the
@@ -38,14 +39,20 @@ public class InvitationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<InviteResultDto>> Invite(
-        Guid workspaceId, [FromBody] InviteRequest dto, CancellationToken ct)
-        => Ok(await _invitationService.InviteAsync(workspaceId, dto, ct));
+        Guid workspaceId,
+        [FromBody] InviteRequest dto,
+        CancellationToken ct
+    ) => Ok(await _invitationService.InviteAsync(workspaceId, dto, ct));
 
     [HttpDelete("/api/workspaces/{workspaceId:guid}/invitations/{invitationId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Revoke(Guid workspaceId, Guid invitationId, CancellationToken ct)
+    public async Task<IActionResult> Revoke(
+        Guid workspaceId,
+        Guid invitationId,
+        CancellationToken ct
+    )
     {
         await _invitationService.RevokeAsync(workspaceId, invitationId, ct);
         return NoContent();
@@ -59,6 +66,7 @@ public class InvitationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<WorkspaceResponseDto>> Accept(
-        [FromBody] AcceptInviteRequest dto, CancellationToken ct)
-        => Ok(await _invitationService.AcceptAsync(dto.Token, ct));
+        [FromBody] AcceptInviteRequest dto,
+        CancellationToken ct
+    ) => Ok(await _invitationService.AcceptAsync(dto.Token, ct));
 }

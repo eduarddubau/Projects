@@ -36,22 +36,40 @@ public partial class RequestLoggingMiddleware
             _ => LogLevel.Debug,
         };
 
-        if (!_logger.IsEnabled(level)) return;
+        if (!_logger.IsEnabled(level))
+            return;
 
         var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
         var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
 
         // Populated by the authentication middleware, which runs inside this one.
-        var userId = context.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-                  ?? context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId =
+            context.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        LogRequestCompleted(level, context.Request.Method, context.Request.Path.Value, statusCode,
-            userId, elapsedMs, traceId);
+        LogRequestCompleted(
+            level,
+            context.Request.Method,
+            context.Request.Path.Value,
+            statusCode,
+            userId,
+            elapsedMs,
+            traceId
+        );
     }
 
     // Level is a parameter rather than an attribute value: the severity follows
     // the status code.
-    [LoggerMessage(Message = "{method} {path} responded {statusCode} for user {userId} in {elapsedMs:0.0}ms. TraceId {traceId}")]
-    private partial void LogRequestCompleted(LogLevel level, string method, string? path,
-        int statusCode, string? userId, double elapsedMs, string traceId);
+    [LoggerMessage(
+        Message = "{method} {path} responded {statusCode} for user {userId} in {elapsedMs:0.0}ms. TraceId {traceId}"
+    )]
+    private partial void LogRequestCompleted(
+        LogLevel level,
+        string method,
+        string? path,
+        int statusCode,
+        string? userId,
+        double elapsedMs,
+        string traceId
+    );
 }

@@ -7,7 +7,6 @@ public class AcceptInviteRequestValidator : AbstractValidator<AcceptInviteReques
 {
     public AcceptInviteRequestValidator()
     {
-        RuleFor(x => x.Token)
-            .NotEmpty();
+        RuleFor(x => x.Token).NotEmpty();
     }
 }

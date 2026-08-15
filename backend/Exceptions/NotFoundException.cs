@@ -4,5 +4,6 @@ namespace Backend.Exceptions;
 /// distinguish a missing resource from one the caller may not see.</summary>
 public class NotFoundException : Exception
 {
-    public NotFoundException(string message) : base(message) { }
+    public NotFoundException(string message)
+        : base(message) { }
 }

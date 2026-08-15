@@ -33,7 +33,10 @@ public sealed class WorkspaceServiceTests : IDisposable
 
         // The real guard, not a mock: the 404-vs-403 split is the behaviour under test.
         _service = new WorkspaceService(
-            _context, _currentUser.Object, new WorkspaceAccessService(_context, _currentUser.Object));
+            _context,
+            _currentUser.Object,
+            new WorkspaceAccessService(_context, _currentUser.Object)
+        );
     }
 
     private User AddUser(string email, string firstName, string? nickname = null)
@@ -44,7 +47,7 @@ public sealed class WorkspaceServiceTests : IDisposable
             UserName = email,
             FirstName = firstName,
             LastName = "Tester",
-            Nickname = nickname
+            Nickname = nickname,
         };
 
         _context.Users.Add(user);
@@ -52,17 +55,23 @@ public sealed class WorkspaceServiceTests : IDisposable
         return user;
     }
 
-    private Workspace AddWorkspace(string name, bool isPersonal, params (User user, WorkspaceRole role)[] members)
+    private Workspace AddWorkspace(
+        string name,
+        bool isPersonal,
+        params (User user, WorkspaceRole role)[] members
+    )
     {
         var workspace = new Workspace { Name = name, IsPersonal = isPersonal };
 
         foreach (var (user, role) in members)
-            workspace.Members.Add(new WorkspaceMember
-            {
-                UserId = user.Id,
-                Role = role,
-                JoinedAt = DateTime.UtcNow
-            });
+            workspace.Members.Add(
+                new WorkspaceMember
+                {
+                    UserId = user.Id,
+                    Role = role,
+                    JoinedAt = DateTime.UtcNow,
+                }
+            );
 
         _context.Workspaces.Add(workspace);
         _context.SaveChanges();
@@ -79,9 +88,14 @@ public sealed class WorkspaceServiceTests : IDisposable
 
         await _service.EnsurePersonalWorkspaceAsync(user, TestContext.Current.CancellationToken);
 
-        var workspace = await _context.Workspaces.SingleAsync(w => w.IsPersonal && w.CreatedBy == user.Id, cancellationToken: TestContext.Current.CancellationToken);
-        Assert.True(workspace.Name.Length <= Workspace.NameMaxLength,
-            $"derived name was {workspace.Name.Length} chars, column allows {Workspace.NameMaxLength}");
+        var workspace = await _context.Workspaces.SingleAsync(
+            w => w.IsPersonal && w.CreatedBy == user.Id,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
+        Assert.True(
+            workspace.Name.Length <= Workspace.NameMaxLength,
+            $"derived name was {workspace.Name.Length} chars, column allows {Workspace.NameMaxLength}"
+        );
         Assert.EndsWith("'s Workspace", workspace.Name);
     }
 
@@ -97,7 +111,9 @@ public sealed class WorkspaceServiceTests : IDisposable
         AddWorkspace("Ada's Workspace", isPersonal: true, (_caller, WorkspaceRole.Owner));
         AddWorkspace("Not Mine", isPersonal: false, (stranger, WorkspaceRole.Owner));
 
-        var result = (await _service.GetMyWorkspacesAsync(TestContext.Current.CancellationToken)).ToList();
+        var result = (
+            await _service.GetMyWorkspacesAsync(TestContext.Current.CancellationToken)
+        ).ToList();
 
         Assert.Equal(ExpectedWorkspaceNames, result.Select(w => w.Name));
         Assert.DoesNotContain(result, w => w.Name == "Not Mine");
@@ -109,16 +125,25 @@ public sealed class WorkspaceServiceTests : IDisposable
         var stranger = AddUser("stranger@example.com", "Bob");
         var theirs = AddWorkspace("Theirs", isPersonal: false, (stranger, WorkspaceRole.Owner));
 
-        Assert.Null(await _service.GetWorkspaceByIdAsync(theirs.Id, TestContext.Current.CancellationToken));
+        Assert.Null(
+            await _service.GetWorkspaceByIdAsync(theirs.Id, TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
     public async Task GetMyWorkspacesAsync_ReportsMyRoleAndMemberCount()
     {
         var other = AddUser("other@example.com", "Bob");
-        AddWorkspace("Shared", isPersonal: false, (_caller, WorkspaceRole.Member), (other, WorkspaceRole.Owner));
+        AddWorkspace(
+            "Shared",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Member),
+            (other, WorkspaceRole.Owner)
+        );
 
-        var shared = Assert.Single(await _service.GetMyWorkspacesAsync(TestContext.Current.CancellationToken));
+        var shared = Assert.Single(
+            await _service.GetMyWorkspacesAsync(TestContext.Current.CancellationToken)
+        );
 
         Assert.Equal(WorkspaceRole.Member, shared.MyRole);
         Assert.Equal(2, shared.MemberCount);
@@ -129,16 +154,21 @@ public sealed class WorkspaceServiceTests : IDisposable
     [Fact]
     public async Task CreateWorkspaceAsync_MakesTheCallerAnOwner()
     {
-        var created = await _service.CreateWorkspaceAsync(new CreateWorkspaceRequest("Acme Team", "Shared."), TestContext.Current.CancellationToken);
+        var created = await _service.CreateWorkspaceAsync(
+            new CreateWorkspaceRequest("Acme Team", "Shared."),
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(WorkspaceRole.Owner, created.MyRole);
         Assert.Equal(1, created.MemberCount);
         Assert.False(created.IsPersonal);
 
         // Without the membership row the creator cannot see what they just made.
-        Assert.Single(await _context.WorkspaceMembers
-            .Where(m => m.WorkspaceId == created.Id && m.UserId == _caller.Id)
-            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Single(
+            await _context
+                .WorkspaceMembers.Where(m => m.WorkspaceId == created.Id && m.UserId == _caller.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
     }
 
     // ---- the 404-vs-403 split ------------------------------------------------------
@@ -149,19 +179,33 @@ public sealed class WorkspaceServiceTests : IDisposable
         var stranger = AddUser("stranger@example.com", "Bob");
         var theirs = AddWorkspace("Theirs", isPersonal: false, (stranger, WorkspaceRole.Owner));
 
-        await Assert.ThrowsAsync<NotFoundException>(
-            () => _service.UpdateWorkspaceAsync(theirs.Id, new UpdateWorkspaceRequest("Hijacked", null), TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _service.UpdateWorkspaceAsync(
+                theirs.Id,
+                new UpdateWorkspaceRequest("Hijacked", null),
+                TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
     public async Task UpdateWorkspaceAsync_WhenMemberButNotOwner_Throws403Forbidden()
     {
         var owner = AddUser("owner@example.com", "Bob");
-        var shared = AddWorkspace("Shared", isPersonal: false,
-            (owner, WorkspaceRole.Owner), (_caller, WorkspaceRole.Member));
+        var shared = AddWorkspace(
+            "Shared",
+            isPersonal: false,
+            (owner, WorkspaceRole.Owner),
+            (_caller, WorkspaceRole.Member)
+        );
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(
-            () => _service.UpdateWorkspaceAsync(shared.Id, new UpdateWorkspaceRequest("Renamed", null), TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _service.UpdateWorkspaceAsync(
+                shared.Id,
+                new UpdateWorkspaceRequest("Renamed", null),
+                TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
@@ -169,14 +213,26 @@ public sealed class WorkspaceServiceTests : IDisposable
     {
         // Clients render personal workspaces from a translation key, not from this column,
         // so a rename would be accepted and then never displayed.
-        var personal = AddWorkspace("Ada's Workspace", isPersonal: true, (_caller, WorkspaceRole.Owner));
+        var personal = AddWorkspace(
+            "Ada's Workspace",
+            isPersonal: true,
+            (_caller, WorkspaceRole.Owner)
+        );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
-            () => _service.UpdateWorkspaceAsync(personal.Id, new UpdateWorkspaceRequest("Renamed", null), TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.UpdateWorkspaceAsync(
+                personal.Id,
+                new UpdateWorkspaceRequest("Renamed", null),
+                TestContext.Current.CancellationToken
+            )
+        );
 
         Assert.Equal(BusinessRuleCodes.PersonalWorkspaceNotRenamable, ex.Code);
 
-        var stored = await _context.Workspaces.SingleAsync(w => w.Id == personal.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context.Workspaces.SingleAsync(
+            w => w.Id == personal.Id,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Equal("Ada's Workspace", stored.Name);
     }
 
@@ -185,12 +241,22 @@ public sealed class WorkspaceServiceTests : IDisposable
     [Fact]
     public async Task DeleteWorkspaceAsync_WhenPersonal_IsRefused()
     {
-        var personal = AddWorkspace("Ada's Workspace", isPersonal: true, (_caller, WorkspaceRole.Owner));
+        var personal = AddWorkspace(
+            "Ada's Workspace",
+            isPersonal: true,
+            (_caller, WorkspaceRole.Owner)
+        );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.DeleteWorkspaceAsync(personal.Id, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.DeleteWorkspaceAsync(personal.Id, TestContext.Current.CancellationToken)
+        );
 
         Assert.Equal(BusinessRuleCodes.PersonalWorkspaceNotDeletable, ex.Code);
-        Assert.Single(await _context.Workspaces.Where(w => w.Id == personal.Id).ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Single(
+            await _context
+                .Workspaces.Where(w => w.Id == personal.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
@@ -200,34 +266,71 @@ public sealed class WorkspaceServiceTests : IDisposable
 
         await _service.DeleteWorkspaceAsync(shared.Id, TestContext.Current.CancellationToken);
 
-        Assert.Empty(await _context.Workspaces.Where(w => w.Id == shared.Id).ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
-        Assert.True((await _context.Workspaces.IgnoreQueryFilters().FirstAsync(w => w.Id == shared.Id, cancellationToken: TestContext.Current.CancellationToken)).IsDeleted);
+        Assert.Empty(
+            await _context
+                .Workspaces.Where(w => w.Id == shared.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
+        Assert.True(
+            (
+                await _context
+                    .Workspaces.IgnoreQueryFilters()
+                    .FirstAsync(
+                        w => w.Id == shared.Id,
+                        cancellationToken: TestContext.Current.CancellationToken
+                    )
+            ).IsDeleted
+        );
     }
 
     [Fact]
     public async Task DeleteWorkspaceAsync_WithMembersLoaded_KeepsTheMembershipRows()
     {
         var member = AddUser("member@example.com", "Bob");
-        var shared = AddWorkspace("Acme Team", isPersonal: false,
-            (_caller, WorkspaceRole.Owner), (member, WorkspaceRole.Member));
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (member, WorkspaceRole.Member)
+        );
 
         // The membership rows are tracked here. Remove() would cascade and hard-delete them,
         // leaving a soft-deleted workspace with no owner — absent from trash and unrestorable.
         await _service.DeleteWorkspaceAsync(shared.Id, TestContext.Current.CancellationToken);
 
-        Assert.Equal(2, await _context.WorkspaceMembers.CountAsync(m => m.WorkspaceId == shared.Id, cancellationToken: TestContext.Current.CancellationToken));
-        Assert.Equal("Acme Team", Assert.Single(await _service.GetDeletedWorkspacesAsync(TestContext.Current.CancellationToken)).Name);
+        Assert.Equal(
+            2,
+            await _context.WorkspaceMembers.CountAsync(
+                m => m.WorkspaceId == shared.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
+        Assert.Equal(
+            "Acme Team",
+            Assert
+                .Single(
+                    await _service.GetDeletedWorkspacesAsync(TestContext.Current.CancellationToken)
+                )
+                .Name
+        );
     }
 
     [Fact]
     public async Task RestoreWorkspaceAsync_BringsItBackWithItsMembers()
     {
         var member = AddUser("member@example.com", "Bob");
-        var shared = AddWorkspace("Acme Team", isPersonal: false,
-            (_caller, WorkspaceRole.Owner), (member, WorkspaceRole.Member));
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (member, WorkspaceRole.Member)
+        );
 
         await _service.DeleteWorkspaceAsync(shared.Id, TestContext.Current.CancellationToken);
-        var restored = await _service.RestoreWorkspaceAsync(shared.Id, TestContext.Current.CancellationToken);
+        var restored = await _service.RestoreWorkspaceAsync(
+            shared.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(2, restored.MemberCount);
         Assert.Equal(WorkspaceRole.Owner, restored.MyRole);
@@ -240,10 +343,19 @@ public sealed class WorkspaceServiceTests : IDisposable
     public async Task AddMemberAsync_ToAPersonalWorkspace_IsRefused()
     {
         var outsider = AddUser("outsider@example.com", "Bob");
-        var personal = AddWorkspace("Ada's Workspace", isPersonal: true, (_caller, WorkspaceRole.Owner));
+        var personal = AddWorkspace(
+            "Ada's Workspace",
+            isPersonal: true,
+            (_caller, WorkspaceRole.Owner)
+        );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
-            () => _service.AddMemberAsync(personal.Id, new AddMemberRequest(outsider.Id, WorkspaceRole.Member), TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.AddMemberAsync(
+                personal.Id,
+                new AddMemberRequest(outsider.Id, WorkspaceRole.Member),
+                TestContext.Current.CancellationToken
+            )
+        );
 
         Assert.Equal(BusinessRuleCodes.PersonalWorkspaceNoMembers, ex.Code);
     }
@@ -252,11 +364,20 @@ public sealed class WorkspaceServiceTests : IDisposable
     public async Task AddMemberAsync_WhenAlreadyAMember_IsRefused()
     {
         var member = AddUser("member@example.com", "Bob");
-        var shared = AddWorkspace("Acme Team", isPersonal: false,
-            (_caller, WorkspaceRole.Owner), (member, WorkspaceRole.Member));
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (member, WorkspaceRole.Member)
+        );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
-            () => _service.AddMemberAsync(shared.Id, new AddMemberRequest(member.Id, WorkspaceRole.Member), TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.AddMemberAsync(
+                shared.Id,
+                new AddMemberRequest(member.Id, WorkspaceRole.Member),
+                TestContext.Current.CancellationToken
+            )
+        );
 
         Assert.Equal(BusinessRuleCodes.AlreadyWorkspaceMember, ex.Code);
     }
@@ -266,8 +387,13 @@ public sealed class WorkspaceServiceTests : IDisposable
     {
         var shared = AddWorkspace("Acme Team", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
-        await Assert.ThrowsAsync<NotFoundException>(
-            () => _service.AddMemberAsync(shared.Id, new AddMemberRequest(Guid.NewGuid(), WorkspaceRole.Member), TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _service.AddMemberAsync(
+                shared.Id,
+                new AddMemberRequest(Guid.NewGuid(), WorkspaceRole.Member),
+                TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
@@ -276,7 +402,11 @@ public sealed class WorkspaceServiceTests : IDisposable
         var invitee = AddUser("bob@example.com", "Bob");
         var shared = AddWorkspace("Acme Team", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
-        var member = await _service.AddMemberAsync(shared.Id, new AddMemberRequest(invitee.Id, WorkspaceRole.Member), TestContext.Current.CancellationToken);
+        var member = await _service.AddMemberAsync(
+            shared.Id,
+            new AddMemberRequest(invitee.Id, WorkspaceRole.Member),
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(invitee.Id, member.UserId);
         Assert.Equal(WorkspaceRole.Member, member.Role);
@@ -289,11 +419,21 @@ public sealed class WorkspaceServiceTests : IDisposable
     public async Task ChangeRoleAsync_DemotingTheLastOwner_IsRefused()
     {
         var member = AddUser("member@example.com", "Bob");
-        var shared = AddWorkspace("Acme Team", isPersonal: false,
-            (_caller, WorkspaceRole.Owner), (member, WorkspaceRole.Member));
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (member, WorkspaceRole.Member)
+        );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
-            () => _service.ChangeRoleAsync(shared.Id, _caller.Id, WorkspaceRole.Member, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.ChangeRoleAsync(
+                shared.Id,
+                _caller.Id,
+                WorkspaceRole.Member,
+                TestContext.Current.CancellationToken
+            )
+        );
 
         Assert.Equal(BusinessRuleCodes.WorkspaceMustHaveOwner, ex.Code);
     }
@@ -303,8 +443,9 @@ public sealed class WorkspaceServiceTests : IDisposable
     {
         var shared = AddWorkspace("Acme Team", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
-            () => _service.RemoveMemberAsync(shared.Id, _caller.Id, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.RemoveMemberAsync(shared.Id, _caller.Id, TestContext.Current.CancellationToken)
+        );
 
         Assert.Equal(BusinessRuleCodes.WorkspaceMustHaveOwner, ex.Code);
     }
@@ -313,10 +454,16 @@ public sealed class WorkspaceServiceTests : IDisposable
     public async Task LeaveAsync_AsTheLastOwner_IsRefused()
     {
         var member = AddUser("member@example.com", "Bob");
-        var shared = AddWorkspace("Acme Team", isPersonal: false,
-            (_caller, WorkspaceRole.Owner), (member, WorkspaceRole.Member));
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (member, WorkspaceRole.Member)
+        );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LeaveAsync(shared.Id, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.LeaveAsync(shared.Id, TestContext.Current.CancellationToken)
+        );
 
         Assert.Equal(BusinessRuleCodes.WorkspaceMustHaveOwner, ex.Code);
     }
@@ -326,10 +473,19 @@ public sealed class WorkspaceServiceTests : IDisposable
     {
         // A workspace may hold many owners; only reaching zero is forbidden.
         var coOwner = AddUser("co@example.com", "Bob");
-        var shared = AddWorkspace("Acme Team", isPersonal: false,
-            (_caller, WorkspaceRole.Owner), (coOwner, WorkspaceRole.Owner));
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (coOwner, WorkspaceRole.Owner)
+        );
 
-        var demoted = await _service.ChangeRoleAsync(shared.Id, coOwner.Id, WorkspaceRole.Member, TestContext.Current.CancellationToken);
+        var demoted = await _service.ChangeRoleAsync(
+            shared.Id,
+            coOwner.Id,
+            WorkspaceRole.Member,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Equal(WorkspaceRole.Member, demoted.Role);
     }
@@ -338,21 +494,33 @@ public sealed class WorkspaceServiceTests : IDisposable
     public async Task LeaveAsync_AsAPlainMember_RemovesOnlyThem()
     {
         var owner = AddUser("owner@example.com", "Bob");
-        var shared = AddWorkspace("Acme Team", isPersonal: false,
-            (owner, WorkspaceRole.Owner), (_caller, WorkspaceRole.Member));
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (owner, WorkspaceRole.Owner),
+            (_caller, WorkspaceRole.Member)
+        );
 
         await _service.LeaveAsync(shared.Id, TestContext.Current.CancellationToken);
 
-        var remaining = await _context.WorkspaceMembers.Where(m => m.WorkspaceId == shared.Id).ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var remaining = await _context
+            .WorkspaceMembers.Where(m => m.WorkspaceId == shared.Id)
+            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(owner.Id, Assert.Single(remaining).UserId);
     }
 
     [Fact]
     public async Task LeaveAsync_FromAPersonalWorkspace_IsRefused()
     {
-        var personal = AddWorkspace("Ada's Workspace", isPersonal: true, (_caller, WorkspaceRole.Owner));
+        var personal = AddWorkspace(
+            "Ada's Workspace",
+            isPersonal: true,
+            (_caller, WorkspaceRole.Owner)
+        );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.LeaveAsync(personal.Id, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.LeaveAsync(personal.Id, TestContext.Current.CancellationToken)
+        );
 
         Assert.Equal(BusinessRuleCodes.PersonalWorkspaceNotLeavable, ex.Code);
     }
@@ -365,7 +533,13 @@ public sealed class WorkspaceServiceTests : IDisposable
         await _service.EnsurePersonalWorkspaceAsync(_caller, TestContext.Current.CancellationToken);
         await _service.EnsurePersonalWorkspaceAsync(_caller, TestContext.Current.CancellationToken);
 
-        Assert.Equal(1, await _context.Workspaces.CountAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(
+            1,
+            await _context.Workspaces.CountAsync(
+                w => w.IsPersonal,
+                cancellationToken: TestContext.Current.CancellationToken
+            )
+        );
     }
 
     [Fact]
@@ -375,9 +549,12 @@ public sealed class WorkspaceServiceTests : IDisposable
 
         await _service.EnsurePersonalWorkspaceAsync(user, TestContext.Current.CancellationToken);
 
-        var workspace = await _context.Workspaces
-            .Include(w => w.Members)
-            .FirstAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken);
+        var workspace = await _context
+            .Workspaces.Include(w => w.Members)
+            .FirstAsync(
+                w => w.IsPersonal,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
 
         Assert.Equal("Amazing's Workspace", workspace.Name);
         Assert.Equal(user.Id, workspace.CreatedBy);
@@ -389,8 +566,12 @@ public sealed class WorkspaceServiceTests : IDisposable
     {
         var stranger = AddUser("stranger@example.com", "Bob");
         var mine = AddWorkspace("Mine", isPersonal: false, (_caller, WorkspaceRole.Owner));
-        var asMember = AddWorkspace("AsMember", isPersonal: false,
-            (stranger, WorkspaceRole.Owner), (_caller, WorkspaceRole.Member));
+        var asMember = AddWorkspace(
+            "AsMember",
+            isPersonal: false,
+            (stranger, WorkspaceRole.Owner),
+            (_caller, WorkspaceRole.Member)
+        );
 
         await _service.DeleteWorkspaceAsync(mine.Id, TestContext.Current.CancellationToken);
 

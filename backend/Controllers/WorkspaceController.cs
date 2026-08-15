@@ -1,8 +1,8 @@
 using Backend.Config;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Backend.Services.Interfaces;
 using Backend.DTOs.Workspace;
+using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
@@ -22,14 +22,18 @@ public class WorkspaceController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<WorkspaceResponseDto>>> GetMyWorkspaces(CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<WorkspaceResponseDto>>> GetMyWorkspaces(
+        CancellationToken ct
+    )
     {
         return Ok(await _workspaceService.GetMyWorkspacesAsync(ct));
     }
 
     [HttpGet("trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<WorkspaceResponseDto>>> GetMyDeletedWorkspaces(CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<WorkspaceResponseDto>>> GetMyDeletedWorkspaces(
+        CancellationToken ct
+    )
     {
         return Ok(await _workspaceService.GetDeletedWorkspacesAsync(ct));
     }
@@ -37,11 +41,15 @@ public class WorkspaceController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<WorkspaceResponseDto>> GetWorkspaceById(Guid id, CancellationToken ct)
+    public async Task<ActionResult<WorkspaceResponseDto>> GetWorkspaceById(
+        Guid id,
+        CancellationToken ct
+    )
     {
         var workspace = await _workspaceService.GetWorkspaceByIdAsync(id, ct);
 
-        if (workspace is null) return NotFound();
+        if (workspace is null)
+            return NotFound();
 
         return Ok(workspace);
     }
@@ -49,7 +57,10 @@ public class WorkspaceController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<WorkspaceResponseDto>> CreateWorkspace([FromBody] CreateWorkspaceRequest dto, CancellationToken ct)
+    public async Task<ActionResult<WorkspaceResponseDto>> CreateWorkspace(
+        [FromBody] CreateWorkspaceRequest dto,
+        CancellationToken ct
+    )
     {
         var workspace = await _workspaceService.CreateWorkspaceAsync(dto, ct);
         return CreatedAtAction(nameof(GetWorkspaceById), new { id = workspace.Id }, workspace);
@@ -59,7 +70,11 @@ public class WorkspaceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<WorkspaceResponseDto>> UpdateWorkspace(Guid id, [FromBody] UpdateWorkspaceRequest dto, CancellationToken ct)
+    public async Task<ActionResult<WorkspaceResponseDto>> UpdateWorkspace(
+        Guid id,
+        [FromBody] UpdateWorkspaceRequest dto,
+        CancellationToken ct
+    )
     {
         return Ok(await _workspaceService.UpdateWorkspaceAsync(id, dto, ct));
     }
@@ -77,7 +92,10 @@ public class WorkspaceController : ControllerBase
     [HttpPost("{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<WorkspaceResponseDto>> RestoreWorkspace(Guid id, CancellationToken ct)
+    public async Task<ActionResult<WorkspaceResponseDto>> RestoreWorkspace(
+        Guid id,
+        CancellationToken ct
+    )
     {
         return Ok(await _workspaceService.RestoreWorkspaceAsync(id, ct));
     }
@@ -85,7 +103,10 @@ public class WorkspaceController : ControllerBase
     [HttpGet("{id:guid}/members")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<WorkspaceMemberResponseDto>>> GetMembers(Guid id, CancellationToken ct)
+    public async Task<ActionResult<IEnumerable<WorkspaceMemberResponseDto>>> GetMembers(
+        Guid id,
+        CancellationToken ct
+    )
     {
         return Ok(await _workspaceService.GetMembersAsync(id, ct));
     }
@@ -94,7 +115,11 @@ public class WorkspaceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<WorkspaceMemberResponseDto>> AddMember(Guid id, [FromBody] AddMemberRequest dto, CancellationToken ct)
+    public async Task<ActionResult<WorkspaceMemberResponseDto>> AddMember(
+        Guid id,
+        [FromBody] AddMemberRequest dto,
+        CancellationToken ct
+    )
     {
         var member = await _workspaceService.AddMemberAsync(id, dto, ct);
         return CreatedAtAction(nameof(GetMembers), new { id }, member);
@@ -105,7 +130,11 @@ public class WorkspaceController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<WorkspaceMemberResponseDto>> ChangeMemberRole(
-        Guid id, Guid userId, [FromBody] ChangeMemberRoleRequest dto, CancellationToken ct)
+        Guid id,
+        Guid userId,
+        [FromBody] ChangeMemberRoleRequest dto,
+        CancellationToken ct
+    )
     {
         // Non-null by ChangeMemberRoleRequestValidator.
         return Ok(await _workspaceService.ChangeRoleAsync(id, userId, dto.Role!.Value, ct));

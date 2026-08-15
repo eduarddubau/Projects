@@ -49,8 +49,8 @@ public class CurrentUserService : ICurrentUserService
     }
 
     public IEnumerable<string> Roles =>
-        _httpContextAccessor.HttpContext?.User?.Claims
-            .Where(c => c.Type == ClaimTypes.Role)
+        _httpContextAccessor
+            .HttpContext?.User?.Claims.Where(c => c.Type == ClaimTypes.Role)
             .Select(c => c.Value)
         ?? [];
 }

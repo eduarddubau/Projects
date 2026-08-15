@@ -1,11 +1,11 @@
-using Backend.Services.Interfaces;
-using Backend.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using Npgsql;
 using Backend.Config;
 using Backend.Exceptions;
+using Backend.Models;
+using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace Backend.Data;
 
@@ -14,7 +14,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     private readonly ICurrentUserService _currentUserService;
     private readonly HashSet<object> _hardDeleteOverrides = [];
 
-    public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService currentUserService)
+    public AppDbContext(
+        DbContextOptions<AppDbContext> options,
+        ICurrentUserService currentUserService
+    )
         : base(options)
     {
         _currentUserService = currentUserService;
@@ -42,20 +45,21 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             // Uniqueness scoped to live rows: a soft-deleted account stops reserving its address.
             // Postgres enforces this atomically, which no validator can — Identity's checks read
             // through the !IsDeleted filter and aren't atomic with the insert anyway.
-            entity.HasIndex(u => u.NormalizedUserName)
+            entity
+                .HasIndex(u => u.NormalizedUserName)
                 .IsUnique()
                 .HasFilter("is_deleted = false");
 
-            entity.HasIndex(u => u.NormalizedEmail)
-                .IsUnique()
-                .HasFilter("is_deleted = false");
+            entity.HasIndex(u => u.NormalizedEmail).IsUnique().HasFilter("is_deleted = false");
 
-            entity.HasOne(u => u.Creator)
+            entity
+                .HasOne(u => u.Creator)
                 .WithMany()
                 .HasForeignKey(u => u.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(u => u.Updater)
+            entity
+                .HasOne(u => u.Updater)
                 .WithMany()
                 .HasForeignKey(u => u.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -73,12 +77,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
             entity.Property(p => p.Description).HasMaxLength(Project.DescriptionMaxLength);
 
-            entity.HasOne(p => p.Creator)
+            entity
+                .HasOne(p => p.Creator)
                 .WithMany()
                 .HasForeignKey(p => p.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(p => p.Updater)
+            entity
+                .HasOne(p => p.Updater)
                 .WithMany()
                 .HasForeignKey(p => p.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -86,12 +92,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         builder.Entity<Workspace>(entity =>
         {
-            entity.HasOne(w => w.Creator)
+            entity
+                .HasOne(w => w.Creator)
                 .WithMany()
                 .HasForeignKey(w => w.CreatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(w => w.Updater)
+            entity
+                .HasOne(w => w.Updater)
                 .WithMany()
                 .HasForeignKey(w => w.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -111,12 +119,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
             entity.Property(m => m.Role).HasConversion<string>();
 
-            entity.HasOne(m => m.Workspace)
+            entity
+                .HasOne(m => m.Workspace)
                 .WithMany(w => w.Members)
                 .HasForeignKey(m => m.WorkspaceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(m => m.User)
+            entity
+                .HasOne(m => m.User)
                 .WithMany()
                 .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -129,14 +139,16 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
             entity.Property(i => i.Role).HasConversion<string>();
 
-            entity.HasOne(i => i.Workspace)
+            entity
+                .HasOne(i => i.Workspace)
                 .WithMany()
                 .HasForeignKey(i => i.WorkspaceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Restrict, like the audit FKs: an inviter must not be purged out from under
             // the invitations that record what they did.
-            entity.HasOne(i => i.Inviter)
+            entity
+                .HasOne(i => i.Inviter)
                 .WithMany()
                 .HasForeignKey(i => i.InvitedBy)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -146,7 +158,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             entity.HasIndex(rt => rt.TokenHash).IsUnique();
 
-            entity.HasOne<User>()
+            entity
+                .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -158,10 +171,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         var userGuid = _currentUserService.UserGuid;
         var now = DateTime.UtcNow;
 
-        var entries = ChangeTracker.Entries<IAuditEntity>()
-            .Where(e => e.State is EntityState.Added or
-                        EntityState.Modified or
-                        EntityState.Deleted);
+        var entries = ChangeTracker
+            .Entries<IAuditEntity>()
+            .Where(e =>
+                e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted
+            );
 
         foreach (var entityEntry in entries)
         {
@@ -171,7 +185,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 entityEntry.Entity.IsDeleted = false;
 
                 // Preserves a CreatedBy the caller set deliberately; only stamps when unset.
-                if (entityEntry.Entity.CreatedBy == null || entityEntry.Entity.CreatedBy == Guid.Empty)
+                if (
+                    entityEntry.Entity.CreatedBy == null
+                    || entityEntry.Entity.CreatedBy == Guid.Empty
+                )
                 {
                     entityEntry.Entity.CreatedBy = entityEntry.Entity is User newUser
                         ? newUser.Id
@@ -220,27 +237,34 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         // catch with a `_ => ex` fall-through would rethrow via `throw <expression>`, which
         // resets the trace to this file and hides where the write actually came from.
         catch (DbUpdateException ex)
-            when (ex.InnerException is PostgresException
-            {
-                SqlState: PostgresErrorCodes.UniqueViolation,
-                ConstraintName: "UserNameIndex" or "EmailIndex"
-            })
+            when (ex.InnerException
+                    is PostgresException
+                    {
+                        SqlState: PostgresErrorCodes.UniqueViolation,
+                        ConstraintName: "UserNameIndex" or "EmailIndex"
+                    }
+            )
         {
             // A unique index is the only check atomic with the insert, so it catches races
             // no service-layer guard can. Translated here because this is the last place
             // that legitimately knows which database we're on.
-            throw new BusinessRuleException(BusinessRuleCodes.DuplicateEmail,
-                "That email address is already registered.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.DuplicateEmail,
+                "That email address is already registered."
+            );
         }
         catch (DbUpdateException ex)
-            when (ex.InnerException is PostgresException
-            { SqlState: PostgresErrorCodes.StringDataRightTruncation })
+            when (ex.InnerException
+                    is PostgresException { SqlState: PostgresErrorCodes.StringDataRightTruncation }
+            )
         {
             // 22001 doesn't carry a column name the way a unique violation carries a constraint
             // name, so this can't be specific. Reaching it means a validator is missing a length
             // rule — the honest answer is a 409 rather than "a critical error occurred".
-            throw new BusinessRuleException(BusinessRuleCodes.ValueTooLong,
-                "One of the values submitted is too long.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.ValueTooLong,
+                "One of the values submitted is too long."
+            );
         }
     }
 }

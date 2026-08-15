@@ -16,6 +16,7 @@ public sealed class UserServiceTests : IDisposable
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly Mock<UserManager<User>> _userManager;
     private readonly Mock<IWorkspaceService> _workspaceService = new();
+
     // The real normalizer, not a mock: fixtures then produce exactly what Identity
     // writes in production, so they can't drift from the code under test.
     private readonly UpperInvariantLookupNormalizer _normalizer = new();
@@ -31,23 +32,44 @@ public sealed class UserServiceTests : IDisposable
         _context = new AppDbContext(options, _currentUser.Object);
 
         var store = new Mock<IUserStore<User>>();
-        _userManager = new Mock<UserManager<User>>(store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
+        _userManager = new Mock<UserManager<User>>(
+            store.Object,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!,
+            null!
+        );
 
         _service = new UserService(
-            _context, _currentUser.Object, _userManager.Object, _workspaceService.Object, _normalizer);
+            _context,
+            _currentUser.Object,
+            _userManager.Object,
+            _workspaceService.Object,
+            _normalizer
+        );
     }
 
-    private Workspace AddWorkspace(string name, bool isPersonal, params (User user, WorkspaceRole role)[] members)
+    private Workspace AddWorkspace(
+        string name,
+        bool isPersonal,
+        params (User user, WorkspaceRole role)[] members
+    )
     {
         var workspace = new Workspace { Name = name, IsPersonal = isPersonal };
 
         foreach (var (user, role) in members)
-            workspace.Members.Add(new WorkspaceMember
-            {
-                UserId = user.Id,
-                Role = role,
-                JoinedAt = DateTime.UtcNow
-            });
+            workspace.Members.Add(
+                new WorkspaceMember
+                {
+                    UserId = user.Id,
+                    Role = role,
+                    JoinedAt = DateTime.UtcNow,
+                }
+            );
 
         _context.Workspaces.Add(workspace);
         _context.SaveChanges();
@@ -72,7 +94,7 @@ public sealed class UserServiceTests : IDisposable
             FirstName = "Alan",
             LastName = "Turing",
             Nickname = nickname,
-            IsDeleted = isDeleted
+            IsDeleted = isDeleted,
         };
         _context.Users.Add(user);
         _context.SaveChanges();
@@ -120,13 +142,24 @@ public sealed class UserServiceTests : IDisposable
         var user = AddUser("me@example.com");
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
-        var result = await _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" }, TestContext.Current.CancellationToken);
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest
+            {
+                FirstName = "Grace",
+                LastName = "Hopper",
+                Email = "me@example.com",
+            },
+            TestContext.Current.CancellationToken
+        );
 
         Assert.NotNull(result);
         Assert.Equal("Grace", result!.FirstName);
         Assert.Equal("Hopper", result.LastName);
 
-        var stored = await _context.Users.FirstAsync(u => u.Id == user.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context.Users.FirstAsync(
+            u => u.Id == user.Id,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Equal("Grace", stored.FirstName);
         Assert.Equal("Hopper", stored.LastName);
     }
@@ -137,11 +170,23 @@ public sealed class UserServiceTests : IDisposable
         var user = AddUser("me@example.com");
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
-        var result = await _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Nickname = "Amazing Grace", Email = "me@example.com" }, TestContext.Current.CancellationToken);
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest
+            {
+                FirstName = "Grace",
+                LastName = "Hopper",
+                Nickname = "Amazing Grace",
+                Email = "me@example.com",
+            },
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Equal("Amazing Grace", result!.Nickname);
 
-        var stored = await _context.Users.FirstAsync(u => u.Id == user.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context.Users.FirstAsync(
+            u => u.Id == user.Id,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Equal("Amazing Grace", stored.Nickname);
     }
 
@@ -151,11 +196,22 @@ public sealed class UserServiceTests : IDisposable
         var user = AddUser("me@example.com", nickname: "Amazing Grace");
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
-        var result = await _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" }, TestContext.Current.CancellationToken);
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest
+            {
+                FirstName = "Grace",
+                LastName = "Hopper",
+                Email = "me@example.com",
+            },
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Null(result!.Nickname);
 
-        var stored = await _context.Users.FirstAsync(u => u.Id == user.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context.Users.FirstAsync(
+            u => u.Id == user.Id,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         Assert.Null(stored.Nickname);
     }
 
@@ -164,15 +220,26 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("me@example.com");
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
-        _userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _userManager
+            .Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
 
-        await _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "new@example.com" }, TestContext.Current.CancellationToken);
+        await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest
+            {
+                FirstName = "Grace",
+                LastName = "Hopper",
+                Email = "new@example.com",
+            },
+            TestContext.Current.CancellationToken
+        );
 
         // Asserting the decision, not the mutation: a mocked UserManager never actually
         // changes the entity, so "the email changed" could only ever pass vacuously.
-        _userManager.Verify(m => m.SetEmailAsync(
-            It.Is<User>(u => u.Id == user.Id), "new@example.com"), Times.Once);
+        _userManager.Verify(
+            m => m.SetEmailAsync(It.Is<User>(u => u.Id == user.Id), "new@example.com"),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -183,9 +250,20 @@ public sealed class UserServiceTests : IDisposable
         var user = AddUser("me@example.com");
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
-        await _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "ME@Example.COM" }, TestContext.Current.CancellationToken);
+        await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest
+            {
+                FirstName = "Grace",
+                LastName = "Hopper",
+                Email = "ME@Example.COM",
+            },
+            TestContext.Current.CancellationToken
+        );
 
-        _userManager.Verify(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+        _userManager.Verify(
+            m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()),
+            Times.Never
+        );
     }
 
     [Fact]
@@ -193,14 +271,29 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("me@example.com");
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
-        _userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError
-            {
-                Code = "DuplicateEmail",
-                Description = "Email 'taken@example.com' is already taken."
-            }));
+        _userManager
+            .Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
+            .ReturnsAsync(
+                IdentityResult.Failed(
+                    new IdentityError
+                    {
+                        Code = "DuplicateEmail",
+                        Description = "Email 'taken@example.com' is already taken.",
+                    }
+                )
+            );
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "taken@example.com" }, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.UpdateMyProfileAsync(
+                new UpdateProfileRequest
+                {
+                    FirstName = "Grace",
+                    LastName = "Hopper",
+                    Email = "taken@example.com",
+                },
+                TestContext.Current.CancellationToken
+            )
+        );
 
         Assert.Equal(BusinessRuleCodes.DuplicateEmail, ex.Code);
     }
@@ -211,7 +304,15 @@ public sealed class UserServiceTests : IDisposable
         AddUser("me@example.com");
         _currentUser.Setup(c => c.UserGuid).Returns((Guid?)null);
 
-        var result = await _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" }, TestContext.Current.CancellationToken);
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest
+            {
+                FirstName = "Grace",
+                LastName = "Hopper",
+                Email = "me@example.com",
+            },
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Null(result);
     }
@@ -222,7 +323,15 @@ public sealed class UserServiceTests : IDisposable
         var user = AddUser("me@example.com", isDeleted: true);
         _currentUser.Setup(c => c.UserGuid).Returns(user.Id);
 
-        var result = await _service.UpdateMyProfileAsync(new UpdateProfileRequest { FirstName = "Grace", LastName = "Hopper", Email = "me@example.com" }, TestContext.Current.CancellationToken);
+        var result = await _service.UpdateMyProfileAsync(
+            new UpdateProfileRequest
+            {
+                FirstName = "Grace",
+                LastName = "Hopper",
+                Email = "me@example.com",
+            },
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Null(result);
     }
@@ -243,7 +352,10 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("ada@example.com");
 
-        var result = await _service.GetAnyUserByIdAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _service.GetAnyUserByIdAsync(
+            user.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.NotNull(result);
         Assert.Equal(user.Email, result!.Email);
@@ -252,7 +364,10 @@ public sealed class UserServiceTests : IDisposable
     [Fact]
     public async Task GetAnyUserByIdAsync_WhenNotFound_ReturnsNull()
     {
-        var result = await _service.GetAnyUserByIdAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var result = await _service.GetAnyUserByIdAsync(
+            Guid.NewGuid(),
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Null(result);
     }
@@ -268,7 +383,12 @@ public sealed class UserServiceTests : IDisposable
             .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), AppRoles.User))
             .ReturnsAsync(IdentityResult.Success);
 
-        var request = new CreateUserRequest { FirstName = "Ada", LastName = "Lovelace", Email = "ada@example.com" };
+        var request = new CreateUserRequest
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+        };
 
         var result = await _service.CreateUserAsync(request, TestContext.Current.CancellationToken);
 
@@ -279,11 +399,27 @@ public sealed class UserServiceTests : IDisposable
     [Fact]
     public async Task CreateUserAsync_WhenEmailAlreadyExists_ThrowsBusinessRuleException()
     {
-        _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync(new User { Email = "ada@example.com", FirstName = "Ada", LastName = "Lovelace" });
+        _userManager
+            .Setup(m => m.FindByEmailAsync("ada@example.com"))
+            .ReturnsAsync(
+                new User
+                {
+                    Email = "ada@example.com",
+                    FirstName = "Ada",
+                    LastName = "Lovelace",
+                }
+            );
 
-        var request = new CreateUserRequest { FirstName = "Ada", LastName = "Lovelace", Email = "ada@example.com" };
+        var request = new CreateUserRequest
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+        };
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateUserAsync(request, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.CreateUserAsync(request, TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
@@ -292,11 +428,20 @@ public sealed class UserServiceTests : IDisposable
         _userManager.Setup(m => m.FindByEmailAsync("ada@example.com")).ReturnsAsync((User?)null);
         _userManager
             .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Password too weak." }));
+            .ReturnsAsync(
+                IdentityResult.Failed(new IdentityError { Description = "Password too weak." })
+            );
 
-        var request = new CreateUserRequest { FirstName = "Ada", LastName = "Lovelace", Email = "ada@example.com" };
+        var request = new CreateUserRequest
+        {
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+        };
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateUserAsync(request, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.CreateUserAsync(request, TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
@@ -304,17 +449,28 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("ada@example.com");
 
-        var result = await _service.DeleteAnyUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _service.DeleteAnyUserAsync(
+            user.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.True(result);
-        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == user.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context
+            .Users.IgnoreQueryFilters()
+            .FirstAsync(
+                u => u.Id == user.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
         Assert.True(stored.IsDeleted);
     }
 
     [Fact]
     public async Task DeleteAnyUserAsync_WhenNotFound_ReturnsFalse()
     {
-        var result = await _service.DeleteAnyUserAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var result = await _service.DeleteAnyUserAsync(
+            Guid.NewGuid(),
+            TestContext.Current.CancellationToken
+        );
 
         Assert.False(result);
     }
@@ -324,11 +480,19 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("ada@example.com", isDeleted: true);
 
-        var result = await _service.RestoreAnyUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _service.RestoreAnyUserAsync(
+            user.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.NotNull(result);
         Assert.False(result!.IsDeleted);
-        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == user.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context
+            .Users.IgnoreQueryFilters()
+            .FirstAsync(
+                u => u.Id == user.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
         Assert.False(stored.IsDeleted);
         Assert.Null(stored.DeletedAt);
     }
@@ -336,7 +500,10 @@ public sealed class UserServiceTests : IDisposable
     [Fact]
     public async Task RestoreAnyUserAsync_WhenNotFound_ReturnsNull()
     {
-        var result = await _service.RestoreAnyUserAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var result = await _service.RestoreAnyUserAsync(
+            Guid.NewGuid(),
+            TestContext.Current.CancellationToken
+        );
 
         Assert.Null(result);
     }
@@ -349,13 +516,19 @@ public sealed class UserServiceTests : IDisposable
         var deleted = AddUser("ada@example.com", isDeleted: true);
         AddUser("ada@example.com");
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
-            () => _service.RestoreAnyUserAsync(deleted.Id, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.RestoreAnyUserAsync(deleted.Id, TestContext.Current.CancellationToken)
+        );
 
         Assert.Equal(BusinessRuleCodes.EmailReclaimed, ex.Code);
         Assert.Equal("ada@example.com", ex.Params?["email"]);
 
-        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == deleted.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context
+            .Users.IgnoreQueryFilters()
+            .FirstAsync(
+                u => u.Id == deleted.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
         Assert.True(stored.IsDeleted);
     }
 
@@ -365,7 +538,10 @@ public sealed class UserServiceTests : IDisposable
         var deleted = AddUser("ada@example.com", isDeleted: true);
         AddUser("grace@example.com");
 
-        var result = await _service.RestoreAnyUserAsync(deleted.Id, TestContext.Current.CancellationToken);
+        var result = await _service.RestoreAnyUserAsync(
+            deleted.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.NotNull(result);
         Assert.False(result!.IsDeleted);
@@ -379,7 +555,10 @@ public sealed class UserServiceTests : IDisposable
         var deleted = AddUser("ada@example.com", isDeleted: true);
         AddUser("ada@example.com", isDeleted: true);
 
-        var result = await _service.RestoreAnyUserAsync(deleted.Id, TestContext.Current.CancellationToken);
+        var result = await _service.RestoreAnyUserAsync(
+            deleted.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.NotNull(result);
         Assert.False(result!.IsDeleted);
@@ -414,11 +593,19 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("jane@example.com", isDeleted: true, nickname: "Janey");
 
-        var result = await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _service.AnonymizeUserAsync(
+            user.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.True(result);
 
-        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == user.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context
+            .Users.IgnoreQueryFilters()
+            .FirstAsync(
+                u => u.Id == user.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
         Assert.True(stored.IsAnonymized);
         Assert.NotNull(stored.AnonymizedAt);
         Assert.True(stored.IsDeleted);
@@ -435,7 +622,9 @@ public sealed class UserServiceTests : IDisposable
         var user = AddUser("owner@example.com", isDeleted: true);
         AddWorkspace("Acme Team", isPersonal: false, (user, WorkspaceRole.Owner));
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken)
+        );
 
         Assert.Equal(BusinessRuleCodes.SoleOwnerOfWorkspaces, ex.Code);
         Assert.Contains("Acme Team", ex.Message);
@@ -443,7 +632,12 @@ public sealed class UserServiceTests : IDisposable
         Assert.Equal("Acme Team", ex.Params!["workspaces"]);
 
         // The erasure must not be half-applied when it is refused.
-        var stored = await _context.Users.IgnoreQueryFilters().FirstAsync(u => u.Id == user.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context
+            .Users.IgnoreQueryFilters()
+            .FirstAsync(
+                u => u.Id == user.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
         Assert.False(stored.IsAnonymized);
         Assert.Equal("owner@example.com", stored.Email);
     }
@@ -453,14 +647,29 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("leaving@example.com", isDeleted: true);
         var coOwner = AddUser("staying@example.com");
-        AddWorkspace("Acme Team", isPersonal: false,
-            (user, WorkspaceRole.Owner), (coOwner, WorkspaceRole.Owner));
+        AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (user, WorkspaceRole.Owner),
+            (coOwner, WorkspaceRole.Owner)
+        );
 
-        var result = await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _service.AnonymizeUserAsync(
+            user.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.True(result);
-        Assert.Empty(await _context.WorkspaceMembers.Where(m => m.UserId == user.Id).ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
-        Assert.Single(await _context.WorkspaceMembers.Where(m => m.UserId == coOwner.Id).ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Empty(
+            await _context
+                .WorkspaceMembers.Where(m => m.UserId == user.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
+        Assert.Single(
+            await _context
+                .WorkspaceMembers.Where(m => m.UserId == coOwner.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
@@ -468,46 +677,76 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("member@example.com", isDeleted: true);
         var owner = AddUser("boss@example.com");
-        AddWorkspace("Acme Team", isPersonal: false,
-            (owner, WorkspaceRole.Owner), (user, WorkspaceRole.Member));
+        AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (owner, WorkspaceRole.Owner),
+            (user, WorkspaceRole.Member)
+        );
 
-        Assert.True(await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken));
+        Assert.True(
+            await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
     public async Task AnonymizeUserAsync_SoftDeletesPersonalWorkspaceRatherThanPurgingIt()
     {
         var user = AddUser("solo@example.com", isDeleted: true);
-        var personal = AddWorkspace("Solo's Workspace", isPersonal: true, (user, WorkspaceRole.Owner));
+        var personal = AddWorkspace(
+            "Solo's Workspace",
+            isPersonal: true,
+            (user, WorkspaceRole.Owner)
+        );
 
-        Assert.True(await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken));
+        Assert.True(
+            await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken)
+        );
 
         // Row survives so audit foreign keys stay valid, but nothing lists it.
-        var stored = await _context.Workspaces.IgnoreQueryFilters().FirstAsync(w => w.Id == personal.Id, cancellationToken: TestContext.Current.CancellationToken);
+        var stored = await _context
+            .Workspaces.IgnoreQueryFilters()
+            .FirstAsync(
+                w => w.Id == personal.Id,
+                cancellationToken: TestContext.Current.CancellationToken
+            );
         Assert.True(stored.IsDeleted);
-        Assert.Empty(await _context.Workspaces.Where(w => w.Id == personal.Id).ToListAsync(cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Empty(
+            await _context
+                .Workspaces.Where(w => w.Id == personal.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
     }
 
     [Fact]
     public async Task CreateUserAsync_EnsuresPersonalWorkspace()
     {
         _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
-        _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _userManager
+            .Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
-        _userManager.Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _userManager
+            .Setup(m => m.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
 
-        await _service.CreateUserAsync(new CreateUserRequest
-        {
-            Email = "new@example.com",
-            FirstName = "Grace",
-            LastName = "Hopper"
-        }, TestContext.Current.CancellationToken);
+        await _service.CreateUserAsync(
+            new CreateUserRequest
+            {
+                Email = "new@example.com",
+                FirstName = "Grace",
+                LastName = "Hopper",
+            },
+            TestContext.Current.CancellationToken
+        );
 
         _workspaceService.Verify(
-            w => w.EnsurePersonalWorkspaceAsync(
-                It.Is<User>(u => u.Email == "new@example.com"), It.IsAny<CancellationToken>()),
-            Times.Once);
+            w =>
+                w.EnsurePersonalWorkspaceAsync(
+                    It.Is<User>(u => u.Email == "new@example.com"),
+                    It.IsAny<CancellationToken>()
+                ),
+            Times.Once
+        );
     }
 
     [Fact]
@@ -515,7 +754,10 @@ public sealed class UserServiceTests : IDisposable
     {
         var user = AddUser("active@example.com");
 
-        var result = await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _service.AnonymizeUserAsync(
+            user.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.False(result);
     }
@@ -527,7 +769,10 @@ public sealed class UserServiceTests : IDisposable
         user.IsAnonymized = true;
         _context.SaveChanges();
 
-        var result = await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken);
+        var result = await _service.AnonymizeUserAsync(
+            user.Id,
+            TestContext.Current.CancellationToken
+        );
 
         Assert.False(result);
     }
@@ -535,7 +780,10 @@ public sealed class UserServiceTests : IDisposable
     [Fact]
     public async Task AnonymizeUserAsync_WhenNotFound_ReturnsFalse()
     {
-        var result = await _service.AnonymizeUserAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
+        var result = await _service.AnonymizeUserAsync(
+            Guid.NewGuid(),
+            TestContext.Current.CancellationToken
+        );
 
         Assert.False(result);
     }

@@ -24,7 +24,8 @@ public class InvitationService : IInvitationService
         AppDbContext context,
         ICurrentUserService currentUser,
         IWorkspaceAccessService accessService,
-        ILookupNormalizer normalizer)
+        ILookupNormalizer normalizer
+    )
     {
         _context = context;
         _currentUser = currentUser;
@@ -32,16 +33,23 @@ public class InvitationService : IInvitationService
         _normalizer = normalizer;
     }
 
-    public async Task<InviteResultDto> InviteAsync(Guid workspaceId, InviteRequest dto, CancellationToken ct = default)
+    public async Task<InviteResultDto> InviteAsync(
+        Guid workspaceId,
+        InviteRequest dto,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireOwnerAsync(workspaceId, ct);
 
-        var workspace = await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == workspaceId, ct)
+        var workspace =
+            await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == workspaceId, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         if (workspace.IsPersonal)
-            throw new BusinessRuleException(BusinessRuleCodes.PersonalWorkspaceNoMembers,
-                "A personal workspace cannot have other members.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.PersonalWorkspaceNoMembers,
+                "A personal workspace cannot have other members."
+            );
 
         // Ask Identity how it normalizes rather than reimplementing it: the normalizer
         // is swappable in IdentityOptions, and a hardcoded ToUpperInvariant would
@@ -51,13 +59,15 @@ public class InvitationService : IInvitationService
         // IgnoreQueryFilters: a soft-deleted user is invisible to the !IsDeleted filter but still
         // holds the unique username index, so they can never re-register — an invite to that
         // address could never be redeemed.
-        var existing = await _context.Users
-            .IgnoreQueryFilters()
+        var existing = await _context
+            .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.NormalizedEmail == normalized, ct);
 
         if (existing is { IsDeleted: true })
-            throw new BusinessRuleException(BusinessRuleCodes.EmailBelongsToDeletedAccount,
-                "This address belongs to a deleted account and cannot be invited.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.EmailBelongsToDeletedAccount,
+                "This address belongs to a deleted account and cannot be invited."
+            );
 
         var role = dto.Role ?? WorkspaceRole.Member;
 
@@ -67,27 +77,37 @@ public class InvitationService : IInvitationService
     }
 
     private async Task<InviteResultDto> JoinExistingUserAsync(
-    Guid workspaceId, User user, WorkspaceRole role, CancellationToken ct)
+        Guid workspaceId,
+        User user,
+        WorkspaceRole role,
+        CancellationToken ct
+    )
     {
-        bool alreadyMember = await _context.WorkspaceMembers
-            .AnyAsync(m => m.WorkspaceId == workspaceId && m.UserId == user.Id, ct);
+        bool alreadyMember = await _context.WorkspaceMembers.AnyAsync(
+            m => m.WorkspaceId == workspaceId && m.UserId == user.Id,
+            ct
+        );
 
         if (alreadyMember)
-            throw new BusinessRuleException(BusinessRuleCodes.AlreadyWorkspaceMember,
-                "This user is already a member of the workspace.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.AlreadyWorkspaceMember,
+                "This user is already a member of the workspace."
+            );
 
-        _context.WorkspaceMembers.Add(new WorkspaceMember
-        {
-            WorkspaceId = workspaceId,
-            UserId = user.Id,
-            Role = role,
-            JoinedAt = DateTime.UtcNow
-        });
+        _context.WorkspaceMembers.Add(
+            new WorkspaceMember
+            {
+                WorkspaceId = workspaceId,
+                UserId = user.Id,
+                Role = role,
+                JoinedAt = DateTime.UtcNow,
+            }
+        );
 
         await _context.SaveChangesAsync(ct);
 
-        var member = await _context.WorkspaceMembers
-            .Where(m => m.WorkspaceId == workspaceId && m.UserId == user.Id)
+        var member = await _context
+            .WorkspaceMembers.Where(m => m.WorkspaceId == workspaceId && m.UserId == user.Id)
             .MapToDto()
             .FirstAsync(ct);
 
@@ -95,65 +115,85 @@ public class InvitationService : IInvitationService
     }
 
     private async Task<InviteResultDto> CreatePendingInvitationAsync(
-    Guid workspaceId, InviteRequest dto, string normalized, WorkspaceRole role, CancellationToken ct)
+        Guid workspaceId,
+        InviteRequest dto,
+        string normalized,
+        WorkspaceRole role,
+        CancellationToken ct
+    )
     {
-        bool pendingExists = await _context.Invitations
-            .Where(i => i.WorkspaceId == workspaceId && i.NormalizedEmail == normalized)
+        bool pendingExists = await _context
+            .Invitations.Where(i => i.WorkspaceId == workspaceId && i.NormalizedEmail == normalized)
             .Pending()
             .AnyAsync(ct);
 
         if (pendingExists)
-            throw new BusinessRuleException(BusinessRuleCodes.PendingInvitationExists,
-                "This address already has a pending invitation to this workspace.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.PendingInvitationExists,
+                "This address already has a pending invitation to this workspace."
+            );
 
         var (raw, hash) = SecureToken.Generate();
         var now = DateTime.UtcNow;
 
         // Not an IAuditEntity, so SaveChangesAsync stamps nothing here.
-        _context.Invitations.Add(new Invitation
-        {
-            WorkspaceId = workspaceId,
-            Email = dto.Email,
-            NormalizedEmail = normalized,
-            Role = role,
-            TokenHash = hash,
-            InvitedBy = RequireCurrentUserId(),
-            CreatedAt = now,
-            ExpiresAt = now.AddDays(InvitationLifetimeDays)
-        });
+        _context.Invitations.Add(
+            new Invitation
+            {
+                WorkspaceId = workspaceId,
+                Email = dto.Email,
+                NormalizedEmail = normalized,
+                Role = role,
+                TokenHash = hash,
+                InvitedBy = RequireCurrentUserId(),
+                CreatedAt = now,
+                ExpiresAt = now.AddDays(InvitationLifetimeDays),
+            }
+        );
 
         await _context.SaveChangesAsync(ct);
 
         return new InviteResultDto(InviteOutcome.Invited, raw, null);
     }
 
-    public async Task<IEnumerable<InvitationResponseDto>> GetPendingAsync(Guid workspaceId, CancellationToken ct = default)
+    public async Task<IEnumerable<InvitationResponseDto>> GetPendingAsync(
+        Guid workspaceId,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireOwnerAsync(workspaceId, ct);
 
-        return await _context.Invitations
-            .Where(i => i.WorkspaceId == workspaceId)
+        return await _context
+            .Invitations.Where(i => i.WorkspaceId == workspaceId)
             .Pending()
             .OrderByDescending(i => i.CreatedAt)
             .MapToDto()
             .ToListAsync(ct);
     }
 
-    public async Task RevokeAsync(Guid workspaceId, Guid invitationId, CancellationToken ct = default)
+    public async Task RevokeAsync(
+        Guid workspaceId,
+        Guid invitationId,
+        CancellationToken ct = default
+    )
     {
         await _accessService.RequireOwnerAsync(workspaceId, ct);
 
         // WorkspaceId belongs in the predicate, not just the guard: without it an owner of one
         // workspace could revoke another workspace's invitation by id.
-        var invitation = await _context.Invitations
-            .FirstOrDefaultAsync(i => i.Id == invitationId && i.WorkspaceId == workspaceId, ct)
-            ?? throw new NotFoundException("Invitation not found.");
+        var invitation =
+            await _context.Invitations.FirstOrDefaultAsync(
+                i => i.Id == invitationId && i.WorkspaceId == workspaceId,
+                ct
+            ) ?? throw new NotFoundException("Invitation not found.");
 
         // The entity is materialised, so the computed property is the right tool here —
         // contrast .Pending() above, which has to run in SQL.
         if (!invitation.IsPending)
-            throw new BusinessRuleException(BusinessRuleCodes.InvitationInvalid,
-                "This invitation is no longer pending.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.InvitationInvalid,
+                "This invitation is no longer pending."
+            );
 
         invitation.RevokedAt = DateTime.UtcNow;
         invitation.RevokedBy = RequireCurrentUserId();
@@ -161,42 +201,56 @@ public class InvitationService : IInvitationService
         await _context.SaveChangesAsync(ct);
     }
 
-    public async Task<WorkspaceResponseDto> AcceptAsync(string rawToken, CancellationToken ct = default)
+    public async Task<WorkspaceResponseDto> AcceptAsync(
+        string rawToken,
+        CancellationToken ct = default
+    )
     {
         var userId = RequireCurrentUserId();
         var hash = SecureToken.Hash(rawToken);
 
         // Deliberately not .Pending(): an expired or revoked invite has to stay distinguishable
         // from a token that never existed, or the message can't be truthful.
-        var invitation = await _context.Invitations
-            .FirstOrDefaultAsync(i => i.TokenHash == hash, ct)
-            ?? throw new BusinessRuleException(BusinessRuleCodes.InvitationInvalid,
-                "This invitation link is not valid.");
+        var invitation =
+            await _context.Invitations.FirstOrDefaultAsync(i => i.TokenHash == hash, ct)
+            ?? throw new BusinessRuleException(
+                BusinessRuleCodes.InvitationInvalid,
+                "This invitation link is not valid."
+            );
 
         if (!invitation.IsPending)
-            throw new BusinessRuleException(BusinessRuleCodes.InvitationInvalid,
-                "This invitation link has expired or been revoked.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.InvitationInvalid,
+                "This invitation link has expired or been revoked."
+            );
 
         // Filtered on purpose: a valid token to a trashed workspace must not work.
-        _ = await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == invitation.WorkspaceId, ct)
+        _ =
+            await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == invitation.WorkspaceId, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         // Bearer semantics: whoever holds the link may redeem it. The caller's email is
         // deliberately NOT compared against invitation.Email — see the build guide.
-        bool alreadyMember = await _context.WorkspaceMembers
-            .AnyAsync(m => m.WorkspaceId == invitation.WorkspaceId && m.UserId == userId, ct);
+        bool alreadyMember = await _context.WorkspaceMembers.AnyAsync(
+            m => m.WorkspaceId == invitation.WorkspaceId && m.UserId == userId,
+            ct
+        );
 
         if (alreadyMember)
-            throw new BusinessRuleException(BusinessRuleCodes.AlreadyWorkspaceMember,
-                "You are already a member of this workspace.");
+            throw new BusinessRuleException(
+                BusinessRuleCodes.AlreadyWorkspaceMember,
+                "You are already a member of this workspace."
+            );
 
-        _context.WorkspaceMembers.Add(new WorkspaceMember
-        {
-            WorkspaceId = invitation.WorkspaceId,
-            UserId = userId,
-            Role = invitation.Role,
-            JoinedAt = DateTime.UtcNow
-        });
+        _context.WorkspaceMembers.Add(
+            new WorkspaceMember
+            {
+                WorkspaceId = invitation.WorkspaceId,
+                UserId = userId,
+                Role = invitation.Role,
+                JoinedAt = DateTime.UtcNow,
+            }
+        );
 
         invitation.AcceptedAt = DateTime.UtcNow;
         invitation.AcceptedBy = userId;
@@ -205,8 +259,8 @@ public class InvitationService : IInvitationService
         // accepted with no membership behind it.
         await _context.SaveChangesAsync(ct);
 
-        return await _context.Workspaces
-            .Where(w => w.Id == invitation.WorkspaceId)
+        return await _context
+            .Workspaces.Where(w => w.Id == invitation.WorkspaceId)
             .MapToDto(userId)
             .FirstAsync(ct);
     }
@@ -220,22 +274,24 @@ public class InvitationService : IInvitationService
     public async Task RedeemPendingForEmailAsync(User user, CancellationToken ct = default)
     {
         var normalized = user.NormalizedEmail ?? _normalizer.NormalizeEmail(user.Email);
-        if (normalized is null) return;
+        if (normalized is null)
+            return;
 
-        var invitations = await _context.Invitations
-            .Where(i => i.NormalizedEmail == normalized)
+        var invitations = await _context
+            .Invitations.Where(i => i.NormalizedEmail == normalized)
             .Pending()
             .OrderBy(i => i.CreatedAt)
             .ToListAsync(ct);
 
-        if (invitations.Count == 0) return;
+        if (invitations.Count == 0)
+            return;
 
         var workspaceIds = invitations.Select(i => i.WorkspaceId).Distinct().ToList();
 
         // Live workspaces the user isn't already in. Everything excluded here is skipped
         // silently rather than refused — this is reconciliation, not a user action.
-        var joinableIds = await _context.Workspaces
-            .Where(w => workspaceIds.Contains(w.Id))
+        var joinableIds = await _context
+            .Workspaces.Where(w => workspaceIds.Contains(w.Id))
             .Where(w => !w.Members.Any(m => m.UserId == user.Id))
             .Select(w => w.Id)
             .ToListAsync(ct);
@@ -252,16 +308,20 @@ public class InvitationService : IInvitationService
 
             // joined guards the (WorkspaceId, UserId) unique index against two pending
             // invites to the same workspace.
-            if (!joinableIds.Contains(invitation.WorkspaceId) || !joined.Add(invitation.WorkspaceId))
+            if (
+                !joinableIds.Contains(invitation.WorkspaceId) || !joined.Add(invitation.WorkspaceId)
+            )
                 continue;
 
-            _context.WorkspaceMembers.Add(new WorkspaceMember
-            {
-                WorkspaceId = invitation.WorkspaceId,
-                UserId = user.Id,
-                Role = invitation.Role,
-                JoinedAt = now
-            });
+            _context.WorkspaceMembers.Add(
+                new WorkspaceMember
+                {
+                    WorkspaceId = invitation.WorkspaceId,
+                    UserId = user.Id,
+                    Role = invitation.Role,
+                    JoinedAt = now,
+                }
+            );
         }
 
         await _context.SaveChangesAsync(ct);

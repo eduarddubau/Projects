@@ -11,7 +11,9 @@ public class RoleRequestValidatorTests
     [InlineData(WorkspaceRole.Owner)]
     public void AddMemberRequest_AcceptsAnyRealRole(WorkspaceRole role)
     {
-        var result = new AddMemberRequestValidator().Validate(new AddMemberRequest(Guid.NewGuid(), role));
+        var result = new AddMemberRequestValidator().Validate(
+            new AddMemberRequest(Guid.NewGuid(), role)
+        );
 
         Assert.True(result.IsValid);
     }
@@ -19,8 +21,9 @@ public class RoleRequestValidatorTests
     [Fact]
     public void AddMemberRequest_RejectsAnUndefinedNumericRole()
     {
-        var result = new AddMemberRequestValidator()
-            .Validate(new AddMemberRequest(Guid.NewGuid(), (WorkspaceRole)99));
+        var result = new AddMemberRequestValidator().Validate(
+            new AddMemberRequest(Guid.NewGuid(), (WorkspaceRole)99)
+        );
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(AddMemberRequest.Role));
@@ -29,8 +32,9 @@ public class RoleRequestValidatorTests
     [Fact]
     public void AddMemberRequest_RejectsAnEmptyUserId()
     {
-        var result = new AddMemberRequestValidator()
-            .Validate(new AddMemberRequest(Guid.Empty, WorkspaceRole.Member));
+        var result = new AddMemberRequestValidator().Validate(
+            new AddMemberRequest(Guid.Empty, WorkspaceRole.Member)
+        );
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(AddMemberRequest.UserId));
@@ -39,7 +43,9 @@ public class RoleRequestValidatorTests
     [Fact]
     public void AddMemberRequest_AllowsAnOmittedRole()
     {
-        var result = new AddMemberRequestValidator().Validate(new AddMemberRequest(Guid.NewGuid(), null));
+        var result = new AddMemberRequestValidator().Validate(
+            new AddMemberRequest(Guid.NewGuid(), null)
+        );
 
         Assert.True(result.IsValid);
     }
@@ -47,7 +53,9 @@ public class RoleRequestValidatorTests
     [Fact]
     public void InviteRequest_AllowsAnOmittedRole()
     {
-        var result = new InviteRequestValidator().Validate(new InviteRequest("someone@example.com", null));
+        var result = new InviteRequestValidator().Validate(
+            new InviteRequest("someone@example.com", null)
+        );
 
         Assert.True(result.IsValid);
     }
@@ -55,8 +63,9 @@ public class RoleRequestValidatorTests
     [Fact]
     public void ChangeMemberRoleRequest_RejectsAnUndefinedNumericRole()
     {
-        var result = new ChangeMemberRoleRequestValidator()
-            .Validate(new ChangeMemberRoleRequest((WorkspaceRole)99));
+        var result = new ChangeMemberRoleRequestValidator().Validate(
+            new ChangeMemberRoleRequest((WorkspaceRole)99)
+        );
 
         Assert.False(result.IsValid);
     }
@@ -66,7 +75,9 @@ public class RoleRequestValidatorTests
     [Fact]
     public void ChangeMemberRoleRequest_RejectsAnOmittedRole()
     {
-        var result = new ChangeMemberRoleRequestValidator().Validate(new ChangeMemberRoleRequest(null));
+        var result = new ChangeMemberRoleRequestValidator().Validate(
+            new ChangeMemberRoleRequest(null)
+        );
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.PropertyName == nameof(ChangeMemberRoleRequest.Role));
@@ -77,7 +88,9 @@ public class RoleRequestValidatorTests
     [InlineData(WorkspaceRole.Owner)]
     public void ChangeMemberRoleRequest_AcceptsAnyRealRole(WorkspaceRole role)
     {
-        var result = new ChangeMemberRoleRequestValidator().Validate(new ChangeMemberRoleRequest(role));
+        var result = new ChangeMemberRoleRequestValidator().Validate(
+            new ChangeMemberRoleRequest(role)
+        );
 
         Assert.True(result.IsValid);
     }
