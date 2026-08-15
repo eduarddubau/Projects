@@ -81,8 +81,7 @@ jobs:
       - uses: actions/checkout@v7
 
       # Node 24 matches the frontend service in compose.yaml. The cache path is
-      # relative to the repo root and must name the frontend lockfile — there is
-      # a second, unrelated one at the root.
+      # relative to the repo root, not to working-directory.
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
