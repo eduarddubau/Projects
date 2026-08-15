@@ -45,8 +45,10 @@ jobs:
 
       # backend.Tests is entirely EF InMemory — no UseNpgsql anywhere — so this
       # job needs no database service.
+      # --solution, not a bare path: global.json selects Microsoft.Testing
+      # Platform mode, where positional targets are gone.
       - name: Test
-        run: dotnet test fullstack-app.sln --configuration Release --no-build
+        run: dotnet test --solution fullstack-app.sln --configuration Release --no-build
 
   frontend:
     name: Frontend tests

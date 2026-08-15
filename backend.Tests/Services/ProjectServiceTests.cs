@@ -45,7 +45,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("Mine", _userId);
         AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.GetMyProjectsAsync();
+        var result = await _service.GetMyProjectsAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(["Mine"], result.Select(p => p.Name));
     }
@@ -56,7 +56,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("Active", _userId);
         AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.GetMyProjectsAsync();
+        var result = await _service.GetMyProjectsAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(["Active"], result.Select(p => p.Name));
     }
@@ -69,7 +69,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("OldDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
         AddProject("Someone else's deleted", Guid.NewGuid(), isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
 
-        var result = await _service.GetMyDeletedProjectsAsync();
+        var result = await _service.GetMyDeletedProjectsAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(["RecentlyDeleted"], result.Select(p => p.Name));
     }
@@ -79,7 +79,7 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Mine", _userId);
 
-        var result = await _service.GetMyProjectByIdAsync(project.Id);
+        var result = await _service.GetMyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(project.Id, result!.Id);
@@ -90,7 +90,7 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.GetMyProjectByIdAsync(project.Id);
+        var result = await _service.GetMyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.Null(result);
     }
@@ -100,10 +100,10 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var request = new CreateProjectRequest("New Project", "A description");
 
-        var result = await _service.CreateProjectAsync(request);
+        var result = await _service.CreateProjectAsync(request, TestContext.Current.CancellationToken);
 
         Assert.Equal("New Project", result.Name);
-        var stored = await _context.Projects.FirstAsync(p => p.Id == result.Id);
+        var stored = await _context.Projects.FirstAsync(p => p.Id == result.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(_userId, stored.CreatedBy);
     }
 
@@ -113,7 +113,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("Duplicate", _userId);
         var request = new CreateProjectRequest("Duplicate", null);
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateProjectAsync(request));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.CreateProjectAsync(request, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public sealed class ProjectServiceTests : IDisposable
         var project = AddProject("Old Name", _userId);
         var request = new UpdateProjectRequest("New Name", "New description");
 
-        var result = await _service.UpdateMyProjectAsync(project.Id, request);
+        var result = await _service.UpdateMyProjectAsync(project.Id, request, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal("New Name", result!.Name);
@@ -135,7 +135,7 @@ public sealed class ProjectServiceTests : IDisposable
         var project = AddProject("Old Name", Guid.NewGuid());
         var request = new UpdateProjectRequest("New Name", null);
 
-        var result = await _service.UpdateMyProjectAsync(project.Id, request);
+        var result = await _service.UpdateMyProjectAsync(project.Id, request, TestContext.Current.CancellationToken);
 
         Assert.Null(result);
     }
@@ -147,7 +147,7 @@ public sealed class ProjectServiceTests : IDisposable
         var project = AddProject("Original", _userId);
         var request = new UpdateProjectRequest("Taken", null);
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateMyProjectAsync(project.Id, request));
+        await Assert.ThrowsAsync<BusinessRuleException>(() => _service.UpdateMyProjectAsync(project.Id, request, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -155,10 +155,10 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Mine", _userId);
 
-        var result = await _service.DeleteMyProjectByIdAsync(project.Id);
+        var result = await _service.DeleteMyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.True(result);
-        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(stored.IsDeleted);
     }
 
@@ -167,7 +167,7 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.DeleteMyProjectByIdAsync(project.Id);
+        var result = await _service.DeleteMyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.False(result);
     }
@@ -178,7 +178,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("Mine", _userId);
         AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.GetAllProjectsAsync();
+        var result = await _service.GetAllProjectsAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(2, result.Count());
     }
@@ -188,7 +188,7 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.GetAnyProjectByIdAsync(project.Id);
+        var result = await _service.GetAnyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(project.Id, result!.Id);
@@ -199,17 +199,17 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.DeleteAnyProjectByIdAsync(project.Id);
+        var result = await _service.DeleteAnyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.True(result);
-        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(stored.IsDeleted);
     }
 
     [Fact]
     public async Task DeleteAnyProjectByIdAsync_WhenNotFound_ReturnsFalse()
     {
-        var result = await _service.DeleteAnyProjectByIdAsync(Guid.NewGuid());
+        var result = await _service.DeleteAnyProjectByIdAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         Assert.False(result);
     }
@@ -219,10 +219,10 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.RestoreAnyProjectsAsync([project.Id]);
+        var result = await _service.RestoreAnyProjectsAsync([project.Id], TestContext.Current.CancellationToken);
 
         Assert.Equal(1, result);
-        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.False(stored.IsDeleted);
         Assert.Null(stored.DeletedAt);
     }
@@ -230,7 +230,7 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task RestoreAnyProjectsAsync_WhenNotFound_ReturnsZero()
     {
-        var result = await _service.RestoreAnyProjectsAsync([Guid.NewGuid()]);
+        var result = await _service.RestoreAnyProjectsAsync([Guid.NewGuid()], TestContext.Current.CancellationToken);
 
         Assert.Equal(0, result);
     }
@@ -241,11 +241,11 @@ public sealed class ProjectServiceTests : IDisposable
         var deleted1 = AddProject("Deleted1", _userId, isDeleted: true);
         var deleted2 = AddProject("Deleted2", _userId, isDeleted: true);
 
-        var result = await _service.RestoreAnyProjectsAsync([deleted1.Id, deleted2.Id]);
+        var result = await _service.RestoreAnyProjectsAsync([deleted1.Id, deleted2.Id], TestContext.Current.CancellationToken);
 
         Assert.Equal(2, result);
-        Assert.False((await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == deleted1.Id)).IsDeleted);
-        Assert.False((await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == deleted2.Id)).IsDeleted);
+        Assert.False((await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == deleted1.Id, cancellationToken: TestContext.Current.CancellationToken)).IsDeleted);
+        Assert.False((await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == deleted2.Id, cancellationToken: TestContext.Current.CancellationToken)).IsDeleted);
     }
 
     [Fact]
@@ -253,11 +253,11 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.RestoreMyProjectByIdAsync(project.Id);
+        var result = await _service.RestoreMyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.False(result!.IsDeleted);
-        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstAsync(p => p.Id == project.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.False(stored.IsDeleted);
         Assert.Null(stored.DeletedAt);
     }
@@ -267,7 +267,7 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Someone else's deleted", Guid.NewGuid(), isDeleted: true);
 
-        var result = await _service.RestoreMyProjectByIdAsync(project.Id);
+        var result = await _service.RestoreMyProjectByIdAsync(project.Id, TestContext.Current.CancellationToken);
 
         Assert.Null(result);
     }
@@ -275,7 +275,7 @@ public sealed class ProjectServiceTests : IDisposable
     [Fact]
     public async Task RestoreMyProjectByIdAsync_WhenNotFound_ReturnsNull()
     {
-        var result = await _service.RestoreMyProjectByIdAsync(Guid.NewGuid());
+        var result = await _service.RestoreMyProjectByIdAsync(Guid.NewGuid(), TestContext.Current.CancellationToken);
 
         Assert.Null(result);
     }
@@ -286,7 +286,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("Active", _userId);
         AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.GetAllDeletedProjectsAsync();
+        var result = await _service.GetAllDeletedProjectsAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(["Deleted"], result.Select(p => p.Name));
     }
@@ -297,7 +297,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("RecentlyDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
         AddProject("OldDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
 
-        var result = await _service.GetAllDeletedProjectsAsync();
+        var result = await _service.GetAllDeletedProjectsAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(["OldDeleted", "RecentlyDeleted"], result.Select(p => p.Name).OrderBy(n => n));
     }
@@ -308,7 +308,7 @@ public sealed class ProjectServiceTests : IDisposable
         AddProject("RecentlyDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
         AddProject("OldDeleted", _userId, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
 
-        var result = await _service.GetAllDeletedProjectsAsync();
+        var result = await _service.GetAllDeletedProjectsAsync(TestContext.Current.CancellationToken);
 
         Assert.False(result.Single(p => p.Name == "RecentlyDeleted").IsPurgeable);
         Assert.True(result.Single(p => p.Name == "OldDeleted").IsPurgeable);
@@ -319,10 +319,10 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Deleted", _userId, isDeleted: true);
 
-        var result = await _service.PurgeProjectsAsync([project.Id]);
+        var result = await _service.PurgeProjectsAsync([project.Id], TestContext.Current.CancellationToken);
 
         Assert.Equal(1, result);
-        var stored = await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == project.Id);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == project.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Null(stored);
     }
 
@@ -331,17 +331,17 @@ public sealed class ProjectServiceTests : IDisposable
     {
         var project = AddProject("Active", _userId);
 
-        var result = await _service.PurgeProjectsAsync([project.Id]);
+        var result = await _service.PurgeProjectsAsync([project.Id], TestContext.Current.CancellationToken);
 
         Assert.Equal(0, result);
-        var stored = await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == project.Id);
+        var stored = await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == project.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(stored);
     }
 
     [Fact]
     public async Task PurgeProjectsAsync_WhenNotFound_ReturnsZero()
     {
-        var result = await _service.PurgeProjectsAsync([Guid.NewGuid()]);
+        var result = await _service.PurgeProjectsAsync([Guid.NewGuid()], TestContext.Current.CancellationToken);
 
         Assert.Equal(0, result);
     }
@@ -353,12 +353,12 @@ public sealed class ProjectServiceTests : IDisposable
         var deleted2 = AddProject("Deleted2", _userId, isDeleted: true);
         var active = AddProject("Active", _userId);
 
-        var result = await _service.PurgeProjectsAsync([deleted1.Id, deleted2.Id, active.Id]);
+        var result = await _service.PurgeProjectsAsync([deleted1.Id, deleted2.Id, active.Id], TestContext.Current.CancellationToken);
 
         Assert.Equal(2, result);
-        Assert.Null(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == deleted1.Id));
-        Assert.Null(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == deleted2.Id));
-        Assert.NotNull(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == active.Id));
+        Assert.Null(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == deleted1.Id, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Null(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == deleted2.Id, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.NotNull(await _context.Projects.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Id == active.Id, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     public void Dispose() => _context.Dispose();

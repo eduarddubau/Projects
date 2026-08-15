@@ -108,7 +108,7 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (stranger, WorkspaceRole.Owner));
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _service.InviteAsync(workspace.Id, new InviteRequest("new@example.com", WorkspaceRole.Member)));
+            _service.InviteAsync(workspace.Id, new InviteRequest("new@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class InvitationServiceTests : IDisposable
             (owner, WorkspaceRole.Owner), (_caller, WorkspaceRole.Member));
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            _service.InviteAsync(workspace.Id, new InviteRequest("new@example.com", WorkspaceRole.Member)));
+            _service.InviteAsync(workspace.Id, new InviteRequest("new@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Ada's Workspace", isPersonal: true, (_caller, WorkspaceRole.Owner));
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.InviteAsync(workspace.Id, new InviteRequest("new@example.com", WorkspaceRole.Member)));
+            _service.InviteAsync(workspace.Id, new InviteRequest("new@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken));
 
         Assert.Equal(BusinessRuleCodes.PersonalWorkspaceNoMembers, ex.Code);
     }
@@ -141,15 +141,14 @@ public sealed class InvitationServiceTests : IDisposable
         var invitee = AddUser("bob@example.com", "Bob");
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
-        var result = await _service.InviteAsync(
-            workspace.Id, new InviteRequest("bob@example.com", WorkspaceRole.Member));
+        var result = await _service.InviteAsync(workspace.Id, new InviteRequest("bob@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken);
 
         Assert.Equal(InviteOutcome.Joined, result.Outcome);
         Assert.Null(result.Token);
         Assert.NotNull(result.Member);
         Assert.True(await _context.WorkspaceMembers
-            .AnyAsync(m => m.WorkspaceId == workspace.Id && m.UserId == invitee.Id));
-        Assert.False(await _context.Invitations.AnyAsync());
+            .AnyAsync(m => m.WorkspaceId == workspace.Id && m.UserId == invitee.Id, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.False(await _context.Invitations.AnyAsync(cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -157,14 +156,13 @@ public sealed class InvitationServiceTests : IDisposable
     {
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
-        var result = await _service.InviteAsync(
-            workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member));
+        var result = await _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken);
 
         Assert.Equal(InviteOutcome.Invited, result.Outcome);
         Assert.False(string.IsNullOrWhiteSpace(result.Token));
         Assert.Null(result.Member);
 
-        var invitation = await _context.Invitations.SingleAsync();
+        var invitation = await _context.Invitations.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal("NOBODY@EXAMPLE.COM", invitation.NormalizedEmail);
         Assert.Equal(_caller.Id, invitation.InvitedBy);
         Assert.True(invitation.IsPending);
@@ -175,10 +173,9 @@ public sealed class InvitationServiceTests : IDisposable
     {
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
-        var result = await _service.InviteAsync(
-            workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member));
+        var result = await _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken);
 
-        var invitation = await _context.Invitations.SingleAsync();
+        var invitation = await _context.Invitations.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotEqual(result.Token, invitation.TokenHash);
         Assert.Equal(SecureToken.Hash(result.Token!), invitation.TokenHash);
     }
@@ -188,9 +185,9 @@ public sealed class InvitationServiceTests : IDisposable
     {
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
-        await _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member));
+        await _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken);
 
-        var invitation = await _context.Invitations.SingleAsync();
+        var invitation = await _context.Invitations.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Invitation is not an IAuditEntity, so SaveChangesAsync skips it entirely.
         Assert.NotEqual(default, invitation.CreatedAt);
@@ -204,7 +201,7 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.InviteAsync(workspace.Id, new InviteRequest("ghost@example.com", WorkspaceRole.Member)));
+            _service.InviteAsync(workspace.Id, new InviteRequest("ghost@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken));
 
         Assert.Equal(BusinessRuleCodes.EmailBelongsToDeletedAccount, ex.Code);
     }
@@ -216,7 +213,7 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.InviteAsync(workspace.Id, new InviteRequest("tombstone@example.com", WorkspaceRole.Member)));
+            _service.InviteAsync(workspace.Id, new InviteRequest("tombstone@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken));
 
         Assert.Equal(BusinessRuleCodes.EmailBelongsToDeletedAccount, ex.Code);
     }
@@ -231,7 +228,7 @@ public sealed class InvitationServiceTests : IDisposable
             (_caller, WorkspaceRole.Owner), (member, WorkspaceRole.Member));
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.InviteAsync(workspace.Id, new InviteRequest("bob@example.com", WorkspaceRole.Member)));
+            _service.InviteAsync(workspace.Id, new InviteRequest("bob@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken));
 
         Assert.Equal(BusinessRuleCodes.AlreadyWorkspaceMember, ex.Code);
     }
@@ -243,7 +240,7 @@ public sealed class InvitationServiceTests : IDisposable
         AddInvitation(workspace.Id, "nobody@example.com", "raw-token");
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member)));
+            _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken));
 
         Assert.Equal(BusinessRuleCodes.PendingInvitationExists, ex.Code);
     }
@@ -254,11 +251,10 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
         AddInvitation(workspace.Id, "nobody@example.com", "old-token", revokedAt: DateTime.UtcNow);
 
-        var result = await _service.InviteAsync(
-            workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member));
+        var result = await _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken);
 
         Assert.Equal(InviteOutcome.Invited, result.Outcome);
-        Assert.Equal(2, await _context.Invitations.CountAsync());
+        Assert.Equal(2, await _context.Invitations.CountAsync(cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -268,11 +264,10 @@ public sealed class InvitationServiceTests : IDisposable
         AddInvitation(workspace.Id, "nobody@example.com", "old-token",
             expiresAt: DateTime.UtcNow.AddDays(-1));
 
-        var result = await _service.InviteAsync(
-            workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member));
+        var result = await _service.InviteAsync(workspace.Id, new InviteRequest("nobody@example.com", WorkspaceRole.Member), TestContext.Current.CancellationToken);
 
         Assert.Equal(InviteOutcome.Invited, result.Outcome);
-        Assert.Equal(2, await _context.Invitations.CountAsync());
+        Assert.Equal(2, await _context.Invitations.CountAsync(cancellationToken: TestContext.Current.CancellationToken));
     }
 
     // ---- GetPendingAsync / RevokeAsync ---------------------------------------------
@@ -286,7 +281,7 @@ public sealed class InvitationServiceTests : IDisposable
         AddInvitation(workspace.Id, "expired@example.com", "t3", expiresAt: DateTime.UtcNow.AddDays(-1));
         AddInvitation(workspace.Id, "accepted@example.com", "t4", acceptedAt: DateTime.UtcNow);
 
-        var result = await _service.GetPendingAsync(workspace.Id);
+        var result = await _service.GetPendingAsync(workspace.Id, TestContext.Current.CancellationToken);
 
         Assert.Equal(["pending@example.com"], result.Select(i => i.Email));
     }
@@ -298,7 +293,7 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false,
             (owner, WorkspaceRole.Owner), (_caller, WorkspaceRole.Member));
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.GetPendingAsync(workspace.Id));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _service.GetPendingAsync(workspace.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -307,9 +302,9 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (_caller, WorkspaceRole.Owner));
         var invitation = AddInvitation(workspace.Id, "nobody@example.com", "raw-token");
 
-        await _service.RevokeAsync(workspace.Id, invitation.Id);
+        await _service.RevokeAsync(workspace.Id, invitation.Id, TestContext.Current.CancellationToken);
 
-        var stored = await _context.Invitations.SingleAsync();
+        var stored = await _context.Invitations.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(stored.RevokedAt);
         Assert.Equal(_caller.Id, stored.RevokedBy);
         Assert.False(stored.IsPending);
@@ -323,7 +318,7 @@ public sealed class InvitationServiceTests : IDisposable
         var invitation = AddInvitation(theirs.Id, "nobody@example.com", "raw-token");
 
         // Owner of both, so the guard passes — only the WorkspaceId in the predicate stops this.
-        await Assert.ThrowsAsync<NotFoundException>(() => _service.RevokeAsync(mine.Id, invitation.Id));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.RevokeAsync(mine.Id, invitation.Id, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -333,7 +328,7 @@ public sealed class InvitationServiceTests : IDisposable
         var invitation = AddInvitation(workspace.Id, "nobody@example.com", "t", revokedAt: DateTime.UtcNow);
 
         var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
-            _service.RevokeAsync(workspace.Id, invitation.Id));
+            _service.RevokeAsync(workspace.Id, invitation.Id, TestContext.Current.CancellationToken));
 
         Assert.Equal(BusinessRuleCodes.InvitationInvalid, ex.Code);
     }
@@ -349,11 +344,11 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (owner, WorkspaceRole.Owner));
         AddInvitation(workspace.Id, "someone-else@example.com", "raw-token");
 
-        var result = await _service.AcceptAsync("raw-token");
+        var result = await _service.AcceptAsync("raw-token", TestContext.Current.CancellationToken);
 
         Assert.Equal(workspace.Id, result.Id);
         Assert.True(await _context.WorkspaceMembers
-            .AnyAsync(m => m.WorkspaceId == workspace.Id && m.UserId == _caller.Id));
+            .AnyAsync(m => m.WorkspaceId == workspace.Id && m.UserId == _caller.Id, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -363,9 +358,9 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (owner, WorkspaceRole.Owner));
         AddInvitation(workspace.Id, "someone-else@example.com", "raw-token");
 
-        await _service.AcceptAsync("raw-token");
+        await _service.AcceptAsync("raw-token", TestContext.Current.CancellationToken);
 
-        var invitation = await _context.Invitations.SingleAsync();
+        var invitation = await _context.Invitations.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(invitation.AcceptedAt);
         Assert.Equal(_caller.Id, invitation.AcceptedBy);
     }
@@ -378,19 +373,19 @@ public sealed class InvitationServiceTests : IDisposable
 
         var invitation = AddInvitation(workspace.Id, "nobody@example.com", "raw-token");
         invitation.Role = WorkspaceRole.Owner;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        await _service.AcceptAsync("raw-token");
+        await _service.AcceptAsync("raw-token", TestContext.Current.CancellationToken);
 
         var member = await _context.WorkspaceMembers
-            .SingleAsync(m => m.WorkspaceId == workspace.Id && m.UserId == _caller.Id);
+            .SingleAsync(m => m.WorkspaceId == workspace.Id && m.UserId == _caller.Id, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(WorkspaceRole.Owner, member.Role);
     }
 
     [Fact]
     public async Task AcceptAsync_WithAnUnknownToken_Throws()
     {
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("no-such-token"));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("no-such-token", TestContext.Current.CancellationToken));
         Assert.Equal(BusinessRuleCodes.InvitationInvalid, ex.Code);
     }
 
@@ -402,7 +397,7 @@ public sealed class InvitationServiceTests : IDisposable
         AddInvitation(workspace.Id, "nobody@example.com", "raw-token",
             expiresAt: DateTime.UtcNow.AddDays(-1));
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("raw-token"));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("raw-token", TestContext.Current.CancellationToken));
         Assert.Equal(BusinessRuleCodes.InvitationInvalid, ex.Code);
     }
 
@@ -413,7 +408,7 @@ public sealed class InvitationServiceTests : IDisposable
         var workspace = AddWorkspace("Acme", isPersonal: false, (owner, WorkspaceRole.Owner));
         AddInvitation(workspace.Id, "nobody@example.com", "raw-token", revokedAt: DateTime.UtcNow);
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("raw-token"));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("raw-token", TestContext.Current.CancellationToken));
         Assert.Equal(BusinessRuleCodes.InvitationInvalid, ex.Code);
     }
 
@@ -426,9 +421,9 @@ public sealed class InvitationServiceTests : IDisposable
 
         workspace.IsDeleted = true;
         workspace.DeletedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
-        await Assert.ThrowsAsync<NotFoundException>(() => _service.AcceptAsync("raw-token"));
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.AcceptAsync("raw-token", TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -439,12 +434,12 @@ public sealed class InvitationServiceTests : IDisposable
             (owner, WorkspaceRole.Owner), (_caller, WorkspaceRole.Member));
         AddInvitation(workspace.Id, "nobody@example.com", "raw-token");
 
-        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("raw-token"));
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => _service.AcceptAsync("raw-token", TestContext.Current.CancellationToken));
 
         Assert.Equal(BusinessRuleCodes.AlreadyWorkspaceMember, ex.Code);
 
         // Refusing must not consume the invite — revoking on a failed action would be surprising.
-        var invitation = await _context.Invitations.SingleAsync();
+        var invitation = await _context.Invitations.SingleAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(invitation.IsPending);
     }
 
@@ -461,17 +456,17 @@ public sealed class InvitationServiceTests : IDisposable
         AddInvitation(first.Id, "newcomer@example.com", "t1");
         AddInvitation(second.Id, "newcomer@example.com", "t2");
 
-        await _service.RedeemPendingForEmailAsync(newcomer);
+        await _service.RedeemPendingForEmailAsync(newcomer, TestContext.Current.CancellationToken);
 
         var joined = await _context.WorkspaceMembers
             .Where(m => m.UserId == newcomer.Id)
             .Select(m => m.WorkspaceId)
-            .ToListAsync();
+            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(2, joined.Count);
         Assert.Contains(first.Id, joined);
         Assert.Contains(second.Id, joined);
-        Assert.True(await _context.Invitations.AllAsync(i => i.AcceptedAt != null));
+        Assert.True(await _context.Invitations.AllAsync(i => i.AcceptedAt != null, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -484,9 +479,9 @@ public sealed class InvitationServiceTests : IDisposable
         AddInvitation(workspace.Id, "newcomer@example.com", "t1", revokedAt: DateTime.UtcNow);
         AddInvitation(workspace.Id, "newcomer@example.com", "t2", expiresAt: DateTime.UtcNow.AddDays(-1));
 
-        await _service.RedeemPendingForEmailAsync(newcomer);
+        await _service.RedeemPendingForEmailAsync(newcomer, TestContext.Current.CancellationToken);
 
-        Assert.False(await _context.WorkspaceMembers.AnyAsync(m => m.UserId == newcomer.Id));
+        Assert.False(await _context.WorkspaceMembers.AnyAsync(m => m.UserId == newcomer.Id, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -499,12 +494,12 @@ public sealed class InvitationServiceTests : IDisposable
 
         workspace.IsDeleted = true;
         workspace.DeletedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Runs during registration, so it must never throw — skip and continue.
-        await _service.RedeemPendingForEmailAsync(newcomer);
+        await _service.RedeemPendingForEmailAsync(newcomer, TestContext.Current.CancellationToken);
 
-        Assert.False(await _context.WorkspaceMembers.AnyAsync(m => m.UserId == newcomer.Id));
+        Assert.False(await _context.WorkspaceMembers.AnyAsync(m => m.UserId == newcomer.Id, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -512,9 +507,9 @@ public sealed class InvitationServiceTests : IDisposable
     {
         var newcomer = AddUser("newcomer@example.com", "Grace");
 
-        await _service.RedeemPendingForEmailAsync(newcomer);
+        await _service.RedeemPendingForEmailAsync(newcomer, TestContext.Current.CancellationToken);
 
-        Assert.False(await _context.WorkspaceMembers.AnyAsync(m => m.UserId == newcomer.Id));
+        Assert.False(await _context.WorkspaceMembers.AnyAsync(m => m.UserId == newcomer.Id, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -529,10 +524,10 @@ public sealed class InvitationServiceTests : IDisposable
         AddInvitation(workspace.Id, "newcomer@example.com", "t1");
         AddInvitation(workspace.Id, "newcomer@example.com", "t2");
 
-        await _service.RedeemPendingForEmailAsync(newcomer);
+        await _service.RedeemPendingForEmailAsync(newcomer, TestContext.Current.CancellationToken);
 
-        Assert.Equal(1, await _context.WorkspaceMembers.CountAsync(m => m.UserId == newcomer.Id));
-        Assert.True(await _context.Invitations.AllAsync(i => i.AcceptedAt != null));
+        Assert.Equal(1, await _context.WorkspaceMembers.CountAsync(m => m.UserId == newcomer.Id, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.True(await _context.Invitations.AllAsync(i => i.AcceptedAt != null, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     public void Dispose() => _context.Dispose();

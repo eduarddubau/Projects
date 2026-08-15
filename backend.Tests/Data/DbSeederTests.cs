@@ -91,7 +91,7 @@ public sealed class DbSeederTests : IDisposable
         var personal = await _context.Workspaces
             .Include(w => w.Members)
             .Where(w => w.IsPersonal)
-            .ToListAsync();
+            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(2, personal.Count);
         Assert.Contains(personal, w => w.Name == "Alan's Workspace");
@@ -107,7 +107,7 @@ public sealed class DbSeederTests : IDisposable
 
         await Seed(admin, isDevelopment: false);
 
-        Assert.Equal("Alan's Workspace", (await _context.Workspaces.FirstAsync(w => w.IsPersonal)).Name);
+        Assert.Equal("Alan's Workspace", (await _context.Workspaces.FirstAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken)).Name);
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class DbSeederTests : IDisposable
         await Seed(admin, isDevelopment: false);
         await Seed(admin, isDevelopment: false);
 
-        Assert.Equal(1, await _context.Workspaces.CountAsync(w => w.IsPersonal));
+        Assert.Equal(1, await _context.Workspaces.CountAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -128,11 +128,11 @@ public sealed class DbSeederTests : IDisposable
         var admin = ExistingAdmin();
         var user = AddUser("erased@example.com", "Ghost");
         user.IsAnonymized = true;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         await Seed(admin, isDevelopment: false);
 
-        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal));
+        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public sealed class DbSeederTests : IDisposable
         // index, so re-creating them threw 23505 and took the whole app down at startup.
         var deleted = AddUser("dev1@example.com", "Dev");
         deleted.IsDeleted = true;
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         _userManager.Setup(m => m.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
         _userManager.Setup(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
@@ -158,7 +158,7 @@ public sealed class DbSeederTests : IDisposable
             m => m.CreateAsync(It.Is<User>(u => u.Email == "dev1@example.com"), It.IsAny<string>()),
             Times.Never);
         // Deleted users get no personal workspace either.
-        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal && w.CreatedBy == deleted.Id));
+        Assert.Equal(0, await _context.Workspaces.CountAsync(w => w.IsPersonal && w.CreatedBy == deleted.Id, cancellationToken: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public sealed class DbSeederTests : IDisposable
         var shared = await _context.Workspaces
             .Include(w => w.Members)
             .Where(w => !w.IsPersonal && w.Name == "Acme Team")
-            .ToListAsync();
+            .ToListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Single(shared);
         Assert.Single(shared[0].Members, m => m.Role == WorkspaceRole.Owner);

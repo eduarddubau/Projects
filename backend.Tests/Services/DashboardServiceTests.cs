@@ -80,7 +80,7 @@ public sealed class DashboardServiceTests : IDisposable
         AddProject("Expired trash", _userId, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1)));
         AddProject("Someone else's", Guid.NewGuid(), createdAt: DateTime.UtcNow);
 
-        var result = await _service.GetMyDashboardAsync();
+        var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(2, result.ActiveProjectCount);
         Assert.Equal(1, result.DeletedProjectCount);
@@ -94,7 +94,7 @@ public sealed class DashboardServiceTests : IDisposable
         for (var i = 0; i < 7; i++)
             AddProject($"Project {i}", _userId, createdAt: DateTime.UtcNow.AddDays(-i));
 
-        var result = await _service.GetMyDashboardAsync();
+        var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(7, result.ActiveProjectCount);
         Assert.Equal(5, result.RecentProjects.Count);
@@ -105,7 +105,7 @@ public sealed class DashboardServiceTests : IDisposable
     {
         AddProject("Someone else's", Guid.NewGuid());
 
-        var result = await _service.GetMyDashboardAsync();
+        var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(0, result.ActiveProjectCount);
         Assert.Equal(0, result.DeletedProjectCount);
@@ -125,7 +125,7 @@ public sealed class DashboardServiceTests : IDisposable
         // Admin trash has no retention window, so even old deletions count.
         AddProject("Old deleted", owner.Id, deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 10)));
 
-        var result = await _service.GetAdminDashboardAsync();
+        var result = await _service.GetAdminDashboardAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(2, result.ActiveProjectCount);
         Assert.Equal(1, result.DeletedProjectCount);
@@ -144,7 +144,7 @@ public sealed class DashboardServiceTests : IDisposable
             AddProject($"Project {i}", _userId, createdAt: DateTime.UtcNow.AddDays(-i));
         }
 
-        var result = await _service.GetAdminDashboardAsync();
+        var result = await _service.GetAdminDashboardAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(5, result.RecentProjects.Count);
         Assert.Equal(5, result.RecentUsers.Count);
