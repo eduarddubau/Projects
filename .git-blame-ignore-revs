@@ -4,3 +4,6 @@
 
 # style(backend): apply dotnet format
 79bb4d2a27e81327d15b2531e0d702390b4b7472
+
+# style(backend): apply csharpier
+c2ccb9aa05cce12a62aabbb832f28c68aa84a29e

@@ -46,7 +46,12 @@ jobs:
       # Restore, build and test are separate steps so a failure names its own
       # stage in the job UI instead of surfacing as one opaque red block.
       - name: Restore
-        run: dotnet restore fullstack-app.sln
+        run: |
+          dotnet restore fullstack-app.sln
+          dotnet tool restore
+
+      - name: Check formatting
+        run: dotnet csharpier check .
 
       # -warnaserror is the gate: analyzer and style violations are warnings
       # locally so they don't block a work-in-progress build, and errors here.
