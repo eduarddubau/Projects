@@ -1,6 +1,6 @@
 using Backend.Controllers.Admin;
 using Backend.DTOs.Project;
-using Backend.Services.Interfaces;
+using Backend.Services.Admin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -8,7 +8,7 @@ namespace Backend.Tests.Controllers;
 
 public class AdminProjectsControllerTests
 {
-    private readonly Mock<IProjectService> _projectService = new();
+    private readonly Mock<IAdminProjectService> _projectService = new();
     private readonly AdminProjectsController _controller;
 
     public AdminProjectsControllerTests()
@@ -32,7 +32,7 @@ public class AdminProjectsControllerTests
             .Setup(s => s.GetAllProjectsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(projects);
 
-        var result = await _controller.GetAllProjects(CancellationToken.None);
+        var result = await _controller.GetProjects(CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(projects, okResult.Value);
@@ -43,10 +43,10 @@ public class AdminProjectsControllerTests
     {
         var project = SampleProject();
         _projectService
-            .Setup(s => s.GetAnyProjectByIdAsync(project.Id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetProjectByIdAsync(project.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(project);
 
-        var result = await _controller.GetAnyProjectById(project.Id, CancellationToken.None);
+        var result = await _controller.GetProject(project.Id, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(project, okResult.Value);
@@ -57,10 +57,10 @@ public class AdminProjectsControllerTests
     {
         var id = Guid.NewGuid();
         _projectService
-            .Setup(s => s.GetAnyProjectByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetProjectByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ProjectResponseDto?)null);
 
-        var result = await _controller.GetAnyProjectById(id, CancellationToken.None);
+        var result = await _controller.GetProject(id, CancellationToken.None);
 
         Assert.IsType<NotFoundObjectResult>(result.Result);
     }
@@ -70,10 +70,10 @@ public class AdminProjectsControllerTests
     {
         var id = Guid.NewGuid();
         _projectService
-            .Setup(s => s.DeleteAnyProjectByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteProjectByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var result = await _controller.DeleteAnyProjectById(id, CancellationToken.None);
+        var result = await _controller.DeleteProject(id, CancellationToken.None);
 
         Assert.IsType<NoContentResult>(result);
     }
@@ -83,10 +83,10 @@ public class AdminProjectsControllerTests
     {
         var id = Guid.NewGuid();
         _projectService
-            .Setup(s => s.DeleteAnyProjectByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteProjectByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
-        var result = await _controller.DeleteAnyProjectById(id, CancellationToken.None);
+        var result = await _controller.DeleteProject(id, CancellationToken.None);
 
         Assert.IsType<NotFoundObjectResult>(result);
     }
@@ -96,10 +96,10 @@ public class AdminProjectsControllerTests
     {
         var ids = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
         _projectService
-            .Setup(s => s.RestoreAnyProjectsAsync(ids, It.IsAny<CancellationToken>()))
+            .Setup(s => s.RestoreProjectsAsync(ids, It.IsAny<CancellationToken>()))
             .ReturnsAsync(2);
 
-        var result = await _controller.RestoreAnyProjects(ids, CancellationToken.None);
+        var result = await _controller.RestoreProjects(ids, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result);
         var restoredCount = okResult
@@ -117,7 +117,7 @@ public class AdminProjectsControllerTests
             .Setup(s => s.GetAllDeletedProjectsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(projects);
 
-        var result = await _controller.GetAllDeletedProjects(CancellationToken.None);
+        var result = await _controller.GetDeletedProjects(CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(projects, okResult.Value);

@@ -7,6 +7,8 @@ using Backend.Filters;
 using Backend.Middleware;
 using Backend.Models;
 using Backend.Services;
+using Backend.Services.Admin;
+using Backend.Services.Admin.Interfaces;
 using Backend.Services.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -74,13 +76,19 @@ public static class ServiceExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IProjectService, ProjectService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IWorkspaceAccessService, WorkspaceAccessService>();
         services.AddScoped<IWorkspaceService, WorkspaceService>();
         services.AddScoped<IInvitationService, InvitationService>();
+
+        // Unscoped by design — only the controllers under /api/admin may take these.
+        services.AddScoped<IAdminUserService, AdminUserService>();
+        services.AddScoped<IAdminProjectService, AdminProjectService>();
+        services.AddScoped<IAdminWorkspaceService, AdminWorkspaceService>();
+        services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
         // Test-only fixture seeding; the controller that uses it is gated to Development.
         services.AddScoped<ITestSeedService, TestSeedService>();

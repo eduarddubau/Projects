@@ -10,9 +10,11 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
-// Inherits BaseService for the admin soft-delete and restore shared with UserService.
-public class ProjectService : BaseService<Project>, IProjectService
+/// <summary>Projects the caller can reach through workspace membership.</summary>
+public class ProjectService : IProjectService
 {
+    private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private readonly IWorkspaceAccessService _access;
     private readonly int _trashWindowDays;
 
@@ -22,15 +24,16 @@ public class ProjectService : BaseService<Project>, IProjectService
         IWorkspaceAccessService access,
         IOptions<ProjectRetentionOptions> retentionOptions
     )
-        : base(context, currentUser)
     {
+        _context = context;
+        _currentUser = currentUser;
         _access = access;
         _trashWindowDays = retentionOptions.Value.TrashWindowDays;
     }
 
     // A non-member gets null, which the controller turns into 404.
     private IQueryable<Project> AccessibleProjects =>
-        Context.Projects.InWorkspacesOf(Context.WorkspaceMembers, CurrentUser.UserGuid);
+        _context.Projects.InWorkspacesOf(_context.WorkspaceMembers, _currentUser.UserGuid);
 
     public async Task<IEnumerable<ProjectResponseDto>> GetWorkspaceProjectsAsync(
         Guid workspaceId,
@@ -39,7 +42,7 @@ public class ProjectService : BaseService<Project>, IProjectService
     {
         await _access.RequireMemberAsync(workspaceId, ct);
 
-        return await Context
+        return await _context
             .Projects.Include(p => p.Creator)
             .Include(p => p.Updater)
             .Where(p => p.WorkspaceId == workspaceId)
@@ -57,7 +60,7 @@ public class ProjectService : BaseService<Project>, IProjectService
 
         var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
 
-        return await Context
+        return await _context
             .Projects.IgnoreQueryFilters()
             .Include(p => p.Creator)
             .Include(p => p.Updater)
@@ -97,8 +100,8 @@ public class ProjectService : BaseService<Project>, IProjectService
             WorkspaceId = workspaceId,
         };
 
-        Context.Projects.Add(project);
-        await Context.SaveChangesAsync(ct);
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync(ct);
 
         return await LoadDtoAsync(project, ct);
     }
@@ -119,7 +122,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         project.Name = dto.Name;
         project.Description = dto.Description;
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return await LoadDtoAsync(project, ct);
     }
@@ -136,7 +139,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         project.IsDeleted = true;
         project.DeletedAt = DateTime.UtcNow;
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return true;
     }
@@ -146,9 +149,9 @@ public class ProjectService : BaseService<Project>, IProjectService
         CancellationToken ct = default
     )
     {
-        var project = await Context
+        var project = await _context
             .Projects.IgnoreQueryFilters()
-            .InWorkspacesOf(Context.WorkspaceMembers, CurrentUser.UserGuid)
+            .InWorkspacesOf(_context.WorkspaceMembers, _currentUser.UserGuid)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 
         if (project is null)
@@ -158,7 +161,7 @@ public class ProjectService : BaseService<Project>, IProjectService
 
         // Looks dead — DeleteWorkspaceAsync refuses a workspace holding projects — but an
         // admin purge can empty one and unblock its deletion.
-        bool workspaceIsDeleted = await Context
+        bool workspaceIsDeleted = await _context
             .Workspaces.IgnoreQueryFilters()
             .AnyAsync(w => w.Id == project.WorkspaceId && w.IsDeleted, ct);
 
@@ -172,7 +175,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         {
             project.IsDeleted = false;
             project.DeletedAt = null;
-            await Context.SaveChangesAsync(ct);
+            await _context.SaveChangesAsync(ct);
         }
 
         return await LoadDtoAsync(project, ct);
@@ -198,97 +201,9 @@ public class ProjectService : BaseService<Project>, IProjectService
         await RequireNameIsFreeAsync(targetWorkspaceId, project.Name, id, ct);
 
         project.WorkspaceId = targetWorkspaceId;
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return await LoadDtoAsync(project, ct);
-    }
-
-    public async Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync(
-        CancellationToken ct = default
-    )
-    {
-        return await Context
-            .Projects.IgnoreQueryFilters()
-            .Include(p => p.Creator)
-            .Include(p => p.Updater)
-            .OrderByDescending(p => p.CreatedAt)
-            .MapToDto()
-            .ToListAsync(ct);
-    }
-
-    public async Task<ProjectResponseDto?> GetAnyProjectByIdAsync(
-        Guid id,
-        CancellationToken ct = default
-    )
-    {
-        var project = await Context
-            .Projects.IgnoreQueryFilters()
-            .Include(p => p.Creator)
-            .Include(p => p.Updater)
-            .Include(p => p.Workspace)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
-
-        return project?.MapToDto();
-    }
-
-    public Task<bool> DeleteAnyProjectByIdAsync(Guid id, CancellationToken ct = default) =>
-        SoftDeleteAnyByIdAsync(id, ct);
-
-    public async Task<int> RestoreAnyProjectsAsync(
-        IEnumerable<Guid> ids,
-        CancellationToken ct = default
-    )
-    {
-        var projects = await Context
-            .Projects.IgnoreQueryFilters()
-            .Where(p => ids.Contains(p.Id) && p.IsDeleted)
-            .ToListAsync(ct);
-
-        foreach (var project in projects)
-        {
-            project.IsDeleted = false;
-            project.DeletedAt = null;
-        }
-
-        await Context.SaveChangesAsync(ct);
-
-        return projects.Count;
-    }
-
-    public async Task<IEnumerable<ProjectResponseDto>> GetAllDeletedProjectsAsync(
-        CancellationToken ct = default
-    )
-    {
-        var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
-
-        var deleted = await Context
-            .Projects.IgnoreQueryFilters()
-            .Include(p => p.Creator)
-            .Include(p => p.Updater)
-            .Where(p => p.IsDeleted)
-            .OrderByDescending(p => p.DeletedAt)
-            .MapToDto()
-            .ToListAsync(ct);
-
-        return deleted.Select(p => p with { IsPurgeable = p.DeletedAt < cutoff });
-    }
-
-    public async Task<int> PurgeProjectsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
-    {
-        var projects = await Context
-            .Projects.IgnoreQueryFilters()
-            .Where(p => ids.Contains(p.Id) && p.IsDeleted)
-            .ToListAsync(ct);
-
-        foreach (var project in projects)
-        {
-            Context.MarkForHardDelete(project);
-            Context.Projects.Remove(project);
-        }
-
-        await Context.SaveChangesAsync(ct);
-
-        return projects.Count;
     }
 
     private async Task RequireNameIsFreeAsync(
@@ -298,7 +213,7 @@ public class ProjectService : BaseService<Project>, IProjectService
         CancellationToken ct
     )
     {
-        var query = Context.Projects.Where(p => p.WorkspaceId == workspaceId && p.Name == name);
+        var query = _context.Projects.Where(p => p.WorkspaceId == workspaceId && p.Name == name);
 
         if (excludeId is Guid self)
             query = query.Where(p => p.Id != self);
@@ -312,9 +227,9 @@ public class ProjectService : BaseService<Project>, IProjectService
 
     private async Task<ProjectResponseDto> LoadDtoAsync(Project project, CancellationToken ct)
     {
-        await Context.Entry(project).Reference(p => p.Creator).LoadAsync(ct);
-        await Context.Entry(project).Reference(p => p.Updater).LoadAsync(ct);
-        await Context.Entry(project).Reference(p => p.Workspace).LoadAsync(ct);
+        await _context.Entry(project).Reference(p => p.Creator).LoadAsync(ct);
+        await _context.Entry(project).Reference(p => p.Updater).LoadAsync(ct);
+        await _context.Entry(project).Reference(p => p.Workspace).LoadAsync(ct);
 
         return project.MapToDto();
     }

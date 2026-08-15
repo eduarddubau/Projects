@@ -1,7 +1,7 @@
 using Backend.Config;
 using Backend.DTOs.User;
 using Backend.Exceptions;
-using Backend.Services.Interfaces;
+using Backend.Services.Admin.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +14,10 @@ namespace Backend.Controllers.Admin;
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public partial class AdminUsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IAdminUserService _userService;
     private readonly ILogger<AdminUsersController> _logger;
 
-    public AdminUsersController(IUserService userService, ILogger<AdminUsersController> logger)
+    public AdminUsersController(IAdminUserService userService, ILogger<AdminUsersController> logger)
     {
         _userService = userService;
         _logger = logger;
@@ -36,7 +36,7 @@ public partial class AdminUsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponseDto>> GetUser(Guid id, CancellationToken ct)
     {
-        var user = await _userService.GetAnyUserByIdAsync(id, ct);
+        var user = await _userService.GetUserByIdAsync(id, ct);
 
         if (user is null)
         {
@@ -64,7 +64,7 @@ public partial class AdminUsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteUser(Guid id, CancellationToken ct)
     {
-        var result = await _userService.DeleteAnyUserAsync(id, ct);
+        var result = await _userService.DeleteUserAsync(id, ct);
 
         if (!result)
         {
@@ -80,7 +80,7 @@ public partial class AdminUsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponseDto>> RestoreUser(Guid id, CancellationToken ct)
     {
-        var restoredUser = await _userService.RestoreAnyUserAsync(id, ct);
+        var restoredUser = await _userService.RestoreUserAsync(id, ct);
 
         if (restoredUser is null)
             return NotFound(new { message = $"User with ID {id} not found." });

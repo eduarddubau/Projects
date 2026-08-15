@@ -9,8 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
+/// <summary>Workspaces the caller belongs to.</summary>
+public class WorkspaceService : IWorkspaceService
 {
+    private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUser;
     private readonly IWorkspaceAccessService _accessService;
 
     public WorkspaceService(
@@ -18,8 +21,9 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         ICurrentUserService currentUser,
         IWorkspaceAccessService accessService
     )
-        : base(context, currentUser)
     {
+        _context = context;
+        _currentUser = currentUser;
         _accessService = accessService;
     }
 
@@ -27,11 +31,11 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         CancellationToken ct = default
     )
     {
-        return await Context
-            .Workspaces.Where(w => w.Members.Any(m => m.UserId == CurrentUser.UserGuid))
+        return await _context
+            .Workspaces.Where(w => w.Members.Any(m => m.UserId == _currentUser.UserGuid))
             .OrderByDescending(w => w.IsPersonal)
             .ThenBy(w => w.Name)
-            .MapToDto(CurrentUser.UserGuid)
+            .MapToDto(_currentUser.UserGuid)
             .ToListAsync(ct);
     }
 
@@ -40,11 +44,11 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         CancellationToken ct = default
     )
     {
-        return await Context
+        return await _context
             .Workspaces.Where(w =>
-                w.Id == id && w.Members.Any(m => m.UserId == CurrentUser.UserGuid)
+                w.Id == id && w.Members.Any(m => m.UserId == _currentUser.UserGuid)
             )
-            .MapToDto(CurrentUser.UserGuid)
+            .MapToDto(_currentUser.UserGuid)
             .FirstOrDefaultAsync(ct);
     }
 
@@ -71,8 +75,8 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
             },
         };
 
-        Context.Workspaces.Add(workspace);
-        await Context.SaveChangesAsync(ct);
+        _context.Workspaces.Add(workspace);
+        await _context.SaveChangesAsync(ct);
 
         return await ReadWorkspaceDtoAsync(workspace.Id, ct);
     }
@@ -86,7 +90,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         await _accessService.RequireOwnerAsync(id, ct);
 
         var workspace =
-            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+            await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         // Clients render a personal workspace from a translation key rather than this column,
@@ -102,7 +106,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         workspace.Name = dto.Name;
         workspace.Description = dto.Description;
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return await ReadWorkspaceDtoAsync(id, ct);
     }
@@ -112,7 +116,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         await _accessService.RequireOwnerAsync(id, ct);
 
         var workspace =
-            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+            await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         if (workspace.IsPersonal)
@@ -123,7 +127,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
 
         // IgnoreQueryFilters: a trashed project still pins the workspace, or restoring it
         // later drops it into one nobody can reach.
-        bool hasProjects = await Context
+        bool hasProjects = await _context
             .Projects.IgnoreQueryFilters()
             .AnyAsync(p => p.WorkspaceId == id, ct);
 
@@ -138,7 +142,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         workspace.IsDeleted = true;
         workspace.DeletedAt = DateTime.UtcNow;
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task<WorkspaceResponseDto> RestoreWorkspaceAsync(
@@ -148,9 +152,16 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
     {
         await _accessService.RequireOwnerAsync(id, ct);
 
-        _ =
-            await RestoreAnyByIdAsync(id, ct)
+        var workspace =
+            await _context.Workspaces.IgnoreQueryFilters().FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
+
+        if (workspace.IsDeleted)
+        {
+            workspace.IsDeleted = false;
+            workspace.DeletedAt = null;
+            await _context.SaveChangesAsync(ct);
+        }
 
         return await ReadWorkspaceDtoAsync(id, ct);
     }
@@ -159,16 +170,16 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         CancellationToken ct = default
     )
     {
-        return await Context
+        return await _context
             .Workspaces.IgnoreQueryFilters()
             .Where(w =>
                 w.IsDeleted
                 && w.Members.Any(m =>
-                    m.UserId == CurrentUser.UserGuid && m.Role == WorkspaceRole.Owner
+                    m.UserId == _currentUser.UserGuid && m.Role == WorkspaceRole.Owner
                 )
             )
             .OrderByDescending(w => w.DeletedAt)
-            .MapToDto(CurrentUser.UserGuid)
+            .MapToDto(_currentUser.UserGuid)
             .ToListAsync(ct);
     }
 
@@ -179,7 +190,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
     {
         await _accessService.RequireMemberAsync(id, ct);
 
-        return await Context
+        return await _context
             .WorkspaceMembers.Where(m => m.WorkspaceId == id)
             .OrderByDescending(m => m.Role)
             .ThenBy(m => m.JoinedAt)
@@ -196,7 +207,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         await _accessService.RequireOwnerAsync(id, ct);
 
         var workspace =
-            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+            await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         if (workspace.IsPersonal)
@@ -205,7 +216,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
                 "A personal workspace cannot have other members."
             );
 
-        var userExists = await Context.Users.AnyAsync(
+        var userExists = await _context.Users.AnyAsync(
             u => u.Id == dto.UserId && !u.IsAnonymized,
             ct
         );
@@ -213,13 +224,13 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         if (!userExists)
             throw new NotFoundException("User not found.");
 
-        if (await Context.IsAdminAsync(dto.UserId, ct))
+        if (await _context.IsAdminAsync(dto.UserId, ct))
             throw new BusinessRuleException(
                 BusinessRuleCodes.AdminCannotJoinWorkspace,
                 "Administrator accounts cannot join workspaces."
             );
 
-        bool alreadyMember = await Context.WorkspaceMembers.AnyAsync(
+        bool alreadyMember = await _context.WorkspaceMembers.AnyAsync(
             m => m.WorkspaceId == id && m.UserId == dto.UserId,
             ct
         );
@@ -238,8 +249,8 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
             JoinedAt = DateTime.UtcNow,
         };
 
-        Context.WorkspaceMembers.Add(member);
-        await Context.SaveChangesAsync(ct);
+        _context.WorkspaceMembers.Add(member);
+        await _context.SaveChangesAsync(ct);
 
         return await ReadMemberDtoAsync(id, dto.UserId, ct);
     }
@@ -259,7 +270,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
             await RequireNotLastOwnerAsync(id, userId, ct);
 
         member.Role = newRole;
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return await ReadMemberDtoAsync(id, userId, ct);
     }
@@ -273,8 +284,8 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         if (member.Role == WorkspaceRole.Owner)
             await RequireNotLastOwnerAsync(id, userId, ct);
 
-        Context.WorkspaceMembers.Remove(member);
-        await Context.SaveChangesAsync(ct);
+        _context.WorkspaceMembers.Remove(member);
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task LeaveAsync(Guid id, CancellationToken ct = default)
@@ -283,7 +294,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         var userId = RequireCurrentUserId();
 
         var workspace =
-            await Context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
+            await _context.Workspaces.FirstOrDefaultAsync(w => w.Id == id, ct)
             ?? throw new NotFoundException("Workspace not found.");
 
         if (workspace.IsPersonal)
@@ -297,13 +308,13 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
 
         var member = await FindMemberAsync(id, userId, ct);
 
-        Context.WorkspaceMembers.Remove(member);
-        await Context.SaveChangesAsync(ct);
+        _context.WorkspaceMembers.Remove(member);
+        await _context.SaveChangesAsync(ct);
     }
 
     public async Task EnsurePersonalWorkspaceAsync(User user, CancellationToken ct = default)
     {
-        bool exists = await Context.Workspaces.AnyAsync(
+        bool exists = await _context.Workspaces.AnyAsync(
             w => w.IsPersonal && w.Members.Any(m => m.UserId == user.Id),
             ct
         );
@@ -311,7 +322,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         if (exists)
             return;
 
-        Context.Workspaces.Add(
+        _context.Workspaces.Add(
             new Workspace
             {
                 Name = PersonalWorkspaceName(user),
@@ -329,7 +340,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
             }
         );
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
     }
 
     private const string PersonalWorkspaceSuffix = "'s Workspace";
@@ -352,21 +363,21 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
     }
 
     private Guid RequireCurrentUserId() =>
-        CurrentUser.UserGuid ?? throw new UnauthorizedAccessException("No authenticated user.");
+        _currentUser.UserGuid ?? throw new UnauthorizedAccessException("No authenticated user.");
 
     private async Task<WorkspaceMember> FindMemberAsync(
         Guid workspaceId,
         Guid userId,
         CancellationToken ct
     ) =>
-        await Context.WorkspaceMembers.FirstOrDefaultAsync(
+        await _context.WorkspaceMembers.FirstOrDefaultAsync(
             m => m.WorkspaceId == workspaceId && m.UserId == userId,
             ct
         ) ?? throw new NotFoundException("This user is not a member of the workspace.");
 
     private async Task RequireNotLastOwnerAsync(Guid workspaceId, Guid userId, CancellationToken ct)
     {
-        bool anotherOwnerExists = await Context.WorkspaceMembers.AnyAsync(
+        bool anotherOwnerExists = await _context.WorkspaceMembers.AnyAsync(
             m =>
                 m.WorkspaceId == workspaceId && m.UserId != userId && m.Role == WorkspaceRole.Owner,
             ct
@@ -380,10 +391,10 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
     }
 
     private async Task<WorkspaceResponseDto> ReadWorkspaceDtoAsync(Guid id, CancellationToken ct) =>
-        await Context
+        await _context
             .Workspaces.IgnoreQueryFilters()
             .Where(w => w.Id == id)
-            .MapToDto(CurrentUser.UserGuid)
+            .MapToDto(_currentUser.UserGuid)
             .FirstAsync(ct);
 
     private async Task<WorkspaceMemberResponseDto> ReadMemberDtoAsync(
@@ -391,7 +402,7 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         Guid userId,
         CancellationToken ct
     ) =>
-        await Context
+        await _context
             .WorkspaceMembers.Where(m => m.WorkspaceId == workspaceId && m.UserId == userId)
             .MapToDto()
             .FirstAsync(ct);

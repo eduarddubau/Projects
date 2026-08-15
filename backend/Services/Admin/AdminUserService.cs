@@ -5,86 +5,30 @@ using Backend.DTOs.User;
 using Backend.Exceptions;
 using Backend.Mappings;
 using Backend.Models;
+using Backend.Services.Admin.Interfaces;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.Services;
+namespace Backend.Services.Admin;
 
-public class UserService : BaseService<User>, IUserService
+public class AdminUserService : AdminTrashService<User>, IAdminUserService
 {
     private readonly UserManager<User> _userManager;
     private readonly IWorkspaceService _workspaceService;
     private readonly ILookupNormalizer _normalizer;
 
-    public UserService(
+    public AdminUserService(
         AppDbContext context,
-        ICurrentUserService currentUser,
         UserManager<User> userManager,
         IWorkspaceService workspaceService,
         ILookupNormalizer normalizer
     )
-        : base(context, currentUser)
+        : base(context)
     {
         _userManager = userManager;
         _workspaceService = workspaceService;
         _normalizer = normalizer;
-    }
-
-    public async Task<UserResponseDto?> GetMyProfileAsync(CancellationToken ct = default)
-    {
-        var userId = CurrentUser.UserGuid;
-        if (userId is null)
-            return null;
-
-        var user = await Context
-            .Users.Include(u => u.Creator)
-            .Include(u => u.Updater)
-            .FirstOrDefaultAsync(u => u.Id == userId, ct);
-
-        return user?.MapToDto();
-    }
-
-    public async Task<UserResponseDto?> UpdateMyProfileAsync(
-        UpdateProfileRequest dto,
-        CancellationToken ct = default
-    )
-    {
-        var userId = CurrentUser.UserGuid;
-        if (userId is null)
-            return null;
-
-        var user = await Context.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
-
-        if (user is null)
-            return null;
-
-        // Names first, without saving: SetEmailAsync calls UpdateAsync, which saves the whole
-        // tracked context — so these commit in the same write. Reversing the order gives two
-        // saves with a window where the email moved but the name didn't.
-        user.FirstName = dto.FirstName;
-        user.LastName = dto.LastName;
-        user.Nickname = dto.Nickname;
-
-        // Compare normalized, or "ada@x.com" -> "Ada@X.com" reads as a change and needlessly
-        // resets EmailConfirmed. UserName is no longer a copy of Email, so this moves one column.
-        if (user.NormalizedEmail != _normalizer.NormalizeEmail(dto.Email))
-        {
-            var result = await _userManager.SetEmailAsync(user, dto.Email);
-
-            // A live holder is caught here by Identity's validator; a concurrent race is caught
-            // by the partial unique index and translated in AppDbContext.SaveChangesAsync.
-            if (!result.Succeeded)
-                throw new BusinessRuleException(
-                    BusinessRuleCodes.DuplicateEmail,
-                    string.Join(", ", result.Errors.Select(e => e.Description))
-                );
-        }
-
-        // No-op when SetEmailAsync already saved; needed when only the name changed.
-        await Context.SaveChangesAsync(ct);
-
-        return await Context.Users.Where(u => u.Id == userId).MapToDto().FirstAsync(ct);
     }
 
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(CancellationToken ct = default)
@@ -98,7 +42,7 @@ public class UserService : BaseService<User>, IUserService
             .ToListAsync(ct);
     }
 
-    public async Task<UserResponseDto?> GetAnyUserByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<UserResponseDto?> GetUserByIdAsync(Guid id, CancellationToken ct = default)
     {
         var user = await Context
             .Users.IgnoreQueryFilters()
@@ -138,10 +82,10 @@ public class UserService : BaseService<User>, IUserService
         return user.MapToDto();
     }
 
-    public Task<bool> DeleteAnyUserAsync(Guid id, CancellationToken ct = default) =>
-        SoftDeleteAnyByIdAsync(id, ct);
+    public Task<bool> DeleteUserAsync(Guid id, CancellationToken ct = default) =>
+        SoftDeleteByIdAsync(id, ct);
 
-    public async Task<UserResponseDto?> RestoreAnyUserAsync(Guid id, CancellationToken ct = default)
+    public async Task<UserResponseDto?> RestoreUserAsync(Guid id, CancellationToken ct = default)
     {
         var deleted = await Context
             .Users.IgnoreQueryFilters()

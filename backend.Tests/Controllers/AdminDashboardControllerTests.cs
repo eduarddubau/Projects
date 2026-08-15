@@ -2,7 +2,7 @@ using Backend.Controllers.Admin;
 using Backend.DTOs.Dashboard;
 using Backend.DTOs.Project;
 using Backend.DTOs.User;
-using Backend.Services.Interfaces;
+using Backend.Services.Admin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -10,7 +10,7 @@ namespace Backend.Tests.Controllers;
 
 public class AdminDashboardControllerTests
 {
-    private readonly Mock<IDashboardService> _dashboardService = new();
+    private readonly Mock<IAdminDashboardService> _dashboardService = new();
     private readonly AdminDashboardController _controller;
 
     public AdminDashboardControllerTests()
@@ -34,7 +34,7 @@ public class AdminDashboardControllerTests
             .Setup(s => s.GetAdminDashboardAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(dashboard);
 
-        var result = await _controller.GetAdminDashboard(CancellationToken.None);
+        var result = await _controller.GetDashboard(CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(dashboard, okResult.Value);

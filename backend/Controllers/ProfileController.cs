@@ -14,12 +14,12 @@ namespace Backend.Controllers;
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public partial class ProfileController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IProfileService _profileService;
     private readonly ILogger<ProfileController> _logger;
 
-    public ProfileController(IUserService userService, ILogger<ProfileController> logger)
+    public ProfileController(IProfileService profileService, ILogger<ProfileController> logger)
     {
-        _userService = userService;
+        _profileService = profileService;
         _logger = logger;
     }
 
@@ -28,7 +28,7 @@ public partial class ProfileController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserResponseDto>> GetProfile(CancellationToken ct)
     {
-        var profile = await _userService.GetMyProfileAsync(ct);
+        var profile = await _profileService.GetMyProfileAsync(ct);
 
         if (profile is null)
         {
@@ -48,7 +48,7 @@ public partial class ProfileController : ControllerBase
         CancellationToken ct
     )
     {
-        var profile = await _userService.UpdateMyProfileAsync(request, ct);
+        var profile = await _profileService.UpdateMyProfileAsync(request, ct);
 
         if (profile is null)
         {

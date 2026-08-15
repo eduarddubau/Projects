@@ -1,6 +1,6 @@
 using Backend.Config;
 using Backend.DTOs.Project;
-using Backend.Services.Interfaces;
+using Backend.Services.Admin.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,16 +13,16 @@ namespace Backend.Controllers.Admin;
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class AdminProjectsController : ControllerBase
 {
-    private readonly IProjectService _projectService;
+    private readonly IAdminProjectService _projectService;
 
-    public AdminProjectsController(IProjectService projectService)
+    public AdminProjectsController(IAdminProjectService projectService)
     {
         _projectService = projectService;
     }
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllProjects(
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetProjects(
         CancellationToken ct
     )
     {
@@ -33,12 +33,9 @@ public class AdminProjectsController : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> GetAnyProjectById(
-        Guid id,
-        CancellationToken ct
-    )
+    public async Task<ActionResult<ProjectResponseDto>> GetProject(Guid id, CancellationToken ct)
     {
-        var project = await _projectService.GetAnyProjectByIdAsync(id, ct);
+        var project = await _projectService.GetProjectByIdAsync(id, ct);
 
         if (project is null)
             return NotFound(new { message = "Project not found." });
@@ -49,9 +46,9 @@ public class AdminProjectsController : ControllerBase
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteAnyProjectById(Guid id, CancellationToken ct)
+    public async Task<IActionResult> DeleteProject(Guid id, CancellationToken ct)
     {
-        var success = await _projectService.DeleteAnyProjectByIdAsync(id, ct);
+        var success = await _projectService.DeleteProjectByIdAsync(id, ct);
 
         if (!success)
             return NotFound(new { message = "Project not found." });
@@ -61,18 +58,18 @@ public class AdminProjectsController : ControllerBase
 
     [HttpPost("restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> RestoreAnyProjects(
+    public async Task<IActionResult> RestoreProjects(
         [FromBody] List<Guid> ids,
         CancellationToken ct
     )
     {
-        var restoredCount = await _projectService.RestoreAnyProjectsAsync(ids, ct);
+        var restoredCount = await _projectService.RestoreProjectsAsync(ids, ct);
         return Ok(new { restoredCount });
     }
 
     [HttpGet("trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetAllDeletedProjects(
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetDeletedProjects(
         CancellationToken ct
     )
     {

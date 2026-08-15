@@ -1,26 +1,23 @@
 using Backend.Data;
 using Backend.Models;
-using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Backend.Services;
+namespace Backend.Services.Admin;
 
-/// <summary>Shared soft-delete and restore for entities an admin manages through
-/// the trash views. Inherit only to reuse those — services that merely need the
-/// context should take it directly.</summary>
-public abstract class BaseService<T>
+/// <summary>The soft-delete and restore behind the admin trash views. No
+/// ICurrentUserService by design — an admin service reaches every row, so a caller
+/// to scope by could only be a mistake.</summary>
+public abstract class AdminTrashService<T>
     where T : class, IAuditEntity
 {
     protected AppDbContext Context { get; }
-    protected ICurrentUserService CurrentUser { get; }
 
-    protected BaseService(AppDbContext context, ICurrentUserService currentUser)
+    protected AdminTrashService(AppDbContext context)
     {
         Context = context;
-        CurrentUser = currentUser;
     }
 
-    protected async Task<bool> SoftDeleteAnyByIdAsync(Guid id, CancellationToken ct = default)
+    protected async Task<bool> SoftDeleteByIdAsync(Guid id, CancellationToken ct = default)
     {
         var entity = await Context
             .Set<T>()
@@ -41,7 +38,7 @@ public abstract class BaseService<T>
         return true;
     }
 
-    protected async Task<T?> RestoreAnyByIdAsync(Guid id, CancellationToken ct = default)
+    protected async Task<T?> RestoreByIdAsync(Guid id, CancellationToken ct = default)
     {
         var entity = await Context
             .Set<T>()

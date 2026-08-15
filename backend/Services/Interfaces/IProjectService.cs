@@ -30,13 +30,4 @@ public interface IProjectService
         Guid targetWorkspaceId,
         CancellationToken ct = default
     );
-
-    Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync(CancellationToken ct = default);
-    Task<ProjectResponseDto?> GetAnyProjectByIdAsync(Guid id, CancellationToken ct = default);
-    Task<bool> DeleteAnyProjectByIdAsync(Guid id, CancellationToken ct = default);
-    Task<int> RestoreAnyProjectsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
-    Task<IEnumerable<ProjectResponseDto>> GetAllDeletedProjectsAsync(
-        CancellationToken ct = default
-    );
-    Task<int> PurgeProjectsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
 }

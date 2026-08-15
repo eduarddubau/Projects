@@ -34,6 +34,31 @@ public static class WorkspaceMappingExtensions
         });
     }
 
+    public static IQueryable<AdminWorkspaceResponseDto> MapToAdminDto(
+        this IQueryable<Workspace> query
+    )
+    {
+        return query.Select(w => new AdminWorkspaceResponseDto
+        {
+            Id = w.Id,
+            Name = w.Name,
+            Description = w.Description,
+            IsPersonal = w.IsPersonal,
+            MemberCount = w.Members.Count,
+            ProjectCount = w.Projects.Count(p => !p.IsDeleted),
+            IsDeleted = w.IsDeleted,
+            DeletedAt = w.DeletedAt,
+            CreatedAt = w.CreatedAt,
+            CreatedBy = w.CreatedBy,
+            CreatedByDisplayName =
+                w.Creator == null ? string.Empty : w.Creator.FirstName + " " + w.Creator.LastName,
+            UpdatedAt = w.UpdatedAt,
+            UpdatedBy = w.UpdatedBy,
+            UpdatedByDisplayName =
+                w.Updater == null ? string.Empty : w.Updater.FirstName + " " + w.Updater.LastName,
+        });
+    }
+
     public static IQueryable<WorkspaceMemberResponseDto> MapToDto(
         this IQueryable<WorkspaceMember> query
     )

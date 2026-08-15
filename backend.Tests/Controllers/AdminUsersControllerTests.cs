@@ -1,6 +1,6 @@
 using Backend.Controllers.Admin;
 using Backend.DTOs.User;
-using Backend.Services.Interfaces;
+using Backend.Services.Admin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -9,7 +9,7 @@ namespace Backend.Tests.Controllers;
 
 public class AdminUsersControllerTests
 {
-    private readonly Mock<IUserService> _userService = new();
+    private readonly Mock<IAdminUserService> _userService = new();
     private readonly AdminUsersController _controller;
 
     public AdminUsersControllerTests()
@@ -48,7 +48,7 @@ public class AdminUsersControllerTests
     {
         var user = SampleUser();
         _userService
-            .Setup(s => s.GetAnyUserByIdAsync(user.Id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetUserByIdAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         var result = await _controller.GetUser(user.Id, CancellationToken.None);
@@ -62,7 +62,7 @@ public class AdminUsersControllerTests
     {
         var id = Guid.NewGuid();
         _userService
-            .Setup(s => s.GetAnyUserByIdAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetUserByIdAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserResponseDto?)null);
 
         var result = await _controller.GetUser(id, CancellationToken.None);
@@ -96,7 +96,7 @@ public class AdminUsersControllerTests
     {
         var id = Guid.NewGuid();
         _userService
-            .Setup(s => s.DeleteAnyUserAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteUserAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         var result = await _controller.DeleteUser(id, CancellationToken.None);
@@ -109,7 +109,7 @@ public class AdminUsersControllerTests
     {
         var id = Guid.NewGuid();
         _userService
-            .Setup(s => s.DeleteAnyUserAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.DeleteUserAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         var result = await _controller.DeleteUser(id, CancellationToken.None);
@@ -122,7 +122,7 @@ public class AdminUsersControllerTests
     {
         var user = SampleUser();
         _userService
-            .Setup(s => s.RestoreAnyUserAsync(user.Id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.RestoreUserAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         var result = await _controller.RestoreUser(user.Id, CancellationToken.None);
@@ -136,7 +136,7 @@ public class AdminUsersControllerTests
     {
         var id = Guid.NewGuid();
         _userService
-            .Setup(s => s.RestoreAnyUserAsync(id, It.IsAny<CancellationToken>()))
+            .Setup(s => s.RestoreUserAsync(id, It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserResponseDto?)null);
 
         var result = await _controller.RestoreUser(id, CancellationToken.None);

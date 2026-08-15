@@ -9,13 +9,13 @@ namespace Backend.Tests.Controllers;
 
 public class ProfileControllerTests
 {
-    private readonly Mock<IUserService> _userService = new();
+    private readonly Mock<IProfileService> _profileService = new();
     private readonly ProfileController _controller;
 
     public ProfileControllerTests()
     {
         _controller = new ProfileController(
-            _userService.Object,
+            _profileService.Object,
             Mock.Of<ILogger<ProfileController>>()
         );
     }
@@ -33,7 +33,7 @@ public class ProfileControllerTests
     public async Task GetProfile_WhenFound_ReturnsOk()
     {
         var profile = SampleProfile();
-        _userService
+        _profileService
             .Setup(s => s.GetMyProfileAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(profile);
 
@@ -46,7 +46,7 @@ public class ProfileControllerTests
     [Fact]
     public async Task GetProfile_WhenNotFound_ReturnsNotFound()
     {
-        _userService
+        _profileService
             .Setup(s => s.GetMyProfileAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserResponseDto?)null);
 
@@ -65,7 +65,7 @@ public class ProfileControllerTests
             LastName = profile.LastName,
             Email = "me@example.com",
         };
-        _userService
+        _profileService
             .Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync(profile);
 
@@ -84,7 +84,7 @@ public class ProfileControllerTests
             LastName = "Lovelace",
             Email = "me@example.com",
         };
-        _userService
+        _profileService
             .Setup(s => s.UpdateMyProfileAsync(request, It.IsAny<CancellationToken>()))
             .ReturnsAsync((UserResponseDto?)null);
 

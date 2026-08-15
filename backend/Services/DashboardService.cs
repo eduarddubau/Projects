@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
+/// <summary>The signed-in user's home, aggregated across their workspaces.</summary>
 public class DashboardService : IDashboardService
 {
     private readonly AppDbContext _context;
@@ -55,45 +56,6 @@ public class DashboardService : IDashboardService
             DeletedProjectCount = deletedCount,
             LastActivityAt = latest is null ? null : latest.UpdatedAt ?? latest.CreatedAt,
             RecentProjects = recentProjects,
-        };
-    }
-
-    public async Task<AdminDashboardDto> GetAdminDashboardAsync(CancellationToken ct = default)
-    {
-        var activeProjectCount = await _context.Projects.CountAsync(ct);
-
-        // Admin trash has no retention cutoff — deleted projects stay until purged.
-        var deletedProjectCount = await _context
-            .Projects.IgnoreQueryFilters()
-            .CountAsync(p => p.IsDeleted, ct);
-
-        var activeUserCount = await _context.Users.CountAsync(ct);
-
-        // Matches the users trash: anonymized accounts are hidden there.
-        var deletedUserCount = await _context
-            .Users.IgnoreQueryFilters()
-            .CountAsync(u => u.IsDeleted && !u.IsAnonymized, ct);
-
-        var recentProjects = await _context
-            .Projects.OrderByDescending(p => p.CreatedAt)
-            .Take(5)
-            .MapToDto()
-            .ToListAsync(ct);
-
-        var recentUsers = await _context
-            .Users.OrderByDescending(u => u.CreatedAt)
-            .Take(5)
-            .MapToDto()
-            .ToListAsync(ct);
-
-        return new AdminDashboardDto
-        {
-            ActiveProjectCount = activeProjectCount,
-            DeletedProjectCount = deletedProjectCount,
-            ActiveUserCount = activeUserCount,
-            DeletedUserCount = deletedUserCount,
-            RecentProjects = recentProjects,
-            RecentUsers = recentUsers,
         };
     }
 }
