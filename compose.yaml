@@ -8,8 +8,8 @@ services:
   api:
     #user: "${UID:-1000}:${GID:-1000}"
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
       target: build
     container_name: dotnet-api
     volumes:

@@ -11,10 +11,14 @@ ENV NUGET_PACKAGES=/tmp/nuget_cache
 RUN dotnet tool install dotnet-ef --tool-path /usr/local/share/dotnet-tools
 ENV PATH="${PATH}:/usr/local/share/dotnet-tools"
 
-COPY ["backend.csproj", "./"]
-RUN dotnet restore "backend.csproj"
+# Context is the repo root: backend/Directory.Build.props imports the one above
+# it, so a backend-only context fails restore with MSB4020.
+COPY ["Directory.Build.props", "global.json", ".editorconfig", "./"]
+COPY ["backend/backend.csproj", "backend/Directory.Build.props", "backend/"]
+RUN dotnet restore "backend/backend.csproj"
 
-COPY . .
+COPY backend/ backend/
+WORKDIR /src/backend
 RUN dotnet build "backend.csproj" -c Debug -o /app/build
 
 # STAGE 2: Publish (Production only)
@@ -26,7 +30,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS final
 WORKDIR /app
 EXPOSE 8080
 USER root
-RUN apt-get update && apt-get install -y libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends libgssapi-krb5-2 && rm -rf /var/lib/apt/lists/*
 USER $APP_UID
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "Backend.dll"]

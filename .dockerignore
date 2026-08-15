@@ -1,0 +1,13 @@
+# The api build context is the repo root, so everything the backend build does
+# not read is excluded here or it is sent to the daemon on every build.
+**/bin
+**/obj
+**/node_modules
+**/dist
+.git
+.github
+.vscode
+.devcontainer
+frontend-angular
+nginx
+*.md
