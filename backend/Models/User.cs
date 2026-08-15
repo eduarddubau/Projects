@@ -30,8 +30,8 @@ public class User : IdentityUser<Guid>, IAuditEntity
     public DateTime? AnonymizedAt { get; set; }
 
     [ForeignKey("CreatedBy")]
-    public virtual User? Creator { get; set; }
+    public User? Creator { get; set; }
 
     [ForeignKey("UpdatedBy")]
-    public virtual User? Updater { get; set; }
+    public User? Updater { get; set; }
 }

@@ -14,11 +14,11 @@ public class Project : BaseEntity
     public Guid WorkspaceId { get; set; }
 
     // Nullable nav, required FK: "not loaded" and "no workspace" are different states.
-    public virtual Workspace? Workspace { get; set; }
+    public Workspace? Workspace { get; set; }
 
     [ForeignKey("CreatedBy")]
-    public virtual User? Creator { get; set; }
+    public User? Creator { get; set; }
 
     [ForeignKey("UpdatedBy")]
-    public virtual User? Updater { get; set; }
+    public User? Updater { get; set; }
 }

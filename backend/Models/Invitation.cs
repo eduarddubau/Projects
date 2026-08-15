@@ -24,8 +24,8 @@ public class Invitation
     // Not queryable — see InvitationQueryExtensions.Pending().
     public bool IsPending => AcceptedAt is null && RevokedAt is null && DateTime.UtcNow < ExpiresAt;
 
-    public virtual Workspace? Workspace { get; set; }
+    public Workspace? Workspace { get; set; }
 
     [ForeignKey("InvitedBy")]
-    public virtual User? Inviter { get; set; }
+    public User? Inviter { get; set; }
 }

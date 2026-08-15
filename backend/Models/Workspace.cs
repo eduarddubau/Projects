@@ -12,12 +12,12 @@ public class Workspace : BaseEntity
     public string? Description { get; set; }
     public bool IsPersonal { get; set; }
 
-    public virtual ICollection<WorkspaceMember> Members { get; set; } = [];
-    public virtual ICollection<Project> Projects { get; set; } = [];
+    public ICollection<WorkspaceMember> Members { get; set; } = [];
+    public ICollection<Project> Projects { get; set; } = [];
 
     [ForeignKey("CreatedBy")]
-    public virtual User? Creator { get; set; }
+    public User? Creator { get; set; }
 
     [ForeignKey("UpdatedBy")]
-    public virtual User? Updater { get; set; }
+    public User? Updater { get; set; }
 }

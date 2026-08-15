@@ -8,6 +8,6 @@ public class WorkspaceMember
     public required WorkspaceRole Role { get; set; }
     public DateTime JoinedAt { get; set; }
 
-    public virtual Workspace? Workspace { get; set; }
-    public virtual User? User { get; set; }
+    public Workspace? Workspace { get; set; }
+    public User? User { get; set; }
 }
