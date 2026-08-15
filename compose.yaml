@@ -110,7 +110,8 @@ services:
         condition: service_healthy
 
   e2e:
-    image: mcr.microsoft.com/playwright:v1.61.1-noble
+    # Tag tracks @playwright/test exactly; the browsers are baked into the image.
+    image: mcr.microsoft.com/playwright:v1.62.1-noble
     container_name: frontend-e2e
     working_dir: /app
     volumes:
