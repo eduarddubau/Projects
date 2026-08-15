@@ -11,8 +11,8 @@ let createdName: string | null = null;
 // workspace to either fails that spec while these run. dev3 and the admin are
 // the two seeded accounts nothing else makes list assertions about.
 const OWNER = 'dev3@example.com';
-const INVITEE = 'admin@example.com';
-const INVITEE_NAME = 'Admin User';
+const INVITEE = 'dev2@example.com';
+const INVITEE_NAME = 'Dev User2';
 
 async function login(page: Page, email: string) {
   // These tests switch accounts mid-test, and guestGuard redirects an already

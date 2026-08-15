@@ -213,6 +213,12 @@ public class WorkspaceService : BaseService<Workspace>, IWorkspaceService
         if (!userExists)
             throw new NotFoundException("User not found.");
 
+        if (await Context.IsAdminAsync(dto.UserId, ct))
+            throw new BusinessRuleException(
+                BusinessRuleCodes.AdminCannotJoinWorkspace,
+                "Administrator accounts cannot join workspaces."
+            );
+
         bool alreadyMember = await Context.WorkspaceMembers.AnyAsync(
             m => m.WorkspaceId == id && m.UserId == dto.UserId,
             ct

@@ -5,6 +5,7 @@ using Backend.Exceptions;
 using Backend.Models;
 using Backend.Services;
 using Backend.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
@@ -53,6 +54,19 @@ public sealed class WorkspaceServiceTests : IDisposable
         _context.Users.Add(user);
         _context.SaveChanges();
         return user;
+    }
+
+    private void MakeAdmin(User user)
+    {
+        var role = new IdentityRole<Guid>
+        {
+            Id = Guid.NewGuid(),
+            Name = AppRoles.Admin,
+            NormalizedName = AppRoles.Admin.ToUpperInvariant(),
+        };
+        _context.Roles.Add(role);
+        _context.UserRoles.Add(new IdentityUserRole<Guid> { UserId = user.Id, RoleId = role.Id });
+        _context.SaveChanges();
     }
 
     private Workspace AddWorkspace(
@@ -431,6 +445,24 @@ public sealed class WorkspaceServiceTests : IDisposable
         );
 
         Assert.Equal(BusinessRuleCodes.AlreadyWorkspaceMember, ex.Code);
+    }
+
+    [Fact]
+    public async Task AddMemberAsync_WhenTheUserIsAnAdministrator_IsRefused()
+    {
+        var admin = AddUser("admin@example.com", "Root");
+        MakeAdmin(admin);
+        var shared = AddWorkspace("Acme Team", isPersonal: false, (_caller, WorkspaceRole.Owner));
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.AddMemberAsync(
+                shared.Id,
+                new AddMemberRequest(admin.Id, WorkspaceRole.Member),
+                TestContext.Current.CancellationToken
+            )
+        );
+
+        Assert.Equal(BusinessRuleCodes.AdminCannotJoinWorkspace, ex.Code);
     }
 
     [Fact]

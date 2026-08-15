@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Admin Users', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
-    await page.locator('input[formcontrolname="email"]').fill('dev1@example.com');
+    await page.locator('input[formcontrolname="email"]').fill('admin@example.com');
     await page.locator('input[formcontrolname="password"]').fill('Password123!');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL((url) => !url.pathname.startsWith('/login'));
@@ -17,8 +17,8 @@ test.describe('Admin Users', () => {
 
     // Search to the self row so the assertion is independent of how many other
     // users exist / which page the row would otherwise land on.
-    await page.getByPlaceholder('Search by name or email...').fill('dev1@example.com');
-    const selfRow = page.locator('tr', { hasText: 'dev1@example.com' });
+    await page.getByPlaceholder('Search by name or email...').fill('admin@example.com');
+    const selfRow = page.locator('tr', { hasText: 'admin@example.com' });
     await expect(selfRow.getByText('You')).toBeVisible();
     await expect(selfRow.getByRole('button', { name: 'Delete' })).toBeDisabled();
   });
@@ -33,7 +33,7 @@ test.describe('Admin Users', () => {
     // Create a throwaway user so we never delete a seeded account other specs rely on.
     const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
     const email = `delrestore-${Date.now()}@example.com`;
-    const createResp = await page.request.post('/api/users', {
+    const createResp = await page.request.post('/api/admin/users', {
       headers: { Authorization: `Bearer ${token}` },
       data: { email, firstName: 'Del', lastName: 'Restore' },
     });
@@ -71,7 +71,7 @@ test.describe('Admin Users', () => {
     // Create a throwaway user via the API so we never erase a seeded account other specs rely on.
     const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
     const email = `erase-${Date.now()}@example.com`;
-    const createResp = await page.request.post('/api/users', {
+    const createResp = await page.request.post('/api/admin/users', {
       headers: { Authorization: `Bearer ${token}` },
       data: { email, firstName: 'Erase', lastName: 'Target' },
     });

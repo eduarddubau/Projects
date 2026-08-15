@@ -1,4 +1,4 @@
-using Backend.Controllers;
+using Backend.Controllers.Admin;
 using Backend.DTOs.User;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +7,17 @@ using Moq;
 
 namespace Backend.Tests.Controllers;
 
-public class UsersControllerTests
+public class AdminUsersControllerTests
 {
     private readonly Mock<IUserService> _userService = new();
-    private readonly UsersController _controller;
+    private readonly AdminUsersController _controller;
 
-    public UsersControllerTests()
+    public AdminUsersControllerTests()
     {
-        _controller = new UsersController(_userService.Object, Mock.Of<ILogger<UsersController>>());
+        _controller = new AdminUsersController(
+            _userService.Object,
+            Mock.Of<ILogger<AdminUsersController>>()
+        );
     }
 
     private static UserResponseDto SampleUser() =>
@@ -84,7 +87,7 @@ public class UsersControllerTests
         var result = await _controller.CreateUser(request, CancellationToken.None);
 
         var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);
-        Assert.Equal(nameof(UsersController.GetUser), createdResult.ActionName);
+        Assert.Equal(nameof(AdminUsersController.GetUser), createdResult.ActionName);
         Assert.Equal(user, createdResult.Value);
     }
 

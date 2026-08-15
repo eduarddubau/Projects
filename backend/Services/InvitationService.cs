@@ -69,6 +69,12 @@ public class InvitationService : IInvitationService
                 "This address belongs to a deleted account and cannot be invited."
             );
 
+        if (existing is not null && await _context.IsAdminAsync(existing.Id, ct))
+            throw new BusinessRuleException(
+                BusinessRuleCodes.AdminCannotJoinWorkspace,
+                "Administrator accounts cannot join workspaces."
+            );
+
         var role = dto.Role ?? WorkspaceRole.Member;
 
         return existing is not null

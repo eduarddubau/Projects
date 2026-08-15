@@ -51,6 +51,12 @@ export class HeaderComponent {
   private router = inject(Router);
 
   appName = APP_NAME;
+
+  // Admins have no user dashboard to go home to.
+  homeLink = computed(() => {
+    if (!this.isAuthenticated()) return '/';
+    return this.isAdmin() ? '/admin' : '/dashboard';
+  });
   currentUser = this.authService.currentUser;
   displayName = this.authService.displayName;
   isAuthenticated = this.authService.isAuthenticated;

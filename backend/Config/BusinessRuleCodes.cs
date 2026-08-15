@@ -19,6 +19,7 @@ public static class BusinessRuleCodes
     public const string AlreadyWorkspaceMember = "AlreadyWorkspaceMember";
     public const string WorkspaceHasProjects = "WorkspaceHasProjects";
     public const string WorkspaceIsDeleted = "WorkspaceIsDeleted";
+    public const string AdminCannotJoinWorkspace = "AdminCannotJoinWorkspace";
 
     // Used when user tries to demote or remove an owner
     public const string WorkspaceMustHaveOwner = "WorkspaceMustHaveOwner";

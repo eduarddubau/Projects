@@ -2,12 +2,20 @@ import { test, expect, type Page } from '@playwright/test';
 
 // Seeds soft-deleted projects with backdated DeletedAt via the Development-only
 // test-seed endpoint, so each test owns its fixtures and never depends on (or
-// consumes) shared seed data. Returns the unique run id used to name the rows.
+// consumes) shared seed data.
+//
+// Seeded as a standard user, not the admin: fixtures land in the caller's own
+// personal workspace, and an administrator has none to seed into.
 async function seedDeletedProjects(
   page: Page,
   projects: { name: string; deletedDaysAgo: number }[],
 ): Promise<void> {
-  const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
+  const login = await page.request.post('/api/auth/login', {
+    data: { email: 'dev1@example.com', password: 'Password123!' },
+  });
+  expect(login.ok()).toBeTruthy();
+  const { token } = await login.json();
+
   const resp = await page.request.post('/api/test-seed/deleted-projects', {
     headers: { Authorization: `Bearer ${token}` },
     data: { projects },
@@ -18,7 +26,7 @@ async function seedDeletedProjects(
 test.describe('Admin Projects Trash', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
-    await page.locator('input[formcontrolname="email"]').fill('dev1@example.com');
+    await page.locator('input[formcontrolname="email"]').fill('admin@example.com');
     await page.locator('input[formcontrolname="password"]').fill('Password123!');
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL((url) => !url.pathname.startsWith('/login'));

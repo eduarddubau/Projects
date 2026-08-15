@@ -16,6 +16,6 @@ export class DashboardService {
   }
 
   adminDashboard() {
-    return httpResource<AdminDashboard>(() => `${this.apiUrl}/dashboard/admin`);
+    return httpResource<AdminDashboard>(() => `${this.apiUrl}/admin/dashboard`);
   }
 }

@@ -3,6 +3,7 @@ import { authGuard } from '@core/guards/auth.guard';
 import { adminGuard } from '@core/guards/admin.guard';
 import { guestGuard } from '@core/guards/guest.guard';
 import { workspaceGuard } from '@core/guards/workspace.guard';
+import { standardUserGuard } from '@core/guards/standard-user.guard';
 
 export const routes: Routes = [
   {
@@ -22,7 +23,7 @@ export const routes: Routes = [
   },
   {
     path: 'workspaces',
-    canActivate: [authGuard],
+    canActivate: [authGuard, standardUserGuard],
     loadComponent: () =>
       import('./features/workspaces/list/workspaces.component').then((m) => m.WorkspacesComponent),
   },
@@ -30,7 +31,7 @@ export const routes: Routes = [
     // authGuard first: guards run in sequence and stop at the first refusal, so
     // reversed, a signed-out user would fire a 401 before being sent to /login.
     path: 'w/:workspaceId',
-    canActivate: [authGuard, workspaceGuard],
+    canActivate: [authGuard, standardUserGuard, workspaceGuard],
     children: [
       {
         path: 'projects',
@@ -67,7 +68,7 @@ export const routes: Routes = [
     // The API requires a signed-in caller, so authGuard bounces anonymous
     // recipients through /login and returnUrl brings them back with the token.
     path: 'invitations/accept',
-    canActivate: [authGuard],
+    canActivate: [authGuard, standardUserGuard],
     loadComponent: () =>
       import('./features/invitations/accept/accept-invitation.component').then(
         (m) => m.AcceptInvitationComponent,
@@ -75,7 +76,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    canActivate: [authGuard],
+    canActivate: [authGuard, standardUserGuard],
     loadComponent: () =>
       import('./features/user-dashboard/user-dashboard.component').then(
         (m) => m.UserDashboardComponent,

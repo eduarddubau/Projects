@@ -480,7 +480,8 @@
       "alreadyMember": "Acest utilizator este deja membru al spațiului de lucru.",
       "mustHaveOwner": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar.",
       "personalNotRenamable": "Spațiul de lucru personal nu poate fi redenumit.",
-      "hasProjects": "Acest spațiu de lucru conține încă proiecte. Mută-le sau șterge-le mai întâi."
+      "hasProjects": "Acest spațiu de lucru conține încă proiecte. Mută-le sau șterge-le mai întâi.",
+      "adminCannotJoin": "Conturile de administrator nu pot face parte din spații de lucru."
     },
     "switcher": {
       "label": "Schimbă spațiul de lucru",

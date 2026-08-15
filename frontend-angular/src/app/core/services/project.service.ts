@@ -40,11 +40,11 @@ export class ProjectService {
   }
 
   allProjects() {
-    return httpResource<Project[]>(() => `${this.apiUrl}/projects/admin`, { defaultValue: [] });
+    return httpResource<Project[]>(() => `${this.apiUrl}/admin/projects`, { defaultValue: [] });
   }
 
   allDeletedProjects() {
-    return httpResource<Project[]>(() => `${this.apiUrl}/projects/admin/trash`, {
+    return httpResource<Project[]>(() => `${this.apiUrl}/admin/projects/trash`, {
       defaultValue: [],
     });
   }
@@ -76,18 +76,18 @@ export class ProjectService {
 
   // Admin
   getAnyProjectById(id: string): Observable<Project> {
-    return this.http.get<Project>(`${this.apiUrl}/projects/admin/${id}`);
+    return this.http.get<Project>(`${this.apiUrl}/admin/projects/${id}`);
   }
 
   deleteAnyProject(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/projects/admin/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/admin/projects/${id}`);
   }
 
   restoreProjects(ids: string[]): Observable<{ restoredCount: number }> {
-    return this.http.post<{ restoredCount: number }>(`${this.apiUrl}/projects/admin/restore`, ids);
+    return this.http.post<{ restoredCount: number }>(`${this.apiUrl}/admin/projects/restore`, ids);
   }
 
   purgeProjects(ids: string[]): Observable<{ purgedCount: number }> {
-    return this.http.post<{ purgedCount: number }>(`${this.apiUrl}/projects/admin/purge`, ids);
+    return this.http.post<{ purgedCount: number }>(`${this.apiUrl}/admin/projects/purge`, ids);
   }
 }

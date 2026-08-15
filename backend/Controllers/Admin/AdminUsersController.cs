@@ -5,19 +5,19 @@ using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Backend.Controllers;
+namespace Backend.Controllers.Admin;
 
 [Authorize(Policy = AppPolicies.AdminOnly)]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/admin/users")]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
 [ProducesResponseType(StatusCodes.Status403Forbidden)]
-public partial class UsersController : ControllerBase
+public partial class AdminUsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly ILogger<UsersController> _logger;
+    private readonly ILogger<AdminUsersController> _logger;
 
-    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    public AdminUsersController(IUserService userService, ILogger<AdminUsersController> logger)
     {
         _userService = userService;
         _logger = logger;

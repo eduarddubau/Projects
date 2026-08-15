@@ -44,7 +44,7 @@ public partial class AuthController : ControllerBase
         _invitationService = invitationService;
     }
 
-    [Authorize(Policy = AppPolicies.StandardUser)]
+    [Authorize]
     [HttpGet("me")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

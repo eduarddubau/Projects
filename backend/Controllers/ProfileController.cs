@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-// The current user's own account; admin operations on other users live in UsersController.
-[Authorize(Policy = AppPolicies.StandardUser)]
+// The current user's own account; admin operations on other users live in Admin/AdminUsersController.
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]

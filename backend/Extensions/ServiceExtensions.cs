@@ -162,9 +162,11 @@ public static class ServiceExtensions
         {
             options.AddPolicy(AppPolicies.AdminOnly, policy => policy.RequireRole(AppRoles.Admin));
 
+            // Admin is excluded: an administrator administers, and holds no projects
+            // or workspaces of their own. Everything they can reach is under /api/admin.
             options.AddPolicy(
                 AppPolicies.StandardUser,
-                policy => policy.RequireRole(AppRoles.Admin, AppRoles.User)
+                policy => policy.RequireRole(AppRoles.User)
             );
         });
 

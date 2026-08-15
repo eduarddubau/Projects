@@ -170,8 +170,16 @@ public static partial class DbSeeder
         ILogger logger
     )
     {
+        var adminRoleId = await context
+            .Roles.Where(r => r.Name == AppRoles.Admin)
+            .Select(r => (Guid?)r.Id)
+            .FirstOrDefaultAsync();
+
+        // Administrators hold no projects, so a personal workspace would be a row
+        // nothing ever shows and every query has to remember to exclude.
         var users = await context
             .Users.Where(u => !u.IsAnonymized)
+            .Where(u => !context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId))
             .Where(u =>
                 !context.Workspaces.Any(w => w.IsPersonal && w.Members.Any(m => m.UserId == u.Id))
             )
@@ -252,8 +260,7 @@ public static partial class DbSeeder
             return null;
         }
 
-        var role = index == 1 ? AppRoles.Admin : AppRoles.User;
-        await userManager.AddToRoleAsync(user, role);
+        await userManager.AddToRoleAsync(user, AppRoles.User);
 
         return user;
     }

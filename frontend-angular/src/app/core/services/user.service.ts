@@ -12,15 +12,17 @@ export class UserService {
   // Resource factories: call from a component's field initializer so each
   // resource lives and dies with that component. No injection context elsewhere.
   allUsers() {
-    return httpResource<AdminUser[]>(() => `${this.apiUrl}/users`, { defaultValue: [] });
+    return httpResource<AdminUser[]>(() => `${this.apiUrl}/admin/users`, { defaultValue: [] });
   }
 
   allDeletedUsers() {
-    return httpResource<AdminUser[]>(() => `${this.apiUrl}/users/trash`, { defaultValue: [] });
+    return httpResource<AdminUser[]>(() => `${this.apiUrl}/admin/users/trash`, {
+      defaultValue: [],
+    });
   }
 
   getUserById(id: string): Observable<AdminUser> {
-    return this.http.get<AdminUser>(`${this.apiUrl}/users/${id}`);
+    return this.http.get<AdminUser>(`${this.apiUrl}/admin/users/${id}`);
   }
 
   createUser(payload: {
@@ -28,18 +30,18 @@ export class UserService {
     lastName: string;
     email: string;
   }): Observable<AdminUser> {
-    return this.http.post<AdminUser>(`${this.apiUrl}/users`, payload);
+    return this.http.post<AdminUser>(`${this.apiUrl}/admin/users`, payload);
   }
 
   deleteUser(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/users/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/admin/users/${id}`);
   }
 
   restoreUser(id: string): Observable<AdminUser> {
-    return this.http.post<AdminUser>(`${this.apiUrl}/users/${id}/restore`, {});
+    return this.http.post<AdminUser>(`${this.apiUrl}/admin/users/${id}/restore`, {});
   }
 
   anonymizeUser(id: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/users/${id}/anonymize`, {});
+    return this.http.post<void>(`${this.apiUrl}/admin/users/${id}/anonymize`, {});
   }
 }

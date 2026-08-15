@@ -480,7 +480,8 @@
       "alreadyMember": "This user is already a member of the workspace.",
       "mustHaveOwner": "A workspace must have at least one owner.",
       "personalNotRenamable": "Your personal workspace cannot be renamed.",
-      "hasProjects": "This workspace still holds projects. Move or delete them first."
+      "hasProjects": "This workspace still holds projects. Move or delete them first.",
+      "adminCannotJoin": "Administrator accounts cannot join workspaces."
     },
     "switcher": {
       "label": "Switch workspace",

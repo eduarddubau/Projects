@@ -11,7 +11,7 @@ namespace Backend.Controllers;
 /// across repeated runs. Every endpoint is gated to the Development environment
 /// and returns 404 otherwise, so it never exists in a deployed app.
 /// </summary>
-[Authorize(Policy = AppPolicies.AdminOnly)]
+[Authorize(Policy = AppPolicies.StandardUser)]
 [ApiController]
 [Route("api/test-seed")]
 [ProducesResponseType(StatusCodes.Status401Unauthorized)]
