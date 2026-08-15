@@ -96,6 +96,12 @@ test.describe('Workspace-scoped projects', () => {
     await expect(page.getByText('Project moved to Acme Team.')).toBeVisible();
     await expect(page).not.toHaveURL(new RegExp(`/w/${personalId}/`));
     await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects\/[0-9a-f-]+$/);
+
+    // Clean up, or every rerun leaves another project in Acme Team and eventually
+    // pushes the seeded ones out of the dashboard's five recent rows.
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByText('Project deleted.')).toBeVisible();
   });
 
   test('the owner of the workspace is offered delete', async ({ page }) => {

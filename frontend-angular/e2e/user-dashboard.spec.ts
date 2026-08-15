@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-// dev3's seeded projects are not touched by other specs, so the recent list
-// and navigation targets here are stable under parallel runs.
+// dev3's own projects are not touched by other specs. The recent list is not
+// dev3's alone though — it spans every workspace they belong to, Acme Team
+// included — so nothing here may assume which projects land in it.
 test.describe('User dashboard', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
@@ -31,13 +32,15 @@ test.describe('User dashboard', () => {
   });
 
   test('opens a recent project from the list', async ({ page }) => {
-    const row = page.locator('tr', { hasText: 'Ongoing Research Project no 3' });
+    // Whichever project is first, not a named one — see the note above the describe.
+    const row = page.locator('tbody tr').first();
     await expect(row).toBeVisible();
+    const name = (await row.locator('td').first().innerText()).trim();
     await row.click();
 
     await page.waitForURL(/\/projects\/[0-9a-f-]+$/);
     // The detail page renders the name in mat-card-title, which has no heading role.
-    await expect(page.locator('mat-card-title')).toHaveText('Ongoing Research Project no 3');
+    await expect(page.locator('mat-card-title')).toHaveText(name);
   });
 
   test('links to the profile page', async ({ page }) => {
