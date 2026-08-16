@@ -48,7 +48,9 @@ test.describe('Admin Users', () => {
 
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('will be moved to trash')).toBeVisible();
-    // Deleting someone else's account is confirmed by typing their email back.
+    // Deleting someone else's account is confirmed by typing their email back,
+    // and the message names them rather than showing it — so the dialog must.
+    await expect(dialog.getByText(`Type "${email}" to confirm`)).toBeVisible();
     await dialog.getByRole('textbox').fill(email);
     await dialog.getByRole('button', { name: 'Delete' }).click();
 

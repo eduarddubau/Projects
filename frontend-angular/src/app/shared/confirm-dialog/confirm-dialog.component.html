@@ -4,9 +4,12 @@
     {{ data.message }}
 
     @if (data.confirmPhrase) {
-      <mat-form-field appearance="outline" class="confirm-phrase">
+      <mat-form-field appearance="outline" class="confirm-phrase" subscriptSizing="dynamic">
         <mat-label>{{ data.confirmPhraseLabel }}</mat-label>
         <input matInput [value]="typed()" (input)="onType($event)" autocomplete="off" />
+        <!-- mat-hint, not loose text: Material wires it to the input's
+             aria-describedby, so the phrase is announced with the field. -->
+        <mat-hint>{{ t('common.confirmPhrase.hint', { phrase: data.confirmPhrase }) }}</mat-hint>
       </mat-form-field>
     }
   </mat-dialog-content>

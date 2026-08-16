@@ -22,7 +22,8 @@
       "email": "Email",
       "projectName": "Project name",
       "workspaceName": "Workspace name",
-      "count": "Number of items"
+      "count": "Number of items",
+      "hint": "Type \"{{phrase}}\" to confirm"
     },
     "errors": {
       "unexpected": "An unexpected error occurred.",
@@ -576,7 +577,7 @@
       "dangerHint": "Deleting this workspace removes it for every member.",
       "delete": "Delete workspace",
       "deleteTitle": "Delete this workspace?",
-      "deleteMessage": "{{name}} will be removed for everyone in it, and you won't be able to restore it.",
+      "deleteMessage": "\"{{name}}\" will be removed for everyone in it. You can restore it from Trash.",
       "saved": "Workspace updated.",
       "deleted": "Workspace deleted.",
       "saveFailed": "Could not save the changes. Please try again.",

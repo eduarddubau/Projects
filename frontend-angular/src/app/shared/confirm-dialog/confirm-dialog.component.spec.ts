@@ -37,6 +37,10 @@ describe('ConfirmDialogComponent', () => {
     return (fixture.nativeElement as HTMLElement).querySelector('input');
   }
 
+  function hintText(): string {
+    return (fixture.nativeElement as HTMLElement).querySelector('mat-hint')?.textContent ?? '';
+  }
+
   // Pins the behaviour the seven callers that predate confirmPhrase rely on.
   describe('without a phrase', () => {
     it('renders no input and confirms on the first click', async () => {
@@ -63,6 +67,30 @@ describe('ConfirmDialogComponent', () => {
 
       expect(phraseInput()).not.toBeNull();
       expect(confirmButton().disabled).toBe(true);
+    });
+
+    // The phrase is often a different field from the one the message names —
+    // delete-user shows the name and asks for the email. Rendering it here is
+    // what stops a caller requiring a string the dialog never displays.
+    it('shows the phrase it is asking for', async () => {
+      await setup({ confirmPhrase: 'ada@example.com', confirmPhraseLabel: 'Email' });
+
+      expect(hintText()).toContain('ada@example.com');
+    });
+
+    it('shows the phrase even when it is a bare count', async () => {
+      await setup({ confirmPhrase: '3', confirmPhraseLabel: 'Number of items' });
+
+      expect(hintText()).toContain('3');
+    });
+
+    // Why mat-hint rather than a loose <p>: a screen reader announces the phrase
+    // with the field instead of leaving it stranded elsewhere in the dialog.
+    it('describes the input with the phrase', async () => {
+      await setup({ confirmPhrase: 'ada@example.com', confirmPhraseLabel: 'Email' });
+
+      const hint = (fixture.nativeElement as HTMLElement).querySelector('mat-hint')!;
+      expect(phraseInput()!.getAttribute('aria-describedby')).toContain(hint.id);
     });
 
     it('unlocks once the phrase matches', async () => {

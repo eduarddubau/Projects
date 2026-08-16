@@ -4,4 +4,11 @@
   display: block;
   width: 100%;
   margin-top: 1rem;
+
+  // The hint carries the phrase itself, so it has to be read, not glanced past.
+  // Material's default subdued hint colour is too faint for that.
+  .mat-mdc-form-field-hint {
+    color: var(--mat-sys-on-surface);
+    font-size: 0.8125rem;
+  }
 }

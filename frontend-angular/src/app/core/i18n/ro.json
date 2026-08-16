@@ -22,7 +22,8 @@
       "email": "E-mail",
       "projectName": "Numele proiectului",
       "workspaceName": "Numele spațiului de lucru",
-      "count": "Numărul de elemente"
+      "count": "Numărul de elemente",
+      "hint": "Scrie „{{phrase}}” pentru a confirma"
     },
     "errors": {
       "unexpected": "A apărut o eroare neașteptată.",
@@ -576,7 +577,7 @@
       "dangerHint": "Ștergerea acestui spațiu de lucru îl elimină pentru toți membrii.",
       "delete": "Șterge spațiul de lucru",
       "deleteTitle": "Ștergi acest spațiu de lucru?",
-      "deleteMessage": "{{name}} va fi eliminat pentru toți cei din el și nu îl vei putea restaura.",
+      "deleteMessage": "„{{name}}” va fi eliminat pentru toți cei din el. Îl poți restaura din Coșul de gunoi.",
       "saved": "Spațiul de lucru a fost actualizat.",
       "deleted": "Spațiul de lucru a fost șters.",
       "saveFailed": "Modificările nu au putut fi salvate. Încearcă din nou.",
