@@ -116,6 +116,8 @@ test.describe('Admin Workspaces Trash', () => {
     await page.getByRole('button', { name: 'Purge Selected (3)' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('3 workspaces will be permanently purged')).toBeVisible();
+    // A batch has no single name to type, so the count stands in for it.
+    await dialog.getByRole('textbox').fill('3');
     await dialog.getByRole('button', { name: 'Purge' }).click();
 
     await expect(page.getByText('3 workspaces permanently purged.')).toBeVisible();
@@ -131,6 +133,7 @@ test.describe('Admin Workspaces Trash', () => {
     await page.getByPlaceholder('Search by name or owner...').fill(runId);
 
     await page.locator('tr', { hasText: name }).getByRole('button', { name: 'Purge' }).click();
+    await page.getByRole('dialog').getByRole('textbox').fill(name);
     await page.getByRole('dialog').getByRole('button', { name: 'Purge' }).click();
     await expect(page.getByText('1 workspace permanently purged.')).toBeVisible();
 

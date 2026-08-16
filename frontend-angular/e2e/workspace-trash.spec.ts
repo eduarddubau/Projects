@@ -31,6 +31,7 @@ async function deleteCurrentWorkspace(page: Page, name: string) {
   await page.getByRole('button', { name: 'Delete workspace' }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText(name);
+  await dialog.getByRole('textbox').fill(name);
   await dialog.getByRole('button', { name: 'Delete workspace' }).click();
   await expect(page).toHaveURL(/\/workspaces$/);
 }

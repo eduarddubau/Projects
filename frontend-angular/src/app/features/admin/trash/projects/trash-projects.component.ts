@@ -27,6 +27,7 @@ import { Project } from '@core/models/project';
 import { TableState } from '@shared/table/table-state';
 import { TableSelection } from '@shared/table/table-selection';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
+import { confirmPhraseFor } from '@shared/confirm-dialog/confirm-phrase';
 
 type AgeFilter = 'all' | '30' | '60' | '90';
 
@@ -163,6 +164,7 @@ export class TrashProjectsComponent {
           message,
           confirmLabel: this.transloco.translate('common.actions.purge'),
           warn: true,
+          ...this.confirmPhrase(projects),
         },
       })
       .afterClosed()
@@ -185,6 +187,14 @@ export class TrashProjectsComponent {
           error: () => this.notify('admin.trashProjects.purgeFailed', undefined, 5000),
         });
       });
+  }
+
+  private confirmPhrase(items: readonly Project[]) {
+    return confirmPhraseFor(
+      items,
+      this.transloco.translate('common.confirmPhrase.projectName'),
+      this.transloco.translate('common.confirmPhrase.count'),
+    );
   }
 
   private notify(key: string, params?: Record<string, unknown>, duration = 3000): void {

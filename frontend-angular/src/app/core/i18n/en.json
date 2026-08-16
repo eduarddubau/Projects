@@ -18,6 +18,12 @@
       "purge": "Purge",
       "undo": "Undo"
     },
+    "confirmPhrase": {
+      "email": "Email",
+      "projectName": "Project name",
+      "workspaceName": "Workspace name",
+      "count": "Number of items"
+    },
     "errors": {
       "unexpected": "An unexpected error occurred.",
       "valueTooLong": "One of the values you entered is too long."

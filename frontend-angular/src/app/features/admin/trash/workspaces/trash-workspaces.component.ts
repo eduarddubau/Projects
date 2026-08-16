@@ -19,6 +19,7 @@ import { AdminWorkspace } from '@core/models/admin-workspace';
 import { TableState } from '@shared/table/table-state';
 import { TableSelection } from '@shared/table/table-selection';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
+import { confirmPhraseFor } from '@shared/confirm-dialog/confirm-phrase';
 import { serverErrorKey, serverErrorParams } from '@core/i18n/server-error-keys';
 
 @Component({
@@ -145,6 +146,7 @@ export class TrashWorkspacesComponent {
           message,
           confirmLabel: this.transloco.translate('common.actions.purge'),
           warn: true,
+          ...this.confirmPhrase(workspaces),
         },
       })
       .afterClosed()
@@ -167,6 +169,14 @@ export class TrashWorkspacesComponent {
           error: (err) => this.notifyError(err, 'admin.trashWorkspaces.purgeFailed'),
         });
       });
+  }
+
+  private confirmPhrase(items: readonly AdminWorkspace[]) {
+    return confirmPhraseFor(
+      items,
+      this.transloco.translate('common.confirmPhrase.workspaceName'),
+      this.transloco.translate('common.confirmPhrase.count'),
+    );
   }
 
   private notify(key: string, params?: Record<string, unknown>): void {

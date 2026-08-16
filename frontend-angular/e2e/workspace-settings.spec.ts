@@ -82,6 +82,7 @@ test.describe('Workspace settings', () => {
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toContainText(name);
+    await dialog.getByRole('textbox').fill(name);
     await dialog.getByRole('button', { name: 'Delete workspace' }).click();
 
     await expect(page).toHaveURL(/\/workspaces$/);

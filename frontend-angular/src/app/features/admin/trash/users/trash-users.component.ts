@@ -87,6 +87,8 @@ export class TrashUsersComponent {
           }),
           confirmLabel: this.transloco.translate('common.actions.erase'),
           warn: true,
+          confirmPhrase: user.email,
+          confirmPhraseLabel: this.transloco.translate('common.confirmPhrase.email'),
         },
       })
       .afterClosed()

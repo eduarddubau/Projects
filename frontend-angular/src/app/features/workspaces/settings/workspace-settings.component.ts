@@ -110,8 +110,8 @@ export class WorkspaceSettingsComponent {
     // Captured up front: the delete navigates away and destroys this component.
     const id = this.workspaceId();
 
-    // A plain confirm, not a typed name: typing the name is the tier for something
-    // unrecoverable, and this now lands in a trash the owner can restore from.
+    // Recoverable through the trash, but it takes every member's access with it,
+    // so the friction is set by blast radius rather than by reversibility.
     const data: ConfirmDialogData = {
       title: this.transloco.translate('workspaces.settings.deleteTitle'),
       message: this.transloco.translate('workspaces.settings.deleteMessage', {
@@ -119,6 +119,8 @@ export class WorkspaceSettingsComponent {
       }),
       confirmLabel: this.transloco.translate('workspaces.settings.delete'),
       warn: true,
+      confirmPhrase: workspace.name,
+      confirmPhraseLabel: this.transloco.translate('common.confirmPhrase.workspaceName'),
     };
 
     this.dialog

@@ -87,6 +87,10 @@ export class AdminUsersComponent {
           message: this.transloco.translate('admin.users.confirmDelete.message', { name }),
           confirmLabel: this.transloco.translate('common.actions.delete'),
           warn: true,
+          // The email, not the name: this is a row picked out of a table of
+          // similar-looking people, and only the email is unique.
+          confirmPhrase: user.email,
+          confirmPhraseLabel: this.transloco.translate('common.confirmPhrase.email'),
         },
       })
       .afterClosed()

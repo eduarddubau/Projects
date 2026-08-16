@@ -18,6 +18,12 @@
       "purge": "Elimină definitiv",
       "undo": "Anulează"
     },
+    "confirmPhrase": {
+      "email": "E-mail",
+      "projectName": "Numele proiectului",
+      "workspaceName": "Numele spațiului de lucru",
+      "count": "Numărul de elemente"
+    },
     "errors": {
       "unexpected": "A apărut o eroare neașteptată.",
       "valueTooLong": "Una dintre valorile introduse este prea lungă."

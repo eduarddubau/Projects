@@ -48,6 +48,8 @@ test.describe('Admin Users', () => {
 
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('will be moved to trash')).toBeVisible();
+    // Deleting someone else's account is confirmed by typing their email back.
+    await dialog.getByRole('textbox').fill(email);
     await dialog.getByRole('button', { name: 'Delete' }).click();
 
     await expect(page.getByText('deleted.')).toBeVisible();
@@ -83,6 +85,7 @@ test.describe('Admin Users', () => {
     const row = page.locator('tr', { hasText: email });
     await expect(row).toBeVisible();
     await row.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('dialog').getByRole('textbox').fill(email);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByText('deleted.')).toBeVisible();
 
@@ -96,6 +99,7 @@ test.describe('Admin Users', () => {
 
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('permanently erased')).toBeVisible();
+    await dialog.getByRole('textbox').fill(email);
     await dialog.getByRole('button', { name: 'Erase' }).click();
 
     await expect(page.getByText('permanently erased.')).toBeVisible();

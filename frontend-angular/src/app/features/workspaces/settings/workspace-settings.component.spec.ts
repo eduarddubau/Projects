@@ -162,17 +162,15 @@ describe('WorkspaceSettingsComponent', () => {
   });
 
   describe('deleting', () => {
-    // Typing the name back is the tier for something unrecoverable. A deleted
-    // workspace now lands in a trash its owner can restore from, so a plain warn
-    // confirm is the right amount of friction — and the phrase must be gone, not
-    // merely unused, or the dialog still demands it.
-    it('confirms with a warning, without demanding the name back', async () => {
+    // Deleting a workspace is recoverable through the trash, but it takes every
+    // member's access with it, so the friction follows blast radius.
+    it('asks for the workspace name back before it will delete', async () => {
       await setup();
 
       fixture.componentInstance.confirmDelete();
 
+      expect(dialogData?.['confirmPhrase']).toBe('Acme Team');
       expect(dialogData?.['warn']).toBe(true);
-      expect(dialogData?.['confirmPhrase']).toBeUndefined();
       httpMock.expectOne(`${apiUrl}/workspaces/a1`).flush(null);
     });
 
