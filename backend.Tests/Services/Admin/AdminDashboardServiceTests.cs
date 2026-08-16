@@ -133,12 +133,11 @@ public sealed class AdminDashboardServiceTests : IDisposable
         Assert.Equal(1, result.DeletedProjectCount);
         Assert.Equal(1, result.ActiveUserCount);
         Assert.Equal(1, result.DeletedUserCount);
-        Assert.Equal(["Theirs", "Mine"], result.RecentProjects.Select(p => p.Name));
         Assert.Equal(["owner@example.com"], result.RecentUsers.Select(u => u.Email));
     }
 
     [Fact]
-    public async Task GetAdminDashboardAsync_CapsRecentListsAtFive()
+    public async Task GetAdminDashboardAsync_CapsRecentUsersAtFive()
     {
         for (var i = 0; i < 7; i++)
         {
@@ -148,7 +147,6 @@ public sealed class AdminDashboardServiceTests : IDisposable
 
         var result = await _service.GetAdminDashboardAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(5, result.RecentProjects.Count);
         Assert.Equal(5, result.RecentUsers.Count);
     }
 

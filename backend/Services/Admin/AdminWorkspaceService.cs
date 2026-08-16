@@ -9,16 +9,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services.Admin;
 
-public class AdminWorkspaceService : AdminTrashService<Workspace>, IAdminWorkspaceService
+public class AdminWorkspaceService : IAdminWorkspaceService
 {
+    private readonly AppDbContext _context;
+
     public AdminWorkspaceService(AppDbContext context)
-        : base(context) { }
+    {
+        _context = context;
+    }
 
     public async Task<IEnumerable<AdminWorkspaceResponseDto>> GetAllDeletedWorkspacesAsync(
         CancellationToken ct = default
     )
     {
-        return await Context
+        return await _context
             .Workspaces.IgnoreQueryFilters()
             .Include(w => w.Creator)
             .Include(w => w.Updater)
@@ -33,7 +37,7 @@ public class AdminWorkspaceService : AdminTrashService<Workspace>, IAdminWorkspa
         CancellationToken ct = default
     )
     {
-        var workspaces = await Context
+        var workspaces = await _context
             .Workspaces.IgnoreQueryFilters()
             .Where(w => ids.Contains(w.Id) && w.IsDeleted)
             .ToListAsync(ct);
@@ -44,7 +48,7 @@ public class AdminWorkspaceService : AdminTrashService<Workspace>, IAdminWorkspa
             workspace.DeletedAt = null;
         }
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return workspaces.Count;
     }
@@ -54,7 +58,7 @@ public class AdminWorkspaceService : AdminTrashService<Workspace>, IAdminWorkspa
         CancellationToken ct = default
     )
     {
-        var workspaces = await Context
+        var workspaces = await _context
             .Workspaces.IgnoreQueryFilters()
             .Where(w => ids.Contains(w.Id) && w.IsDeleted)
             .ToListAsync(ct);
@@ -66,7 +70,7 @@ public class AdminWorkspaceService : AdminTrashService<Workspace>, IAdminWorkspa
 
         // Unreachable while DeleteWorkspaceAsync refuses a workspace holding projects.
         // Kept because the FK is Restrict: an anomaly would otherwise surface as a 500.
-        bool holdsProjects = await Context
+        bool holdsProjects = await _context
             .Projects.IgnoreQueryFilters()
             .AnyAsync(p => purgeIds.Contains(p.WorkspaceId), ct);
 
@@ -80,11 +84,11 @@ public class AdminWorkspaceService : AdminTrashService<Workspace>, IAdminWorkspa
         {
             // Members and invitations cascade in the database; neither is an audit
             // entity, so the soft-delete interception does not rescue them.
-            Context.MarkForHardDelete(workspace);
-            Context.Workspaces.Remove(workspace);
+            _context.MarkForHardDelete(workspace);
+            _context.Workspaces.Remove(workspace);
         }
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return workspaces.Count;
     }

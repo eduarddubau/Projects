@@ -12,8 +12,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services.Admin;
 
-public class AdminUserService : AdminTrashService<User>, IAdminUserService
+public class AdminUserService : IAdminUserService
 {
+    private readonly AppDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly IWorkspaceService _workspaceService;
     private readonly ILookupNormalizer _normalizer;
@@ -24,8 +25,8 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
         IWorkspaceService workspaceService,
         ILookupNormalizer normalizer
     )
-        : base(context)
     {
+        _context = context;
         _userManager = userManager;
         _workspaceService = workspaceService;
         _normalizer = normalizer;
@@ -33,7 +34,7 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
 
     public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(CancellationToken ct = default)
     {
-        return await Context
+        return await _context
             .Users.IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
@@ -44,7 +45,7 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
 
     public async Task<UserResponseDto?> GetUserByIdAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await Context
+        var user = await _context
             .Users.IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
@@ -82,12 +83,29 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
         return user.MapToDto();
     }
 
-    public Task<bool> DeleteUserAsync(Guid id, CancellationToken ct = default) =>
-        SoftDeleteByIdAsync(id, ct);
+    public async Task<bool> DeleteUserAsync(Guid id, CancellationToken ct = default)
+    {
+        var user = await _context
+            .Users.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == id, ct);
+
+        if (user is null)
+            return false;
+
+        // Set the flags rather than Remove(): Remove marks loaded dependents Deleted before
+        // SaveChangesAsync can intercept, and dependents that aren't IAuditEntity never get
+        // rescued — so a soft delete would hard-delete them depending on what was tracked.
+        user.IsDeleted = true;
+        user.DeletedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+
+        return true;
+    }
 
     public async Task<UserResponseDto?> RestoreUserAsync(Guid id, CancellationToken ct = default)
     {
-        var deleted = await Context
+        var deleted = await _context
             .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Id == id, ct);
 
@@ -99,7 +117,7 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
             // Uniqueness is scoped to live rows, so restoring re-enters the partial index.
             // Only a live holder blocks it — another deleted row isn't in the index either.
             // Email only: UserName is derived from the row's own id, so it cannot collide.
-            bool taken = await Context.Users.AnyAsync(
+            bool taken = await _context.Users.AnyAsync(
                 u => u.Id != id && u.NormalizedEmail == deleted.NormalizedEmail,
                 ct
             );
@@ -113,17 +131,17 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
 
             deleted.IsDeleted = false;
             deleted.DeletedAt = null;
-            await Context.SaveChangesAsync(ct);
+            await _context.SaveChangesAsync(ct);
         }
 
-        return await Context.Users.Where(u => u.Id == id).MapToDto().FirstAsync(ct);
+        return await _context.Users.Where(u => u.Id == id).MapToDto().FirstAsync(ct);
     }
 
     public async Task<IEnumerable<UserResponseDto>> GetDeletedUsersAsync(
         CancellationToken ct = default
     )
     {
-        return await Context
+        return await _context
             .Users.IgnoreQueryFilters()
             .Include(u => u.Creator)
             .Include(u => u.Updater)
@@ -140,14 +158,14 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
     /// </summary>
     public async Task<bool> AnonymizeUserAsync(Guid id, CancellationToken ct = default)
     {
-        var user = await Context
+        var user = await _context
             .Users.IgnoreQueryFilters()
             .FirstOrDefaultAsync(u => u.Id == id && u.IsDeleted && !u.IsAnonymized, ct);
 
         if (user is null)
             return false;
 
-        var soleOwnedNames = await Context
+        var soleOwnedNames = await _context
             .Workspaces.Where(w =>
                 !w.IsPersonal
                 && w.Members.Any(m => m.UserId == id && m.Role == WorkspaceRole.Owner)
@@ -168,15 +186,17 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
             );
         }
 
-        var personalWorkspaces = await Context
+        var personalWorkspaces = await _context
             .Workspaces.Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))
             .ToListAsync(ct);
 
-        var memberships = await Context.WorkspaceMembers.Where(m => m.UserId == id).ToListAsync(ct);
+        var memberships = await _context
+            .WorkspaceMembers.Where(m => m.UserId == id)
+            .ToListAsync(ct);
 
         // A real delete: the user stops appearing in member lists rather than lingering
         // as "Deleted User".
-        Context.WorkspaceMembers.RemoveRange(memberships);
+        _context.WorkspaceMembers.RemoveRange(memberships);
 
         var now = DateTime.UtcNow;
 
@@ -200,7 +220,7 @@ public class AdminUserService : AdminTrashService<User>, IAdminUserService
         user.IsAnonymized = true;
         user.AnonymizedAt = now;
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return true;
     }

@@ -368,31 +368,11 @@
       "activeUsers": "Utilizatori activi",
       "deletedProjects": "Proiecte șterse",
       "deletedUsers": "Utilizatori șterși",
-      "recentProjects": "Proiecte recente",
       "recentUsers": "Utilizatori recenți",
       "viewAll": "Vezi tot",
       "name": "Nume",
       "email": "Email",
-      "createdBy": "Creat de",
       "createdAt": "Creat la"
-    },
-    "projects": {
-      "title": "Proiecte active",
-      "subtitle": "Proiectele active ale tuturor utilizatorilor. Cele șterse ajung în Coșul de proiecte.",
-      "trash": "Coș de gunoi",
-      "searchPlaceholder": "Caută după nume...",
-      "searchAria": "Caută",
-      "loading": "Se încarcă...",
-      "loadFailed": "Proiectele nu au putut fi încărcate. Încearcă din nou.",
-      "tableAria": "Proiecte",
-      "noSearchResults": "Niciun proiect nu corespunde căutării.",
-      "empty": "Niciun proiect de afișat.",
-      "confirmDelete": {
-        "title": "Șterge proiectul",
-        "message": "„{{name}}” va fi mutat în coșul de gunoi. Poate fi restaurat ulterior din Coșul de proiecte."
-      },
-      "deletedNamed": "„{{name}}” a fost șters.",
-      "deleteFailed": "Proiectul nu a putut fi șters."
     },
     "users": {
       "title": "Utilizatori activi",

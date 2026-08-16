@@ -9,56 +9,26 @@ using Microsoft.Extensions.Options;
 
 namespace Backend.Services.Admin;
 
-public class AdminProjectService : AdminTrashService<Project>, IAdminProjectService
+public class AdminProjectService : IAdminProjectService
 {
+    private readonly AppDbContext _context;
     private readonly int _trashWindowDays;
 
     public AdminProjectService(
         AppDbContext context,
         IOptions<ProjectRetentionOptions> retentionOptions
     )
-        : base(context)
     {
+        _context = context;
         _trashWindowDays = retentionOptions.Value.TrashWindowDays;
     }
-
-    public async Task<IEnumerable<ProjectResponseDto>> GetAllProjectsAsync(
-        CancellationToken ct = default
-    )
-    {
-        return await Context
-            .Projects.IgnoreQueryFilters()
-            .Include(p => p.Creator)
-            .Include(p => p.Updater)
-            .OrderByDescending(p => p.CreatedAt)
-            .MapToDto()
-            .ToListAsync(ct);
-    }
-
-    public async Task<ProjectResponseDto?> GetProjectByIdAsync(
-        Guid id,
-        CancellationToken ct = default
-    )
-    {
-        var project = await Context
-            .Projects.IgnoreQueryFilters()
-            .Include(p => p.Creator)
-            .Include(p => p.Updater)
-            .Include(p => p.Workspace)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
-
-        return project?.MapToDto();
-    }
-
-    public Task<bool> DeleteProjectByIdAsync(Guid id, CancellationToken ct = default) =>
-        SoftDeleteByIdAsync(id, ct);
 
     public async Task<int> RestoreProjectsAsync(
         IEnumerable<Guid> ids,
         CancellationToken ct = default
     )
     {
-        var projects = await Context
+        var projects = await _context
             .Projects.IgnoreQueryFilters()
             .Where(p => ids.Contains(p.Id) && p.IsDeleted)
             .ToListAsync(ct);
@@ -69,7 +39,7 @@ public class AdminProjectService : AdminTrashService<Project>, IAdminProjectServ
             project.DeletedAt = null;
         }
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return projects.Count;
     }
@@ -80,7 +50,7 @@ public class AdminProjectService : AdminTrashService<Project>, IAdminProjectServ
     {
         var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
 
-        var deleted = await Context
+        var deleted = await _context
             .Projects.IgnoreQueryFilters()
             .Include(p => p.Creator)
             .Include(p => p.Updater)
@@ -94,18 +64,18 @@ public class AdminProjectService : AdminTrashService<Project>, IAdminProjectServ
 
     public async Task<int> PurgeProjectsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
     {
-        var projects = await Context
+        var projects = await _context
             .Projects.IgnoreQueryFilters()
             .Where(p => ids.Contains(p.Id) && p.IsDeleted)
             .ToListAsync(ct);
 
         foreach (var project in projects)
         {
-            Context.MarkForHardDelete(project);
-            Context.Projects.Remove(project);
+            _context.MarkForHardDelete(project);
+            _context.Projects.Remove(project);
         }
 
-        await Context.SaveChangesAsync(ct);
+        await _context.SaveChangesAsync(ct);
 
         return projects.Count;
     }

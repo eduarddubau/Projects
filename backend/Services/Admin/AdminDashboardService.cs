@@ -31,12 +31,6 @@ public class AdminDashboardService : IAdminDashboardService
             .Users.IgnoreQueryFilters()
             .CountAsync(u => u.IsDeleted && !u.IsAnonymized, ct);
 
-        var recentProjects = await _context
-            .Projects.OrderByDescending(p => p.CreatedAt)
-            .Take(5)
-            .MapToDto()
-            .ToListAsync(ct);
-
         var recentUsers = await _context
             .Users.OrderByDescending(u => u.CreatedAt)
             .Take(5)
@@ -49,7 +43,6 @@ public class AdminDashboardService : IAdminDashboardService
             DeletedProjectCount = deletedProjectCount,
             ActiveUserCount = activeUserCount,
             DeletedUserCount = deletedUserCount,
-            RecentProjects = recentProjects,
             RecentUsers = recentUsers,
         };
     }

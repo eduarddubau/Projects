@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers.Admin;
 
+/// <summary>The project trash. Live projects are reached through their workspace,
+/// so there is nothing here that reads one.</summary>
 [Authorize(Policy = AppPolicies.AdminOnly)]
 [ApiController]
 [Route("api/admin/projects")]
@@ -20,40 +22,14 @@ public class AdminProjectsController : ControllerBase
         _projectService = projectService;
     }
 
-    [HttpGet]
+    [HttpGet("trash")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetProjects(
+    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetDeletedProjects(
         CancellationToken ct
     )
     {
-        var projects = await _projectService.GetAllProjectsAsync(ct);
-        return Ok(projects);
-    }
-
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ProjectResponseDto>> GetProject(Guid id, CancellationToken ct)
-    {
-        var project = await _projectService.GetProjectByIdAsync(id, ct);
-
-        if (project is null)
-            return NotFound(new { message = "Project not found." });
-
-        return Ok(project);
-    }
-
-    [HttpDelete("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteProject(Guid id, CancellationToken ct)
-    {
-        var success = await _projectService.DeleteProjectByIdAsync(id, ct);
-
-        if (!success)
-            return NotFound(new { message = "Project not found." });
-
-        return NoContent();
+        var trash = await _projectService.GetAllDeletedProjectsAsync(ct);
+        return Ok(trash);
     }
 
     [HttpPost("restore")]
@@ -65,16 +41,6 @@ public class AdminProjectsController : ControllerBase
     {
         var restoredCount = await _projectService.RestoreProjectsAsync(ids, ct);
         return Ok(new { restoredCount });
-    }
-
-    [HttpGet("trash")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectResponseDto>>> GetDeletedProjects(
-        CancellationToken ct
-    )
-    {
-        var trash = await _projectService.GetAllDeletedProjectsAsync(ct);
-        return Ok(trash);
     }
 
     [HttpPost("purge")]

@@ -19,7 +19,8 @@ public sealed class AdminProjectServiceTests : IDisposable
     private readonly Guid _otherUserId = Guid.NewGuid();
     private const int TrashWindowDays = 30;
 
-    // Two workspaces with no member in common, so every read here has to cross one.
+    // Two workspaces with no member in common. Trash, restore and purge each act on
+    // _othersWorkspace, which is what pins the admin reaching past membership.
     private readonly Workspace _personal;
     private readonly Workspace _othersWorkspace;
 
@@ -92,53 +93,14 @@ public sealed class AdminProjectServiceTests : IDisposable
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task GetAllProjectsAsync_ReturnsProjectsFromEveryWorkspace()
+    public async Task RestoreAnyProjectsAsync_WhenDeletedInAWorkspaceTheAdminIsNoMemberOf_Restores()
     {
-        AddProject("Mine", _personal);
-        AddProject("Foreign", _othersWorkspace, createdBy: _otherUserId);
-
-        var result = await _service.GetAllProjectsAsync(Ct);
-
-        Assert.Equal(2, result.Count());
-    }
-
-    [Fact]
-    public async Task GetAnyProjectByIdAsync_ReturnsProjectRegardlessOfMembership()
-    {
-        var project = AddProject("Foreign", _othersWorkspace, createdBy: _otherUserId);
-
-        var result = await _service.GetProjectByIdAsync(project.Id, Ct);
-
-        Assert.NotNull(result);
-        Assert.Equal(project.Id, result!.Id);
-    }
-
-    [Fact]
-    public async Task DeleteAnyProjectByIdAsync_SoftDeletesRegardlessOfMembership()
-    {
-        var project = AddProject("Foreign", _othersWorkspace, createdBy: _otherUserId);
-
-        var result = await _service.DeleteProjectByIdAsync(project.Id, Ct);
-
-        Assert.True(result);
-        var stored = await _context
-            .Projects.IgnoreQueryFilters()
-            .FirstAsync(p => p.Id == project.Id, Ct);
-        Assert.True(stored.IsDeleted);
-    }
-
-    [Fact]
-    public async Task DeleteAnyProjectByIdAsync_WhenNotFound_ReturnsFalse()
-    {
-        var result = await _service.DeleteProjectByIdAsync(Guid.NewGuid(), Ct);
-
-        Assert.False(result);
-    }
-
-    [Fact]
-    public async Task RestoreAnyProjectsAsync_WhenDeleted_RestoresAndReturnsCount()
-    {
-        var project = AddProject("Deleted", _personal, isDeleted: true);
+        var project = AddProject(
+            "Deleted",
+            _othersWorkspace,
+            createdBy: _otherUserId,
+            isDeleted: true
+        );
 
         var result = await _service.RestoreProjectsAsync([project.Id], Ct);
 
@@ -175,14 +137,15 @@ public sealed class AdminProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAllDeletedProjectsAsync_ReturnsOnlyDeletedProjects()
+    public async Task GetAllDeletedProjectsAsync_ReturnsOnlyDeletedProjectsFromEveryWorkspace()
     {
         AddProject("Active", _personal);
         AddProject("Deleted", _personal, isDeleted: true);
+        AddProject("Foreign deleted", _othersWorkspace, createdBy: _otherUserId, isDeleted: true);
 
         var result = await _service.GetAllDeletedProjectsAsync(Ct);
 
-        Assert.Equal(["Deleted"], result.Select(p => p.Name));
+        Assert.Equal(["Deleted", "Foreign deleted"], result.Select(p => p.Name).Order());
     }
 
     [Fact]
@@ -229,9 +192,14 @@ public sealed class AdminProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task PurgeProjectsAsync_WhenDeleted_HardDeletesAndReturnsCount()
+    public async Task PurgeProjectsAsync_WhenDeletedInAWorkspaceTheAdminIsNoMemberOf_HardDeletes()
     {
-        var project = AddProject("Deleted", _personal, isDeleted: true);
+        var project = AddProject(
+            "Deleted",
+            _othersWorkspace,
+            createdBy: _otherUserId,
+            isDeleted: true
+        );
 
         var result = await _service.PurgeProjectsAsync([project.Id], Ct);
 

@@ -1,6 +1,5 @@
 using Backend.Controllers.Admin;
 using Backend.DTOs.Dashboard;
-using Backend.DTOs.Project;
 using Backend.DTOs.User;
 using Backend.Services.Admin.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +26,6 @@ public class AdminDashboardControllerTests
             DeletedProjectCount = 2,
             ActiveUserCount = 3,
             DeletedUserCount = 1,
-            RecentProjects = [new ProjectResponseDto { Id = Guid.NewGuid(), Name = "A Project" }],
             RecentUsers = [new UserResponseDto { Id = Guid.NewGuid(), Email = "ada@example.com" }],
         };
         _dashboardService

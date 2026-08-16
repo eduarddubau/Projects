@@ -39,10 +39,6 @@ export class ProjectService {
     return httpResource<Project>(() => (id() ? `${this.apiUrl}/projects/${id()}` : undefined));
   }
 
-  allProjects() {
-    return httpResource<Project[]>(() => `${this.apiUrl}/admin/projects`, { defaultValue: [] });
-  }
-
   allDeletedProjects() {
     return httpResource<Project[]>(() => `${this.apiUrl}/admin/projects/trash`, {
       defaultValue: [],
@@ -74,15 +70,7 @@ export class ProjectService {
     return this.http.post<Project>(`${this.apiUrl}/projects/${id}/move`, { workspaceId });
   }
 
-  // Admin
-  getAnyProjectById(id: string): Observable<Project> {
-    return this.http.get<Project>(`${this.apiUrl}/admin/projects/${id}`);
-  }
-
-  deleteAnyProject(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/projects/${id}`);
-  }
-
+  // Admin — the trash only; a live project is reached through its workspace.
   restoreProjects(ids: string[]): Observable<{ restoredCount: number }> {
     return this.http.post<{ restoredCount: number }>(`${this.apiUrl}/admin/projects/restore`, ids);
   }

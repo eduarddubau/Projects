@@ -6,7 +6,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
-import { MatDividerModule } from '@angular/material/divider';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { DashboardService } from '@core/services/dashboard.service';
 
@@ -22,7 +21,6 @@ import { DashboardService } from '@core/services/dashboard.service';
     MatIconModule,
     MatProgressSpinnerModule,
     MatTableModule,
-    MatDividerModule,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +30,5 @@ export class AdminDashboardComponent {
 
   stats = this.dashboardService.adminDashboard();
 
-  recentProjectColumns = ['name', 'createdBy', 'createdAt'];
   recentUserColumns = ['name', 'email', 'createdAt'];
 }

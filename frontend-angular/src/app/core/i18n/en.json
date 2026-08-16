@@ -368,31 +368,11 @@
       "activeUsers": "Active Users",
       "deletedProjects": "Deleted Projects",
       "deletedUsers": "Deleted Users",
-      "recentProjects": "Recent Projects",
       "recentUsers": "Recent Users",
       "viewAll": "View all",
       "name": "Name",
       "email": "Email",
-      "createdBy": "Created By",
       "createdAt": "Created At"
-    },
-    "projects": {
-      "title": "Active Projects",
-      "subtitle": "Every user's active projects. Deleted ones move to the Projects Trash.",
-      "trash": "Trash",
-      "searchPlaceholder": "Search by name...",
-      "searchAria": "Search",
-      "loading": "Loading...",
-      "loadFailed": "Failed to load projects. Please try again.",
-      "tableAria": "Projects",
-      "noSearchResults": "No projects found matching your search.",
-      "empty": "No projects to show.",
-      "confirmDelete": {
-        "title": "Delete Project",
-        "message": "\"{{name}}\" will be moved to trash. It can be restored later from Projects Trash."
-      },
-      "deletedNamed": "\"{{name}}\" deleted.",
-      "deleteFailed": "Failed to delete project."
     },
     "users": {
       "title": "Active Users",
