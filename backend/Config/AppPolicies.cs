@@ -9,8 +9,8 @@ public static class AppPolicies
     /// that are actually brute-forced: login and register.</summary>
     public const string AuthThrottle = "AuthThrottle";
 
-    /// <summary>The looser sibling of <see cref="AuthThrottle"/>, for routine session
-    /// traffic. Sharing one budget would let token renewals from a shared address
-    /// exhaust the login allowance for everyone behind it.</summary>
+    /// <summary>The looser sibling of <see cref="AuthThrottle"/>, for the authenticated
+    /// session endpoints. Sharing one budget would let renewals and profile reads from a
+    /// shared address exhaust the login allowance for everyone behind it.</summary>
     public const string SessionThrottle = "SessionThrottle";
 }

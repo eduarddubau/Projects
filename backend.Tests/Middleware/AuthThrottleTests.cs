@@ -12,10 +12,8 @@ using Microsoft.Extensions.Hosting;
 
 namespace Backend.Tests.Middleware;
 
-/// <summary>
-/// Drives the real AddAuthThrottling pipeline over a stub endpoint. The limiter is
-/// middleware, so the controller unit tests never reach it — only a host does.
-/// </summary>
+/// <summary>Drives the real AddAuthThrottling pipeline over a stub endpoint. The limiter
+/// is middleware, so no controller unit test can reach it.</summary>
 public class AuthThrottleTests
 {
     private const string StrictPath = "/strict";
@@ -109,7 +107,6 @@ public class AuthThrottleTests
 
         Assert.Equal(StatusCodes.Status429TooManyRequests, rejected.Response.StatusCode);
 
-        // The header is the whole point: without it a client has no idea when to retry.
         var retryAfter = rejected.Response.Headers.RetryAfter.ToString();
         Assert.False(string.IsNullOrEmpty(retryAfter));
         Assert.True(int.Parse(retryAfter, CultureInfo.InvariantCulture) > 0);
@@ -123,9 +120,9 @@ public class AuthThrottleTests
         for (var i = 0; i <= PermitLimit; i++)
             await SendAsync(host, StrictPath, "203.0.113.12");
 
-        var other = await SendAsync(host, StrictPath, "203.0.113.13");
+        var otherClient = await SendAsync(host, StrictPath, "203.0.113.13");
 
-        Assert.Equal(StatusCodes.Status200OK, other.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, otherClient.Response.StatusCode);
     }
 
     [Fact]
@@ -174,8 +171,8 @@ public class AuthThrottleTests
         for (var i = 0; i <= PermitLimit; i++)
             await SendAsync(host, StrictPath, "203.0.113.15");
 
-        var refresh = await SendAsync(host, SessionPath, "203.0.113.15");
+        var sessionRequest = await SendAsync(host, SessionPath, "203.0.113.15");
 
-        Assert.Equal(StatusCodes.Status200OK, refresh.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, sessionRequest.Response.StatusCode);
     }
 }

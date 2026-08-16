@@ -5,11 +5,8 @@ export function isRateLimited(err: unknown): boolean {
   return err instanceof HttpErrorResponse && err.status === 429;
 }
 
-/**
- * Prefers the Retry-After header, falling back to the body. Cross-origin the header is
- * only readable because the API exposes it, and a misconfigured deployment shouldn't
- * cost the user the number.
- */
+/** Falls back to the body because the header is unreadable cross-origin unless the
+ * API names it in WithExposedHeaders. */
 export function retryAfterSeconds(err: HttpErrorResponse): number | null {
   const header = Number(err.headers?.get('Retry-After'));
   if (Number.isFinite(header) && header > 0) return Math.ceil(header);
@@ -18,11 +15,8 @@ export function retryAfterSeconds(err: HttpErrorResponse): number | null {
   return Number.isFinite(fromBody) && fromBody > 0 ? Math.ceil(fromBody) : null;
 }
 
-/**
- * A throttled caller must not be told their password was wrong — they would retry, which
- * is the one thing that makes it worse. Expects `<prefix>.tooManyAttempts` and
- * `<prefix>.tooManyAttemptsIn` to exist, the latter taking a `seconds` parameter.
- */
+/** Needs `<prefix>.tooManyAttempts` and `<prefix>.tooManyAttemptsIn` to exist, the
+ * latter taking a `seconds` parameter. */
 export function throttleMessage(
   err: HttpErrorResponse,
   transloco: TranslocoService,

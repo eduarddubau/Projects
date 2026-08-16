@@ -9,8 +9,8 @@ public class AuthProtectionOptions
     /// <summary>Requests one client IP may make to login and register within the window.</summary>
     public int PermitPerWindow { get; set; } = 10;
 
-    /// <summary>The same, for refresh and logout — see <c>AppPolicies.SessionThrottle</c>
-    /// for why it is looser.</summary>
+    /// <summary>The same, for the session endpoints — see
+    /// <c>AppPolicies.SessionThrottle</c> for why it is looser.</summary>
     public int SessionPermitPerWindow { get; set; } = 60;
 
     public int WindowSeconds { get; set; } = 60;

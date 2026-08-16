@@ -62,8 +62,6 @@ export class LoginComponent {
         error: (err) => {
           console.error('Login failed', err);
 
-          // Deliberately not auto-retried: on a form the user is watching, the honest
-          // move is to say how long to wait, not to silently spend their remaining quota.
           const message = isRateLimited(err)
             ? throttleMessage(err, this.transloco, 'auth.login')
             : this.transloco.translate('auth.login.invalidCredentials');

@@ -43,9 +43,16 @@ Requires Docker (or Podman) with Compose. No local .NET or Node installation is 
 
 3. Open the app:
 
-   - Frontend: http://localhost:4200
-   - API health: http://localhost:8080/health
-   - API reference (dev only): http://localhost:8080/scalar
+   Everything is reached through the reverse proxy on one origin. Neither the API nor
+   the dev server publishes a port of its own, so the proxy is the only route in from
+   the host — which is what the SSR server's trust in `X-Forwarded-Host` rests on. The
+   API believes forwarded headers only from the CIDRs in
+   `AuthProtection:TrustedProxyNetworks`, and ignores them entirely when that list is
+   empty.
+
+   - App: http://localhost:8000
+   - API health: http://localhost:8000/health
+   - API reference (dev only): http://localhost:8000/scalar
 
    Development seed users: `dev1@example.com` (Admin) and `dev2@example.com` (User), both with password `Password123!`.
 

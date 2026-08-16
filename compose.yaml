@@ -23,8 +23,9 @@ services:
     tmpfs:
       - /tmp/build:mode=777,exec
     working_dir: /workspaces/fullstack-app/backend
-    ports:
-      - "8080:8080"
+    # Unpublished: a host-reachable port arrives from inside the trusted proxy range,
+    # so any caller could set X-Forwarded-For and choose its own rate-limit partition.
+    # The dev server still proxies /api here for compose-network peers.
     environment:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
       - Jwt__Key=${Jwt__Key}
@@ -80,9 +81,8 @@ services:
       # Without this Prettier finds no config and silently uses defaults. One
       # file, read-only: npm install runs package scripts as root in here.
       - ./.prettierrc:/workspaces/fullstack-app/.prettierrc:ro,z
-    ports:
-      - "4200:4200"
-      - "4000:4000"
+    # Unpublished: the SSR server trusts the proxy's X-Forwarded-Host, which only holds
+    # while the proxy is the sole route in from the host.
     command: >
       sh -c "if [ ! -d 'node_modules' ] || [ ! -f 'node_modules/.bin/ng' ]; then npm install; fi &&
              npx ng serve --host 0.0.0.0"
@@ -106,6 +106,9 @@ services:
       # Whole directory: default.conf is picked up by conf.d/*.conf, and
       # proxy_headers.inc rides along for the locations that include it.
       - ./nginx:/etc/nginx/conf.d:ro,z
+    networks:
+      default:
+        ipv4_address: 10.99.0.10
     depends_on:
       frontend:
         condition: service_started
@@ -121,15 +124,25 @@ services:
       - ./frontend-angular:/app:z
       - e2e_node_modules:/app/node_modules
     environment:
-      - E2E_BASE_URL=http://frontend:4200
+      # Through the proxy: pointed at the dev server, nothing exercises nginx.
+      - E2E_BASE_URL=http://proxy
     command: >
-      sh -c "until bash -c 'echo > /dev/tcp/frontend/4200' 2>/dev/null; do sleep 1; done &&
+      sh -c "until bash -c 'echo > /dev/tcp/proxy/80' 2>/dev/null; do sleep 1; done &&
              npm install &&
              npx playwright test"
     depends_on:
-      - frontend
+      - proxy
     profiles:
       - e2e
+
+# Pinned so the proxy can hold a fixed address, which AuthProtection:TrustedProxyNetworks
+# names as the only host whose X-Forwarded-For the API believes. Change either and the
+# other stops matching, silently.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.99.0.0/24
 
 volumes:
   postgres_data:

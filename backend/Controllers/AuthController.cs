@@ -51,6 +51,7 @@ public partial class AuthController : ControllerBase
         _invitationService = invitationService;
     }
 
+    [EnableRateLimiting(AppPolicies.SessionThrottle)]
     [Authorize]
     [HttpGet("me")]
     [ProducesResponseType(StatusCodes.Status200OK)]

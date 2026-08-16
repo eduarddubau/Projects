@@ -52,6 +52,8 @@ var app = builder.Build();
 // Before the request log and the limiter, both of which read the client address.
 app.UseForwardedHeaders();
 
+app.WarnIfNoTrustedProxies();
+
 app.UseExceptionHandler();
 app.UseMiddleware<RequestLoggingMiddleware>();
 

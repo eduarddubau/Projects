@@ -206,8 +206,9 @@ public static class ServiceExtensions
         services.Configure<ForwardedHeadersOptions>(options =>
         {
             // An empty trust list reads as "don't check" to the middleware, not "trust
-            // nothing" — it would then honour X-Forwarded-For from any caller, letting one
-            // pick its own rate-limit partition. Nothing configured means nothing forwarded.
+            // nothing" — it would then believe X-Forwarded-* from any caller, who could
+            // pick their own rate-limit partition and their own scheme. Both headers stay
+            // off together: neither is worth anything without a proxy vouching for it.
             options.ForwardedHeaders =
                 throttle.TrustedProxyNetworks.Length > 0
                     ? ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
@@ -233,7 +234,9 @@ public static class ServiceExtensions
 
         services.AddRateLimiter(options =>
         {
-            options.OnRejected = RateLimitRejectionHandler.HandleAsync;
+            options.OnRejected = RateLimitRejectionHandler.WithFallbackWindow(
+                throttle.WindowSeconds
+            );
 
             options.AddPolicy(
                 AppPolicies.AuthThrottle,
@@ -259,9 +262,8 @@ public static class ServiceExtensions
         return services;
     }
 
-    /// <summary>One budget per caller. Sliding rather than fixed, because a fixed window
-    /// lets an attacker fire a full quota either side of the boundary for double the
-    /// rate.</summary>
+    /// <summary>One budget per caller. Sliding, not fixed: a fixed window lets an attacker
+    /// spend a full quota either side of the boundary for double the rate.</summary>
     private static RateLimitPartition<string> SlidingWindowPerClient(
         HttpContext httpContext,
         int permitLimit,

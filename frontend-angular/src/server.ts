@@ -14,6 +14,11 @@ const angularApp = new AngularNodeAppEngine({
   // 'proxy' is the nginx service name: it forwards the original Host, so every
   // hostname the app is reached by has to be listed here.
   allowedHosts: ['localhost', '127.0.0.1', 'api', '0.0.0.0', 'proxy'],
+  // Named rather than `true`, because only these two are safe to believe: nginx
+  // sets them from $host and $scheme, overwriting whatever the client sent.
+  // X-Forwarded-For is deliberately absent — it is appended to, not replaced, so
+  // its leftmost entry is the caller's to choose.
+  trustProxyHeaders: ['x-forwarded-host', 'x-forwarded-proto'],
 });
 
 /**
