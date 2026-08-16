@@ -26,8 +26,13 @@ builder.Services.AddCors(options =>
         "AllowFrontend",
         p =>
         {
+            // Retry-After isn't a CORS-safelisted response header, so a cross-origin
+            // client can't read it unless it's named here.
             if (builder.Environment.IsDevelopment())
-                p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                p.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .WithExposedHeaders("Retry-After");
             else
                 p.WithOrigins(
                         builder.Configuration["AllowedOrigins"]
@@ -36,7 +41,8 @@ builder.Services.AddCors(options =>
                             )
                     )
                     .AllowAnyMethod()
-                    .AllowAnyHeader();
+                    .AllowAnyHeader()
+                    .WithExposedHeaders("Retry-After");
         }
     );
 });
@@ -51,8 +57,7 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 
 app.UseCors("AllowFrontend");
 
-// Ahead of authentication: the auth endpoints are the thing being brute-forced, so
-// the limiter has to reject before any password hashing work is done.
+// Ahead of authentication: reject before any password hashing work is done.
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

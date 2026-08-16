@@ -18,6 +18,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '@core/services/auth.service';
+import { isRateLimited, throttleMessage } from '@core/utils/rate-limit';
 
 /** Server-side field error: translation key when the Identity code is known, raw text otherwise. */
 interface ServerFieldError {
@@ -130,6 +131,17 @@ export class RegisterComponent {
   }
 
   private handleBackendErrors(err: HttpErrorResponse): void {
+    // A throttled response carries an ErrorResponse, not the field-keyed Identity errors
+    // the rest of this method unpacks, so it has to be handled before them.
+    if (isRateLimited(err)) {
+      const message = throttleMessage(err, this.transloco, 'auth.register');
+
+      this.snackBar.open(message, this.transloco.translate('common.actions.close'), {
+        duration: 5000,
+      });
+      return;
+    }
+
     const errors: Record<string, string[]> = err.error ?? {};
 
     // Identity error codes that map to the email field

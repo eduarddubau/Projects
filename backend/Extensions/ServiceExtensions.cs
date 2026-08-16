@@ -43,8 +43,8 @@ public static class ServiceExtensions
                 if (env.IsDevelopment())
                     loggerConfig.WriteTo.Console(formatProvider: CultureInfo.InvariantCulture);
                 else
-                    // One JSON object per line on stdout: the container-native contract, so
-                    // any collector can parse it without a regex.
+                    // One JSON object per line on stdout: any collector can parse it
+                    // without a regex.
                     loggerConfig.WriteTo.Console(new CompactJsonFormatter());
 
                 loggerConfig.WriteTo.File(
@@ -146,8 +146,8 @@ public static class ServiceExtensions
             })
             .AddRoles<IdentityRole<Guid>>()
             .AddEntityFrameworkStores<AppDbContext>()
-            // AddIdentityCore leaves SignInManager out, and it owns the only password
-            // check that records a failure against the account.
+            // AddIdentityCore leaves it out, and it owns the only password check that
+            // records a failure against the account.
             .AddSignInManager()
             .AddDefaultTokenProviders();
 
@@ -186,10 +186,9 @@ public static class ServiceExtensions
     }
 
     /// <summary>
-    /// Per-IP throttling for the auth endpoints, plus the forwarded-headers setup it
-    /// depends on. Both belong together: behind a proxy, an unconfigured
-    /// RemoteIpAddress is the proxy's own address, so every caller lands in one
-    /// partition and the limiter throttles the whole application as a single client.
+    /// Per-IP throttling for the auth endpoints. Forwarded headers belong here too:
+    /// behind a proxy, an unconfigured RemoteIpAddress is the proxy's, so every caller
+    /// shares one partition and the limiter throttles the app as a single client.
     /// </summary>
     public static IServiceCollection AddAuthThrottling(
         this IServiceCollection services,
@@ -206,11 +205,15 @@ public static class ServiceExtensions
 
         services.Configure<ForwardedHeadersOptions>(options =>
         {
+            // An empty trust list reads as "don't check" to the middleware, not "trust
+            // nothing" — it would then honour X-Forwarded-For from any caller, letting one
+            // pick its own rate-limit partition. Nothing configured means nothing forwarded.
             options.ForwardedHeaders =
-                ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                throttle.TrustedProxyNetworks.Length > 0
+                    ? ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                    : ForwardedHeaders.None;
 
-            // Defaults trust a loopback proxy only, which a container never is. Clearing
-            // them and naming our own networks keeps the header unspoofable from outside.
+            // Defaults trust a loopback proxy only, which a container never is.
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
 
@@ -224,28 +227,31 @@ public static class ServiceExtensions
                     );
             }
 
-            // One hop: our nginx. Allowing more lets a client prepend a forged address.
+            // One hop: the reverse proxy. More lets a client prepend a forged address.
             options.ForwardLimit = 1;
         });
 
         services.AddRateLimiter(options =>
         {
-            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.OnRejected = RateLimitRejectionHandler.HandleAsync;
 
-            // Sliding rather than fixed: a fixed window lets an attacker fire a full
-            // quota either side of the boundary and get double the rate in an instant.
             options.AddPolicy(
                 AppPolicies.AuthThrottle,
                 httpContext =>
-                    RateLimitPartition.GetSlidingWindowLimiter(
-                        ClientKey(httpContext),
-                        _ => new SlidingWindowRateLimiterOptions
-                        {
-                            PermitLimit = throttle.PermitPerWindow,
-                            Window = TimeSpan.FromSeconds(throttle.WindowSeconds),
-                            SegmentsPerWindow = 4,
-                            QueueLimit = 0,
-                        }
+                    SlidingWindowPerClient(
+                        httpContext,
+                        throttle.PermitPerWindow,
+                        throttle.WindowSeconds
+                    )
+            );
+
+            options.AddPolicy(
+                AppPolicies.SessionThrottle,
+                httpContext =>
+                    SlidingWindowPerClient(
+                        httpContext,
+                        throttle.SessionPermitPerWindow,
+                        throttle.WindowSeconds
                     )
             );
         });
@@ -253,11 +259,27 @@ public static class ServiceExtensions
         return services;
     }
 
-    /// <summary>
-    /// Partitions by caller IP, falling back to a single shared bucket when there is no
-    /// address to read. The fallback throttles those callers collectively, which is the
-    /// safe direction to fail.
-    /// </summary>
+    /// <summary>One budget per caller. Sliding rather than fixed, because a fixed window
+    /// lets an attacker fire a full quota either side of the boundary for double the
+    /// rate.</summary>
+    private static RateLimitPartition<string> SlidingWindowPerClient(
+        HttpContext httpContext,
+        int permitLimit,
+        int windowSeconds
+    ) =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            ClientKey(httpContext),
+            _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromSeconds(windowSeconds),
+                SegmentsPerWindow = 4,
+                QueueLimit = 0,
+            }
+        );
+
+    /// <summary>Falls back to one shared bucket when there is no address — that
+    /// throttles those callers collectively, the safe direction to fail.</summary>
     private static string ClientKey(HttpContext httpContext) =>
         httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
@@ -268,7 +290,7 @@ public static class ServiceExtensions
             options.AddPolicy(AppPolicies.AdminOnly, policy => policy.RequireRole(AppRoles.Admin));
 
             // Admin is excluded: an administrator administers, and holds no projects
-            // or workspaces of their own. Everything they can reach is under /api/admin.
+            // or workspaces of their own.
             options.AddPolicy(
                 AppPolicies.StandardUser,
                 policy => policy.RequireRole(AppRoles.User)

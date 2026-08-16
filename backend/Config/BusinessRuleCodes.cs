@@ -8,6 +8,10 @@ public static class BusinessRuleCodes
     public const string DuplicateEmail = "DuplicateEmail";
     public const string IdentityError = "IdentityError";
 
+    /// <summary>Emitted by the rate limiter rather than an exception, but it reaches the
+    /// client through the same field and needs the same translation entry.</summary>
+    public const string TooManyRequests = "TooManyRequests";
+
     /// <summary>Backstop for a length the database enforced and no validator did.
     /// Reaching this is a bug — a missing rule — but a 409 beats a 500 while it lasts.</summary>
     public const string ValueTooLong = "ValueTooLong";

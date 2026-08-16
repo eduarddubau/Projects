@@ -143,6 +143,8 @@
       "noAccount": "Don't have an account?",
       "signUp": "Sign up",
       "invalidCredentials": "Invalid email or password.",
+      "tooManyAttempts": "Too many sign-in attempts. Please wait a moment before trying again.",
+      "tooManyAttemptsIn": "Too many sign-in attempts. Please try again in {{seconds}} seconds.",
       "validation": {
         "emailRequired": "Email is required",
         "emailInvalid": "Please enter a valid email address",
@@ -166,6 +168,8 @@
       "haveAccount": "Already have an account?",
       "signIn": "Sign in",
       "success": "Registration successful! Welcome.",
+      "tooManyAttempts": "Too many attempts. Please wait a moment before trying again.",
+      "tooManyAttemptsIn": "Too many attempts. Please try again in {{seconds}} seconds.",
       "validation": {
         "firstNameRequired": "First name is required",
         "lastNameRequired": "Last name is required",

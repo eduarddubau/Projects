@@ -47,9 +47,8 @@ public partial class RequestLoggingMiddleware
             context.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
             ?? context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        // Reads whatever UseForwardedHeaders resolved, so behind the proxy this is the
-        // caller rather than nginx. Without it every failed login would look like it
-        // came from the same address.
+        // Reads whatever UseForwardedHeaders resolved. Without it, behind a proxy every
+        // failed login would look like it came from the same address.
         var clientIp = context.Connection.RemoteIpAddress?.ToString();
 
         LogRequestCompleted(

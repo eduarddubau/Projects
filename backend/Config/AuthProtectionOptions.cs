@@ -6,8 +6,12 @@ public class AuthProtectionOptions
 {
     public const string SectionName = "AuthProtection";
 
-    /// <summary>Requests one client IP may make to /api/auth within the window.</summary>
+    /// <summary>Requests one client IP may make to login and register within the window.</summary>
     public int PermitPerWindow { get; set; } = 10;
+
+    /// <summary>The same, for refresh and logout — see <c>AppPolicies.SessionThrottle</c>
+    /// for why it is looser.</summary>
+    public int SessionPermitPerWindow { get; set; } = 60;
 
     public int WindowSeconds { get; set; } = 60;
 
@@ -17,9 +21,10 @@ public class AuthProtectionOptions
     public int LockoutMinutes { get; set; } = 15;
 
     /// <summary>
-    /// Proxy networks in CIDR form whose X-Forwarded-For may be believed. Empty means
-    /// trust nothing and read the socket address, which is correct for a directly
-    /// exposed API and wrong behind a proxy — see ForwardedHeaders in ServiceExtensions.
+    /// Proxy networks in CIDR form whose X-Forwarded-For may be believed. Empty switches
+    /// forwarded headers off entirely and reads the socket address — correct for a
+    /// directly exposed API, and behind a proxy it throttles everyone as one caller
+    /// rather than trusting a header anyone can forge.
     /// </summary>
     public string[] TrustedProxyNetworks { get; set; } = [];
 }

@@ -158,6 +158,8 @@ public partial class AuthController : ControllerBase
         );
     }
 
+    // An action-level policy replaces the controller's.
+    [EnableRateLimiting(AppPolicies.SessionThrottle)]
     [HttpPost("refresh")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -186,6 +188,7 @@ public partial class AuthController : ControllerBase
         );
     }
 
+    [EnableRateLimiting(AppPolicies.SessionThrottle)]
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Logout([FromBody] RefreshRequest request, CancellationToken ct)

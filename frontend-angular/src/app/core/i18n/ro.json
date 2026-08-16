@@ -143,6 +143,8 @@
       "noAccount": "Nu ai cont?",
       "signUp": "Înregistrează-te",
       "invalidCredentials": "Email sau parolă incorecte.",
+      "tooManyAttempts": "Prea multe încercări de autentificare. Așteaptă puțin înainte de a încerca din nou.",
+      "tooManyAttemptsIn": "Prea multe încercări de autentificare. Încearcă din nou în {{seconds}} secunde.",
       "validation": {
         "emailRequired": "Emailul este obligatoriu",
         "emailInvalid": "Introdu o adresă de email validă",
@@ -166,6 +168,8 @@
       "haveAccount": "Ai deja cont?",
       "signIn": "Conectează-te",
       "success": "Înregistrare reușită! Bine ai venit.",
+      "tooManyAttempts": "Prea multe încercări. Așteaptă puțin înainte de a încerca din nou.",
+      "tooManyAttemptsIn": "Prea multe încercări. Încearcă din nou în {{seconds}} secunde.",
       "validation": {
         "firstNameRequired": "Prenumele este obligatoriu",
         "lastNameRequired": "Numele este obligatoriu",

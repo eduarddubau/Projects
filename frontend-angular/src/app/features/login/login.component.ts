@@ -10,6 +10,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '@core/services/auth.service';
 import { LoginCredentials } from '@core/models/login-credentials';
 import { APP_NAME } from '@core/tokens/app.tokens';
+import { isRateLimited, throttleMessage } from '@core/utils/rate-limit';
 
 @Component({
   selector: 'app-login',
@@ -60,11 +61,16 @@ export class LoginComponent {
         },
         error: (err) => {
           console.error('Login failed', err);
-          this.snackBar.open(
-            this.transloco.translate('auth.login.invalidCredentials'),
-            this.transloco.translate('common.actions.close'),
-            { duration: 3000 },
-          );
+
+          // Deliberately not auto-retried: on a form the user is watching, the honest
+          // move is to say how long to wait, not to silently spend their remaining quota.
+          const message = isRateLimited(err)
+            ? throttleMessage(err, this.transloco, 'auth.login')
+            : this.transloco.translate('auth.login.invalidCredentials');
+
+          this.snackBar.open(message, this.transloco.translate('common.actions.close'), {
+            duration: 5000,
+          });
         },
       });
     } else {
