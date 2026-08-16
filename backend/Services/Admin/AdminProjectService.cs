@@ -69,6 +69,24 @@ public class AdminProjectService : IAdminProjectService
             .Where(p => ids.Contains(p.Id) && p.IsDeleted)
             .ToListAsync(ct);
 
+        var projectIds = projects.Select(p => p.Id).ToList();
+
+        // Tasks hold their project by a Restrict FK, so they must go first or the delete throws.
+        // Explicit rather than DeleteBehavior.Cascade: a database-level cascade would bypass the
+        // SaveChangesAsync interceptor entirely, and purging is the one place destruction is
+        // intended, so it should read as a deliberate line. IgnoreQueryFilters because a
+        // soft-deleted task holds the FK just as hard as a live one.
+        var tasks = await _context
+            .Tasks.IgnoreQueryFilters()
+            .Where(t => projectIds.Contains(t.ProjectId))
+            .ToListAsync(ct);
+
+        foreach (var task in tasks)
+        {
+            _context.MarkForHardDelete(task);
+            _context.Tasks.Remove(task);
+        }
+
         foreach (var project in projects)
         {
             _context.MarkForHardDelete(project);

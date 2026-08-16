@@ -27,6 +27,8 @@ public static class BusinessRuleCodes
     // Used when an admin tries to demote or remove an owner
     public const string SoleOwnerOfWorkspaces = "SoleOwnerOfWorkspaces";
 
+    public const string AssigneeNotWorkspaceMember = "AssigneeNotWorkspaceMember";
+
     public const string PendingInvitationExists = "PendingInvitationExists";
     public const string InvitationInvalid = "InvitationInvalid";
     public const string EmailBelongsToDeletedAccount = "EmailBelongsToDeletedAccount";

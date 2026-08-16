@@ -13,6 +13,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
     private readonly ICurrentUserService _currentUserService;
     private readonly HashSet<object> _hardDeleteOverrides = [];
+    private readonly HashSet<object> _incidentalChanges = [];
 
     public AppDbContext(
         DbContextOptions<AppDbContext> options,
@@ -24,6 +25,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     }
 
     public DbSet<Project> Projects { get; set; }
+    public DbSet<TaskItem> Tasks { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Workspace> Workspaces { get; set; }
     public DbSet<WorkspaceMember> WorkspaceMembers { get; set; }
@@ -32,6 +34,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     // Bypasses the soft-delete interception below for this entity's next removal.
     public void MarkForHardDelete(object entity) => _hardDeleteOverrides.Add(entity);
 
+    // Keeps this entity's UpdatedAt/UpdatedBy on its next save. For rows that shift as a
+    // consequence of someone else's edit — a card renumbered because a neighbour moved —
+    // where stamping would claim a whole column was edited by whoever dragged one card.
+    public void MarkAsIncidentalChange(object entity) => _incidentalChanges.Add(entity);
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -39,6 +46,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
         builder.Entity<Project>().HasQueryFilter(p => !p.IsDeleted);
         builder.Entity<Workspace>().HasQueryFilter(w => !w.IsDeleted);
+        builder.Entity<TaskItem>().HasQueryFilter(t => !t.IsDeleted);
 
         builder.Entity<User>(entity =>
         {
@@ -95,6 +103,54 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .HasOne(p => p.Workspace)
                 .WithMany(w => w.Projects)
                 .HasForeignKey(p => p.WorkspaceId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TaskItem>(entity =>
+        {
+            entity.Property(t => t.Title).HasMaxLength(TaskItem.TitleMaxLength);
+
+            entity.Property(t => t.Description).HasMaxLength(TaskItem.DescriptionMaxLength);
+
+            entity.Property(t => t.Status).HasConversion<string>();
+
+            // The board's only read path: one column of one project, in order. Not unique —
+            // two simultaneous drops into the same slot tie, and OrderBy(Position).ThenBy(Id)
+            // resolves that deterministically without a retry loop.
+            entity.HasIndex(t => new
+            {
+                t.ProjectId,
+                t.Status,
+                t.Position,
+            });
+
+            entity.HasIndex(t => t.AssigneeId);
+
+            // No WithMany(p => p.Tasks): a Tasks collection on Project would invite
+            // p.Tasks.Any(...) joins that the soft-delete filter silently distorts.
+            entity
+                .HasOne(t => t.Project)
+                .WithMany()
+                .HasForeignKey(t => t.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Restrict like the audit FKs: an assignee must not be purged out from under the work.
+            entity
+                .HasOne(t => t.Assignee)
+                .WithMany()
+                .HasForeignKey(t => t.AssigneeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(t => t.Creator)
+                .WithMany()
+                .HasForeignKey(t => t.CreatedBy)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(t => t.Updater)
+                .WithMany()
+                .HasForeignKey(t => t.UpdatedBy)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -203,6 +259,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             {
                 entityEntry.Property(nameof(BaseEntity.CreatedAt)).IsModified = false;
                 entityEntry.Property(nameof(BaseEntity.CreatedBy)).IsModified = false;
+
+                if (_incidentalChanges.Remove(entityEntry.Entity))
+                    continue;
 
                 entityEntry.Entity.UpdatedAt = now;
 

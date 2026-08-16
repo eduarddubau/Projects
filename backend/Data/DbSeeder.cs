@@ -159,7 +159,10 @@ public static partial class DbSeeder
         }
 
         if (sharedWorkspaceId is not null)
+        {
             await SeedSharedProjectsAsync(context, logger, devUsers, sharedWorkspaceId.Value);
+            await SeedSharedTasksAsync(context, logger, devUsers, sharedWorkspaceId.Value);
+        }
     }
 
     /// <summary>Delegates to the service rather than reimplementing it: this used to be a
@@ -413,7 +416,7 @@ public static partial class DbSeeder
         context.Projects.AddRange(
             new Project
             {
-                Name = "Acme Website Redesign",
+                Name = RedesignProjectName,
                 Description = "Shared workspace project, created by the owner.",
                 CreatedBy = devUsers[0].Id,
                 WorkspaceId = workspaceId,
@@ -430,8 +433,143 @@ public static partial class DbSeeder
         await context.SaveChangesAsync();
     }
 
+    /// <summary>Shared between the project seed and the task seed, so the lookup can't drift.</summary>
+    private const string RedesignProjectName = "Acme Website Redesign";
+
+    /// <summary>Gives the Acme board something to look like a board with.</summary>
+    private static async Task SeedSharedTasksAsync(
+        AppDbContext context,
+        ILogger logger,
+        List<User> devUsers,
+        Guid workspaceId
+    )
+    {
+        // By name, not "the first one": these fixtures describe a redesign, and picking
+        // positionally silently filed them under the roadmap project instead.
+        var found = await context
+            .Projects.Where(p => p.WorkspaceId == workspaceId && p.Name == RedesignProjectName)
+            .Select(p => (Guid?)p.Id)
+            .FirstOrDefaultAsync();
+
+        if (found is not Guid projectId)
+            return;
+
+        // IgnoreQueryFilters: without it, deleting every seeded card and restarting seeds a
+        // second set on top of the soft-deleted first one.
+        if (await context.Tasks.IgnoreQueryFilters().AnyAsync(t => t.ProjectId == projectId))
+            return;
+
+        LogSeedingSharedTasks(logger);
+
+        var owner = devUsers[0].Id;
+        var member = devUsers[^1].Id;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // Titles, statuses and dates chosen to exercise every state the card renders:
+        // overdue, due soon, undated, unassigned, and completed.
+        (
+            string Title,
+            string? Description,
+            TaskItemStatus Status,
+            Guid? Assignee,
+            DateOnly? Start,
+            DateOnly? Due
+        )[] fixtures =
+        [
+            (
+                "Audit the current sitemap",
+                "Catalogue every page before anything moves.",
+                TaskItemStatus.Done,
+                owner,
+                today.AddDays(-21),
+                today.AddDays(-14)
+            ),
+            (
+                "Agree the new information architecture",
+                null,
+                TaskItemStatus.Done,
+                member,
+                today.AddDays(-14),
+                today.AddDays(-7)
+            ),
+            (
+                "Rebuild the marketing homepage",
+                "Hero, testimonials, pricing table.",
+                TaskItemStatus.InProgress,
+                owner,
+                today.AddDays(-3),
+                today.AddDays(4)
+            ),
+            (
+                "Migrate blog posts to the new CMS",
+                null,
+                TaskItemStatus.InProgress,
+                member,
+                today.AddDays(-10),
+                today.AddDays(-2)
+            ),
+            (
+                "Write copy for the pricing page",
+                "Waiting on final numbers from finance.",
+                TaskItemStatus.Todo,
+                null,
+                null,
+                today.AddDays(11)
+            ),
+            (
+                "Set up redirects for retired URLs",
+                "Every removed page needs a 301.",
+                TaskItemStatus.Todo,
+                owner,
+                null,
+                null
+            ),
+            (
+                "Accessibility pass on the new templates",
+                "Colour contrast, focus order, alt text.",
+                TaskItemStatus.Todo,
+                member,
+                today.AddDays(7),
+                today.AddDays(18)
+            ),
+            ("Decide on a webfont licence", null, TaskItemStatus.Todo, null, null, null),
+        ];
+
+        // Position is assigned per column by the loop, never hardcoded: a hardcoded list
+        // silently stops sorting the moment someone reorders the fixtures above.
+        var nextPosition = new Dictionary<TaskItemStatus, int>();
+
+        foreach (var (title, description, status, assignee, start, due) in fixtures)
+        {
+            nextPosition.TryGetValue(status, out var position);
+            nextPosition[status] = position + 1;
+
+            context.Tasks.Add(
+                new TaskItem
+                {
+                    Title = title,
+                    Description = description,
+                    Status = status,
+                    Position = position,
+                    ProjectId = projectId,
+                    AssigneeId = assignee,
+                    StartDate = start,
+                    DueDate = due,
+                    CompletedAt =
+                        status == TaskItemStatus.Done ? DateTime.UtcNow.AddDays(-5) : null,
+                    CreatedBy = owner,
+                }
+            );
+        }
+
+        await context.SaveChangesAsync();
+    }
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Starting database seeding...")]
     private static partial void LogSeedingStarted(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeding shared workspace tasks...")]
+    private static partial void LogSeedingSharedTasks(ILogger logger);
 
     [LoggerMessage(
         Level = LogLevel.Information,

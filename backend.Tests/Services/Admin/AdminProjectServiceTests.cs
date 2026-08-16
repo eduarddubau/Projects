@@ -249,5 +249,38 @@ public sealed class AdminProjectServiceTests : IDisposable
         Assert.Equal([active.Id], remaining);
     }
 
+    [Fact]
+    public async Task PurgeProjectsAsync_AlsoPurgesTheProjectsTasks()
+    {
+        var project = AddProject("Deleted", _personal, isDeleted: true);
+        var live = AddTask("Live", project);
+        var trashed = AddTask("Trashed", project, isDeleted: true);
+        var survivor = AddTask("Elsewhere", AddProject("Kept", _personal));
+
+        // Without the task purge this throws: tasks hold their project by a Restrict FK,
+        // and a soft-deleted task holds it just as hard as a live one.
+        var result = await _service.PurgeProjectsAsync([project.Id], Ct);
+
+        Assert.Equal(1, result);
+        var remaining = await _context.Tasks.IgnoreQueryFilters().Select(t => t.Id).ToListAsync(Ct);
+        Assert.Equal([survivor.Id], remaining);
+        Assert.DoesNotContain(live.Id, remaining);
+        Assert.DoesNotContain(trashed.Id, remaining);
+    }
+
+    private TaskItem AddTask(string title, Project project, bool isDeleted = false)
+    {
+        var task = new TaskItem
+        {
+            Title = title,
+            ProjectId = project.Id,
+            IsDeleted = isDeleted,
+            DeletedAt = isDeleted ? DateTime.UtcNow : null,
+        };
+        _context.Tasks.Add(task);
+        _context.SaveChanges();
+        return task;
+    }
+
     public void Dispose() => _context.Dispose();
 }
