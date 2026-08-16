@@ -1,0 +1,24 @@
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+
+  mat-form-field {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  @media (max-width: 520px) {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+.form-error {
+  margin: 0 0 8px;
+  color: var(--mat-sys-error);
+  font: var(--mat-sys-body-small);
+}

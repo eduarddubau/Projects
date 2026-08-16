@@ -1,75 +1,59 @@
 .detail-container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 28px 24px 56px;
 }
 
-.detail-card {
-  background: var(--mat-sys-surface-container-lowest);
-}
-
-.detail-header {
+// Compact by design: the tasks below need the vertical space more than a metadata
+// card does, and the board will need it more still. The card's audit fields were
+// dropped rather than relocated — nothing in the app read them.
+.project-header {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
+  gap: 12px;
+  margin-bottom: 20px;
+}
 
-  mat-card-title {
-    font: var(--mat-sys-headline-small);
-    letter-spacing: -0.02em;
-  }
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: var(--mat-sys-on-surface-variant);
+  text-decoration: none;
 
-  .header-actions {
-    margin-left: auto;
-    flex: 0 0 auto;
-    display: flex;
-    gap: 8px;
+  &:hover {
+    background: var(--mat-sys-surface-container-high);
   }
 }
 
-.detail-grid {
-  display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 12px 24px;
-  margin: 16px 0 0;
+.project-identity {
+  flex: 1 1 auto;
+  min-width: 0;
 
-  dt {
-    font-weight: 600;
-    color: var(--mat-sys-on-surface-variant);
+  .page-title {
+    margin: 0;
   }
 
-  dd {
-    margin: 0;
+  .page-subtitle {
+    margin: 4px 0 0;
     overflow-wrap: anywhere;
   }
-
-  .mono {
-    font-family: monospace;
-    font-size: 0.85rem;
-  }
-
-  @media (max-width: 560px) {
-    grid-template-columns: 1fr;
-    gap: 4px 0;
-
-    dd {
-      margin-bottom: 12px;
-    }
-  }
 }
 
-.edit-form {
+.view-bar {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-}
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 
-.full-width {
-  width: 100%;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+  .section-heading {
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+  }
 }

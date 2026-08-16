@@ -26,15 +26,18 @@ test.describe('My Projects CRUD', () => {
     const row = page.locator('tr', { hasText: projectName });
     await expect(row).toBeVisible();
 
-    // Edit happens on the detail page, opened by clicking the row.
+    // Edit happens on the detail page, through the header's actions menu.
     await row.click();
-    await page.getByRole('button', { name: 'Edit' }).click();
-    await page.getByLabel('Name').fill(updatedName);
-    await page.getByRole('button', { name: 'Save changes' }).click();
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await page.getByRole('menuitem', { name: 'Edit' }).click();
+    dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Name').fill(updatedName);
+    await dialog.getByRole('button', { name: 'Save' }).click();
     await expect(page.getByText('Project updated.')).toBeVisible();
 
-    // Delete from the detail page; the app returns to the list afterwards.
-    await page.getByRole('button', { name: 'Delete' }).click();
+    // Delete from the same menu; the app returns to the list afterwards.
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
     dialog = page.getByRole('dialog');
     await dialog.getByRole('button', { name: 'Delete' }).click();
 

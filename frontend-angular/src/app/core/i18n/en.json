@@ -296,14 +296,9 @@
       "loading": "Loading project…",
       "notFound": "We couldn't find that project. It may have been deleted.",
       "backToProjects": "Back to Projects",
-      "description": "Description",
-      "createdBy": "Created by",
-      "createdAt": "Created at",
-      "updatedBy": "Last updated by",
-      "updatedAt": "Last updated",
-      "projectId": "Project ID",
       "moveTo": "Move to workspace",
-      "noOtherWorkspaces": "No other workspaces"
+      "noOtherWorkspaces": "No other workspaces",
+      "projectActions": "Project actions"
     },
     "form": {
       "editTitle": "Edit Project",
@@ -633,6 +628,70 @@
       "pendingExists": "This address already has a pending invitation to this workspace.",
       "invalid": "This invitation link is not valid, or it has expired or been revoked.",
       "deletedAccount": "This address belongs to a deleted account and cannot be invited."
+    }
+  },
+  "tasks": {
+    "status": {
+      "Todo": "To do",
+      "InProgress": "In progress",
+      "Done": "Done"
+    },
+    "unassigned": "Unassigned",
+    "actions": {
+      "new": "New Task",
+      "edit": "Edit task",
+      "delete": "Delete task"
+    },
+    "list": {
+      "searchLabel": "Search tasks",
+      "searchPlaceholder": "Search by title or assignee...",
+      "filterMine": "Assigned to me",
+      "filterOverdue": "Overdue",
+      "overdue": "Overdue",
+      "loading": "Loading tasks...",
+      "loadFailed": "Failed to load tasks. Please try again.",
+      "tableAria": "Tasks",
+      "noSearchResults": "No tasks match your search.",
+      "empty": "No tasks yet — create your first one.",
+      "heading": "Tasks"
+    },
+    "table": {
+      "title": "Title",
+      "assignee": "Assignee",
+      "status": "Status",
+      "dueDate": "Due",
+      "actions": "Actions"
+    },
+    "form": {
+      "newTitle": "New Task",
+      "editTitle": "Edit Task",
+      "title": "Title",
+      "description": "Description",
+      "status": "Status",
+      "assignee": "Assignee",
+      "startDate": "Start date",
+      "dueDate": "Due date",
+      "titleRequired": "Title is required.",
+      "titleMaxLength": "Title must be 200 characters or fewer.",
+      "descriptionMaxLength": "Description must be 2000 characters or fewer.",
+      "dueBeforeStart": "The due date cannot be before the start date."
+    },
+    "confirmDelete": {
+      "title": "Delete task?",
+      "message": "This will delete \"{{title}}\"."
+    },
+    "errors": {
+      "assigneeNotMember": "That person is not a member of this workspace."
+    },
+    "notifications": {
+      "created": "Task created.",
+      "createFailed": "Failed to create the task.",
+      "updated": "Task updated.",
+      "updateFailed": "Failed to update the task.",
+      "deleted": "Task deleted.",
+      "deleteFailed": "Failed to delete the task.",
+      "moved": "Task moved.",
+      "moveFailed": "Failed to move the task."
     }
   }
 }

@@ -65,9 +65,14 @@ export class WorkspaceService {
    * reload() this — httpResource keeps the previous rows visible while it
    * refetches, so the table never blanks out mid-update.
    */
-  membersResource(workspaceId: Signal<string>) {
+  // Returning undefined keeps the resource idle until the id is known, rather than
+  // requesting /workspaces//members for callers whose id arrives asynchronously.
+  membersResource(workspaceId: Signal<string | null | undefined>) {
     return httpResource<WorkspaceMember[]>(
-      () => `${this.apiUrl}/workspaces/${workspaceId()}/members`,
+      () => {
+        const id = workspaceId();
+        return id ? `${this.apiUrl}/workspaces/${id}/members` : undefined;
+      },
       { defaultValue: [] },
     );
   }

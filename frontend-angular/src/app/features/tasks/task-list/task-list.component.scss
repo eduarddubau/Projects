@@ -1,0 +1,61 @@
+.task-title {
+  display: block;
+  font-weight: 500;
+}
+
+.task-subtitle {
+  display: block;
+  max-width: 44ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.assignee {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// Tints the chip by column so a status reads at a glance, not only by its text.
+.status-chip[data-status='Todo'] {
+  background: color-mix(in srgb, var(--mat-sys-on-surface-variant) 14%, transparent);
+}
+
+.status-chip[data-status='InProgress'] {
+  background: color-mix(in srgb, var(--mat-sys-primary) 18%, transparent);
+}
+
+.status-chip[data-status='Done'] {
+  background: color-mix(in srgb, var(--mat-sys-tertiary) 20%, transparent);
+}
+
+.due {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.due-overdue {
+  color: var(--mat-sys-error);
+  font-weight: 500;
+}
+
+// Pressed state for the quick filters; aria-pressed carries it for screen readers.
+.filter-on {
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
+  border-color: var(--mat-sys-primary);
+}

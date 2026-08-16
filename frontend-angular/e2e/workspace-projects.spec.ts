@@ -62,12 +62,19 @@ test.describe('Workspace-scoped projects', () => {
     // accepts a detail page that fell back to the personal workspace, where dev2
     // is an owner and the delete button legitimately appears.
     await expect(page).toHaveURL(new RegExp(`/w/${workspaceId}/projects/[0-9a-f-]+$`));
-    await expect(page.getByRole('button', { name: 'Delete' })).toHaveCount(0);
 
-    await page.getByRole('button', { name: 'Edit' }).click();
-    const description = page.getByLabel('Description');
-    await description.fill(`Edited by dev2 at ${Date.now()}`);
-    await page.getByRole('button', { name: 'Save' }).click();
+    // Inside the menu: delete moved there, so a page-level button query would
+    // now pass whether or not a member is offered the action.
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Delete' })).toHaveCount(0);
+    await expect(page.getByRole('menuitem', { name: 'Move to workspace' })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await page.getByRole('menuitem', { name: 'Edit' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Description').fill(`Edited by dev2 at ${Date.now()}`);
+    await dialog.getByRole('button', { name: 'Save' }).click();
 
     await expect(page.getByText('Project updated.')).toBeVisible();
   });
@@ -90,7 +97,8 @@ test.describe('Workspace-scoped projects', () => {
     await page.locator('tr', { hasText: name }).click();
     await expect(page).toHaveURL(new RegExp(`/w/${personalId}/projects/[0-9a-f-]+$`));
 
-    await page.getByRole('button', { name: 'Move to workspace' }).click();
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await page.getByRole('menuitem', { name: 'Move to workspace' }).click();
     await page.getByRole('menuitem', { name: 'Acme Team' }).click();
 
     await expect(page.getByText('Project moved to Acme Team.')).toBeVisible();
@@ -99,7 +107,8 @@ test.describe('Workspace-scoped projects', () => {
 
     // Clean up, or every rerun leaves another project in Acme Team and eventually
     // pushes the seeded ones out of the dashboard's five recent rows.
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByText('Project deleted.')).toBeVisible();
   });

@@ -17,6 +17,8 @@ const SERVER_ERROR_KEYS: Record<string, string> = {
   SoleOwnerOfWorkspaces: 'admin.users.serverErrors.soleOwnerOfWorkspaces',
   EmailReclaimed: 'admin.trashUsers.serverErrors.emailReclaimed',
 
+  AssigneeNotWorkspaceMember: 'tasks.errors.assigneeNotMember',
+
   PendingInvitationExists: 'invitations.serverErrors.pendingExists',
   InvitationInvalid: 'invitations.serverErrors.invalid',
   EmailBelongsToDeletedAccount: 'invitations.serverErrors.deletedAccount',

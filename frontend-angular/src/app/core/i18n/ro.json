@@ -296,14 +296,9 @@
       "loading": "Se încarcă proiectul…",
       "notFound": "Nu am găsit acest proiect. Este posibil să fi fost șters.",
       "backToProjects": "Înapoi la Proiecte",
-      "description": "Descriere",
-      "createdBy": "Creat de",
-      "createdAt": "Creat la",
-      "updatedBy": "Ultima actualizare de",
-      "updatedAt": "Ultima actualizare",
-      "projectId": "ID proiect",
       "moveTo": "Mută în spațiul de lucru",
-      "noOtherWorkspaces": "Nu ai alte spații de lucru"
+      "noOtherWorkspaces": "Nu ai alte spații de lucru",
+      "projectActions": "Acțiuni proiect"
     },
     "form": {
       "editTitle": "Editează proiectul",
@@ -633,6 +628,70 @@
       "pendingExists": "Această adresă are deja o invitație în așteptare pentru acest spațiu de lucru.",
       "invalid": "Acest link de invitație nu este valid sau a expirat ori a fost revocat.",
       "deletedAccount": "Această adresă aparține unui cont șters și nu poate fi invitată."
+    }
+  },
+  "tasks": {
+    "status": {
+      "Todo": "De făcut",
+      "InProgress": "În lucru",
+      "Done": "Finalizat"
+    },
+    "unassigned": "Neatribuită",
+    "actions": {
+      "new": "Sarcină nouă",
+      "edit": "Editează sarcina",
+      "delete": "Șterge sarcina"
+    },
+    "list": {
+      "searchLabel": "Caută sarcini",
+      "searchPlaceholder": "Caută după titlu sau responsabil...",
+      "filterMine": "Atribuite mie",
+      "filterOverdue": "Întârziate",
+      "overdue": "Întârziată",
+      "loading": "Se încarcă sarcinile...",
+      "loadFailed": "Încărcarea sarcinilor a eșuat. Încearcă din nou.",
+      "tableAria": "Sarcini",
+      "noSearchResults": "Nicio sarcină nu corespunde căutării.",
+      "empty": "Nicio sarcină încă — creeaz-o pe prima.",
+      "heading": "Sarcini"
+    },
+    "table": {
+      "title": "Titlu",
+      "assignee": "Responsabil",
+      "status": "Stare",
+      "dueDate": "Termen",
+      "actions": "Acțiuni"
+    },
+    "form": {
+      "newTitle": "Sarcină nouă",
+      "editTitle": "Editează sarcina",
+      "title": "Titlu",
+      "description": "Descriere",
+      "status": "Stare",
+      "assignee": "Responsabil",
+      "startDate": "Dată de început",
+      "dueDate": "Termen limită",
+      "titleRequired": "Titlul este obligatoriu.",
+      "titleMaxLength": "Titlul trebuie să aibă cel mult 200 de caractere.",
+      "descriptionMaxLength": "Descrierea trebuie să aibă cel mult 2000 de caractere.",
+      "dueBeforeStart": "Termenul limită nu poate fi înaintea datei de început."
+    },
+    "confirmDelete": {
+      "title": "Ștergi sarcina?",
+      "message": "Aceasta va șterge „{{title}}”."
+    },
+    "errors": {
+      "assigneeNotMember": "Această persoană nu este membră a acestui spațiu de lucru."
+    },
+    "notifications": {
+      "created": "Sarcină creată.",
+      "createFailed": "Crearea sarcinii a eșuat.",
+      "updated": "Sarcină actualizată.",
+      "updateFailed": "Actualizarea sarcinii a eșuat.",
+      "deleted": "Sarcină ștearsă.",
+      "deleteFailed": "Ștergerea sarcinii a eșuat.",
+      "moved": "Sarcină mutată.",
+      "moveFailed": "Mutarea sarcinii a eșuat."
     }
   }
 }

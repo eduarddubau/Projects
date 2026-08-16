@@ -1,0 +1,149 @@
+<div class="table-card" *transloco="let t">
+  <div class="table-toolbar">
+    <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+      <mat-label>{{ t('tasks.list.searchLabel') }}</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        [placeholder]="t('tasks.list.searchPlaceholder')"
+        (input)="table.setSearch($any($event.target).value)"
+      />
+    </mat-form-field>
+
+    <div class="toolbar-actions">
+      <button
+        mat-stroked-button
+        [class.filter-on]="mineOnly()"
+        [attr.aria-pressed]="mineOnly()"
+        (click)="toggleMine()"
+      >
+        <mat-icon>person</mat-icon>
+        {{ t('tasks.list.filterMine') }}
+      </button>
+      <button
+        mat-stroked-button
+        [class.filter-on]="overdueOnly()"
+        [attr.aria-pressed]="overdueOnly()"
+        (click)="toggleOverdue()"
+      >
+        <mat-icon>event_busy</mat-icon>
+        {{ t('tasks.list.filterOverdue') }}
+      </button>
+    </div>
+  </div>
+
+  @if (tasks().isLoading()) {
+    <div class="state-container">
+      <p>{{ t('tasks.list.loading') }}</p>
+    </div>
+  } @else if (tasks().error()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ t('tasks.list.loadFailed') }}</p>
+    </div>
+  } @else {
+    <table
+      mat-table
+      [dataSource]="table.pageRows()"
+      matSort
+      (matSortChange)="onSort($event)"
+      class="full-width-table"
+      [attr.aria-label]="t('tasks.list.tableAria')"
+    >
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('tasks.table.title') }}</th>
+        <td mat-cell *matCellDef="let task">
+          <span class="task-title">{{ task.title }}</span>
+          @if (task.description) {
+            <span class="task-subtitle">{{ task.description }}</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="assignee">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('tasks.table.assignee') }}</th>
+        <td mat-cell *matCellDef="let task">
+          @if (task.assigneeDisplayName) {
+            <span class="assignee">
+              <span class="avatar-circle" aria-hidden="true">{{
+                task.assigneeDisplayName.charAt(0)
+              }}</span>
+              {{ task.assigneeDisplayName }}
+            </span>
+          } @else {
+            <span class="muted">{{ t('tasks.unassigned') }}</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('tasks.table.status') }}</th>
+        <td mat-cell *matCellDef="let task">
+          <span class="role-chip status-chip" [attr.data-status]="task.status">
+            {{ t('tasks.status.' + task.status) }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="dueDate">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('tasks.table.dueDate') }}</th>
+        <td mat-cell *matCellDef="let task">
+          @if (task.dueDate) {
+            <span class="due" [class.due-overdue]="isOverdue(task.dueDate, task.status)">
+              @if (isOverdue(task.dueDate, task.status)) {
+                <mat-icon [attr.aria-label]="t('tasks.list.overdue')">event_busy</mat-icon>
+              }
+              {{ asDate(task.dueDate) | date: 'mediumDate' : undefined : dateLocale() }}
+            </span>
+          } @else {
+            <span class="muted">—</span>
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>{{ t('tasks.table.actions') }}</th>
+        <td mat-cell *matCellDef="let task">
+          <button
+            mat-icon-button
+            [attr.aria-label]="t('tasks.actions.edit')"
+            [matTooltip]="t('tasks.actions.edit')"
+            (click)="openEdit(task)"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="button-danger"
+            [attr.aria-label]="t('tasks.actions.delete')"
+            [matTooltip]="t('tasks.actions.delete')"
+            (click)="confirmDelete(task)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    @if (table.hasNoMatches()) {
+      <div class="state-container">
+        <p>{{ t('tasks.list.noSearchResults') }}</p>
+      </div>
+    } @else if (table.isEmpty()) {
+      <div class="state-container">
+        <p>{{ t('tasks.list.empty') }}</p>
+      </div>
+    }
+
+    <mat-paginator
+      [length]="table.total()"
+      [pageSize]="table.pageSize()"
+      [pageIndex]="table.pageIndex()"
+      [pageSizeOptions]="[10, 25, 50]"
+      (page)="onPage($event)"
+    ></mat-paginator>
+  }
+</div>

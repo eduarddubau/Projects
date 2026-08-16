@@ -39,8 +39,7 @@ test.describe('User dashboard', () => {
     await row.click();
 
     await page.waitForURL(/\/projects\/[0-9a-f-]+$/);
-    // The detail page renders the name in mat-card-title, which has no heading role.
-    await expect(page.locator('mat-card-title')).toHaveText(name);
+    await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible();
   });
 
   test('links to the profile page', async ({ page }) => {

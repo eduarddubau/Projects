@@ -1,0 +1,76 @@
+<ng-container *transloco="let t">
+  <h2 mat-dialog-title>
+    {{ isEditMode ? t('tasks.form.editTitle') : t('tasks.form.newTitle') }}
+  </h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <mat-dialog-content>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ t('tasks.form.title') }}</mat-label>
+        <input matInput formControlName="title" maxlength="200" required />
+        @if (form.controls.title.hasError('required')) {
+          <mat-error>{{ t('tasks.form.titleRequired') }}</mat-error>
+        }
+        @if (form.controls.title.hasError('maxlength')) {
+          <mat-error>{{ t('tasks.form.titleMaxLength') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ t('tasks.form.description') }}</mat-label>
+        <textarea matInput formControlName="description" maxlength="2000" rows="3"></textarea>
+        @if (form.controls.description.hasError('maxlength')) {
+          <mat-error>{{ t('tasks.form.descriptionMaxLength') }}</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ t('tasks.form.status') }}</mat-label>
+          <mat-select formControlName="status">
+            @for (status of statuses; track status) {
+              <mat-option [value]="status">{{ t('tasks.status.' + status) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ t('tasks.form.assignee') }}</mat-label>
+          <mat-select formControlName="assigneeId">
+            <mat-option value="">{{ t('tasks.unassigned') }}</mat-option>
+            @for (member of assignableMembers(); track member.userId) {
+              <mat-option [value]="member.userId">{{ member.userDisplayName }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>{{ t('tasks.form.startDate') }}</mat-label>
+          <input matInput [matDatepicker]="startPicker" formControlName="startDate" />
+          <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ t('tasks.form.dueDate') }}</mat-label>
+          <input matInput [matDatepicker]="duePicker" formControlName="dueDate" />
+          <mat-datepicker-toggle matIconSuffix [for]="duePicker"></mat-datepicker-toggle>
+          <mat-datepicker #duePicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      @if (form.hasError('dueBeforeStart')) {
+        <p class="form-error">{{ t('tasks.form.dueBeforeStart') }}</p>
+      }
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button type="button" mat-button (click)="cancel()">{{ t('common.actions.cancel') }}</button>
+      <button type="submit" mat-flat-button [disabled]="form.invalid">
+        {{ isEditMode ? t('common.actions.save') : t('common.actions.create') }}
+      </button>
+    </mat-dialog-actions>
+  </form>
+</ng-container>
