@@ -181,7 +181,7 @@ public class ProjectService : IProjectService
         return await LoadDtoAsync(project, ct);
     }
 
-    public async Task<ProjectResponseDto?> MoveProjectAsync(
+    public async Task<MoveProjectResponseDto?> MoveProjectAsync(
         Guid id,
         Guid targetWorkspaceId,
         CancellationToken ct = default
@@ -193,7 +193,7 @@ public class ProjectService : IProjectService
             return null;
 
         if (project.WorkspaceId == targetWorkspaceId)
-            return await LoadDtoAsync(project, ct);
+            return new MoveProjectResponseDto(await LoadDtoAsync(project, ct), 0);
 
         await _access.RequireOwnerAsync(project.WorkspaceId, ct);
         await _access.RequireMemberAsync(targetWorkspaceId, ct);
@@ -201,9 +201,38 @@ public class ProjectService : IProjectService
         await RequireNameIsFreeAsync(targetWorkspaceId, project.Name, id, ct);
 
         project.WorkspaceId = targetWorkspaceId;
+        var unassignedCount = await UnassignNonMembersAsync(id, targetWorkspaceId, ct);
         await _context.SaveChangesAsync(ct);
 
-        return await LoadDtoAsync(project, ct);
+        return new MoveProjectResponseDto(await LoadDtoAsync(project, ct), unassignedCount);
+    }
+
+    /// <summary>
+    /// Unassigns anyone the target workspace does not hold, and reports how many. Reaches
+    /// past the soft-delete filter: a restored task would otherwise carry back a name its
+    /// new workspace cannot resolve.
+    /// </summary>
+    private async Task<int> UnassignNonMembersAsync(
+        Guid projectId,
+        Guid targetWorkspaceId,
+        CancellationToken ct
+    )
+    {
+        var strangers = await _context
+            .Tasks.IgnoreQueryFilters()
+            .Where(t =>
+                t.ProjectId == projectId
+                && t.AssigneeId != null
+                && !_context.WorkspaceMembers.Any(m =>
+                    m.WorkspaceId == targetWorkspaceId && m.UserId == t.AssigneeId
+                )
+            )
+            .ToListAsync(ct);
+
+        foreach (var task in strangers)
+            task.AssigneeId = null;
+
+        return strangers.Count;
     }
 
     private async Task RequireNameIsFreeAsync(

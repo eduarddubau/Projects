@@ -208,13 +208,17 @@ export class ProjectDetailComponent {
       .moveProject(project.id, target.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (moved) => {
+        next: ({ project: moved, unassignedTaskCount }) => {
           this.project.set(moved);
+
+          // The server dropped assignees the target workspace has no member for.
+          if (unassignedTaskCount > 0) this.tasks.reload();
+
           this.cdr.markForCheck();
           this.snackBar.open(
-            this.transloco.translate('projects.notifications.moved', { name: moved.workspaceName }),
+            this.movedMessage(moved.workspaceName, unassignedTaskCount),
             this.transloco.translate('common.actions.close'),
-            { duration: 3000 },
+            { duration: unassignedTaskCount > 0 ? 5000 : 3000 },
           );
 
           // Keep the URL honest: the path still names the workspace it came from.
@@ -224,6 +228,18 @@ export class ProjectDetailComponent {
         },
         error: (err) => this.notify(serverErrorKey(err, 'projects.notifications.moveFailed'), 5000),
       });
+  }
+
+  private movedMessage(workspaceName: string, unassignedTaskCount: number): string {
+    if (unassignedTaskCount === 0)
+      return this.transloco.translate('projects.notifications.moved', { name: workspaceName });
+
+    return this.transloco.translate(
+      unassignedTaskCount === 1
+        ? 'projects.notifications.movedAndUnassignedOne'
+        : 'projects.notifications.movedAndUnassignedMany',
+      { name: workspaceName, count: unassignedTaskCount },
+    );
   }
 
   private notify(key: string, duration = 3000): void {

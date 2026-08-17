@@ -158,6 +158,46 @@ test.describe('Tasks', () => {
     await expect(todo.locator('article .card-title').nth(1)).toHaveText(second);
   });
 
+  test('moving a project unassigns anyone the target workspace does not hold', async ({ page }) => {
+    await openSeededProject(page);
+
+    // Its own project: the move takes every task in it out of Acme Team.
+    const name = `Movable ${Date.now()}`;
+    await page.locator('.nav-inline a', { hasText: 'Projects' }).click();
+    await page.getByRole('button', { name: 'New Project' }).click();
+    let dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Name').fill(name);
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Project created.')).toBeVisible();
+
+    await page.locator('tr', { hasText: name }).click();
+    await expect(page.getByRole('heading', { name })).toBeVisible();
+
+    await page.getByRole('button', { name: 'New Task' }).click();
+    dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Title').fill('Theirs');
+    await dialog.getByLabel('Assignee').click();
+    await page.getByRole('option', { name: 'Dev User2' }).click();
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Task created.')).toBeVisible();
+
+    const card = page.locator('article', { hasText: 'Theirs' });
+    await expect(card.getByLabel('Dev User2')).toBeVisible();
+
+    // dev2 is in Acme Team but not in dev1's personal workspace.
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await page.getByRole('menuitem', { name: 'Move to workspace' }).click();
+    await page.getByRole('menuitem', { name: 'My Workspace' }).click();
+
+    await expect(page.getByText('1 task was unassigned')).toBeVisible();
+    await expect(card.getByText('Unassigned')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Project actions' }).click();
+    await page.getByRole('menuitem', { name: 'Delete' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByText('Project deleted.')).toBeVisible();
+  });
+
   test('the first card cannot move up and the last cannot move down', async ({ page }) => {
     await openSeededProject(page);
 

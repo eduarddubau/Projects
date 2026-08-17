@@ -340,6 +340,8 @@
       "restored": "Project restored.",
       "restoreFailed": "Failed to restore project.",
       "moved": "Project moved to {{name}}.",
+      "movedAndUnassignedOne": "Project moved to {{name}}. {{count}} task was unassigned — its assignee is not a member there.",
+      "movedAndUnassignedMany": "Project moved to {{name}}. {{count}} tasks were unassigned — their assignees are not members there.",
       "moveFailed": "Failed to move project."
     },
     "confirmDelete": {

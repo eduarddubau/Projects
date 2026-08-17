@@ -127,7 +127,7 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ProjectResponseDto>> MoveProject(
+    public async Task<ActionResult<MoveProjectResponseDto>> MoveProject(
         Guid id,
         MoveProjectRequest dto,
         CancellationToken ct

@@ -25,7 +25,7 @@ public interface IProjectService
     );
     Task<bool> DeleteProjectByIdAsync(Guid id, CancellationToken ct = default);
     Task<ProjectResponseDto?> RestoreProjectByIdAsync(Guid id, CancellationToken ct = default);
-    Task<ProjectResponseDto?> MoveProjectAsync(
+    Task<MoveProjectResponseDto?> MoveProjectAsync(
         Guid id,
         Guid targetWorkspaceId,
         CancellationToken ct = default

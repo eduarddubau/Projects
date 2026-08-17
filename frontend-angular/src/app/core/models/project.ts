@@ -14,3 +14,9 @@ export interface Project {
   deletedAt?: string;
   isPurgeable: boolean;
 }
+
+/** A move drops assignees the target workspace does not contain, so it reports how many. */
+export interface MoveProjectResult {
+  project: Project;
+  unassignedTaskCount: number;
+}

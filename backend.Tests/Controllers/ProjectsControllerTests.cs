@@ -189,17 +189,18 @@ public class ProjectsControllerTests
     public async Task MoveProject_WhenFound_ReturnsOk()
     {
         var project = SampleProject();
+        var moved = new MoveProjectResponseDto(project, UnassignedTaskCount: 2);
         var request = new MoveProjectRequest(Guid.NewGuid());
         _projectService
             .Setup(s =>
                 s.MoveProjectAsync(project.Id, request.WorkspaceId, It.IsAny<CancellationToken>())
             )
-            .ReturnsAsync(project);
+            .ReturnsAsync(moved);
 
         var result = await _controller.MoveProject(project.Id, request, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        Assert.Equal(project, okResult.Value);
+        Assert.Equal(moved, okResult.Value);
     }
 
     [Fact]
@@ -209,7 +210,7 @@ public class ProjectsControllerTests
         var request = new MoveProjectRequest(Guid.NewGuid());
         _projectService
             .Setup(s => s.MoveProjectAsync(id, request.WorkspaceId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ProjectResponseDto?)null);
+            .ReturnsAsync((MoveProjectResponseDto?)null);
 
         var result = await _controller.MoveProject(id, request, CancellationToken.None);
 

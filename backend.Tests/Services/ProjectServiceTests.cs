@@ -95,6 +95,24 @@ public sealed class ProjectServiceTests : IDisposable
         return project;
     }
 
+    private TaskItem AddTask(Project project, Guid assigneeId, bool isDeleted = false)
+    {
+        var task = new TaskItem
+        {
+            Title = project.Name + " work",
+            ProjectId = project.Id,
+            AssigneeId = assigneeId,
+            IsDeleted = isDeleted,
+        };
+
+        _context.Tasks.Add(task);
+        _context.SaveChanges();
+        return task;
+    }
+
+    private async Task<Guid?> ReadAssigneeAsync(Guid taskId) =>
+        (await _context.Tasks.IgnoreQueryFilters().FirstAsync(t => t.Id == taskId, Ct)).AssigneeId;
+
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
@@ -422,7 +440,7 @@ public sealed class ProjectServiceTests : IDisposable
         var result = await _service.MoveProjectAsync(project.Id, _shared.Id, Ct);
 
         Assert.NotNull(result);
-        Assert.Equal(_shared.Id, result!.WorkspaceId);
+        Assert.Equal(_shared.Id, result!.Project.WorkspaceId);
         var stored = await _context.Projects.FirstAsync(p => p.Id == project.Id, Ct);
         Assert.Equal(_shared.Id, stored.WorkspaceId);
     }
@@ -466,7 +484,7 @@ public sealed class ProjectServiceTests : IDisposable
         var result = await _service.MoveProjectAsync(project.Id, _shared.Id, Ct);
 
         Assert.NotNull(result);
-        Assert.Equal(_shared.Id, result!.WorkspaceId);
+        Assert.Equal(_shared.Id, result!.Project.WorkspaceId);
     }
 
     [Fact]
@@ -477,6 +495,56 @@ public sealed class ProjectServiceTests : IDisposable
         var result = await _service.MoveProjectAsync(project.Id, _personal.Id, Ct);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task MoveProjectAsync_UnassignsAnyoneTheTargetDoesNotContain()
+    {
+        var team = AddWorkspace(
+            "Team",
+            isPersonal: false,
+            (_userId, WorkspaceRole.Owner),
+            (_otherUserId, WorkspaceRole.Member)
+        );
+        var project = AddProject("Roadmap", team);
+        var theirs = AddTask(project, _otherUserId);
+        var mine = AddTask(project, _userId);
+
+        var result = await _service.MoveProjectAsync(project.Id, _personal.Id, Ct);
+
+        Assert.Equal(1, result!.UnassignedTaskCount);
+        Assert.Null(await ReadAssigneeAsync(theirs.Id));
+        Assert.Equal(_userId, await ReadAssigneeAsync(mine.Id));
+    }
+
+    [Fact]
+    public async Task MoveProjectAsync_UnassignsSoftDeletedTasksToo()
+    {
+        var team = AddWorkspace(
+            "Team",
+            isPersonal: false,
+            (_userId, WorkspaceRole.Owner),
+            (_otherUserId, WorkspaceRole.Member)
+        );
+        var project = AddProject("Roadmap", team);
+        var task = AddTask(project, _otherUserId, isDeleted: true);
+
+        var result = await _service.MoveProjectAsync(project.Id, _personal.Id, Ct);
+
+        Assert.Equal(1, result!.UnassignedTaskCount);
+        Assert.Null(await ReadAssigneeAsync(task.Id));
+    }
+
+    [Fact]
+    public async Task MoveProjectAsync_WhenEveryAssigneeIsAlsoInTheTarget_ChangesNothing()
+    {
+        var project = AddProject("Roadmap", _personal);
+        var task = AddTask(project, _userId);
+
+        var result = await _service.MoveProjectAsync(project.Id, _shared.Id, Ct);
+
+        Assert.Equal(0, result!.UnassignedTaskCount);
+        Assert.Equal(_userId, await ReadAssigneeAsync(task.Id));
     }
 
     public void Dispose() => _context.Dispose();

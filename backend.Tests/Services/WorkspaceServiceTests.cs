@@ -92,6 +92,41 @@ public sealed class WorkspaceServiceTests : IDisposable
         return workspace;
     }
 
+    private Project AddProject(string name, Workspace workspace, bool isDeleted = false)
+    {
+        var project = new Project
+        {
+            Name = name,
+            WorkspaceId = workspace.Id,
+            IsDeleted = isDeleted,
+        };
+
+        _context.Projects.Add(project);
+        _context.SaveChanges();
+        return project;
+    }
+
+    private TaskItem AddTask(Project project, Guid assigneeId)
+    {
+        var task = new TaskItem
+        {
+            Title = project.Name + " work",
+            ProjectId = project.Id,
+            AssigneeId = assigneeId,
+        };
+
+        _context.Tasks.Add(task);
+        _context.SaveChanges();
+        return task;
+    }
+
+    private async Task<Guid?> ReadAssigneeAsync(Guid taskId) =>
+        (
+            await _context
+                .Tasks.IgnoreQueryFilters()
+                .FirstAsync(t => t.Id == taskId, TestContext.Current.CancellationToken)
+        ).AssigneeId;
+
     [Fact]
     public async Task EnsurePersonalWorkspaceAsync_WithAMaxLengthFirstName_FitsTheColumn()
     {
@@ -606,6 +641,74 @@ public sealed class WorkspaceServiceTests : IDisposable
         );
 
         Assert.Equal(BusinessRuleCodes.PersonalWorkspaceNotLeavable, ex.Code);
+    }
+
+    // ---- assignments follow membership ---------------------------------------------
+
+    [Fact]
+    public async Task RemoveMemberAsync_UnassignsTheirTasksInThatWorkspaceOnly()
+    {
+        var member = AddUser("member@example.com", "Bob");
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (member, WorkspaceRole.Member)
+        );
+        var elsewhere = AddWorkspace("Other Team", isPersonal: false, (member, WorkspaceRole.Owner));
+
+        var theirs = AddTask(AddProject("Redesign", shared), member.Id);
+        var mine = AddTask(AddProject("Roadmap", shared), _caller.Id);
+        var untouched = AddTask(AddProject("Theirs", elsewhere), member.Id);
+
+        await _service.RemoveMemberAsync(
+            shared.Id,
+            member.Id,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Null(await ReadAssigneeAsync(theirs.Id));
+        Assert.Equal(_caller.Id, await ReadAssigneeAsync(mine.Id));
+        Assert.Equal(member.Id, await ReadAssigneeAsync(untouched.Id));
+    }
+
+    [Fact]
+    public async Task RemoveMemberAsync_UnassignsTasksInATrashedProjectToo()
+    {
+        // Restoring the project would otherwise bring the card back naming someone gone.
+        var member = AddUser("member@example.com", "Bob");
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (_caller, WorkspaceRole.Owner),
+            (member, WorkspaceRole.Member)
+        );
+        var task = AddTask(AddProject("Trashed", shared, isDeleted: true), member.Id);
+
+        await _service.RemoveMemberAsync(
+            shared.Id,
+            member.Id,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Null(await ReadAssigneeAsync(task.Id));
+    }
+
+    [Fact]
+    public async Task LeaveAsync_UnassignsTheirTasks()
+    {
+        var owner = AddUser("owner@example.com", "Bob");
+        var shared = AddWorkspace(
+            "Acme Team",
+            isPersonal: false,
+            (owner, WorkspaceRole.Owner),
+            (_caller, WorkspaceRole.Member)
+        );
+        var task = AddTask(AddProject("Redesign", shared), _caller.Id);
+
+        await _service.LeaveAsync(shared.Id, TestContext.Current.CancellationToken);
+
+        Assert.Null(await ReadAssigneeAsync(task.Id));
     }
 
     // ---- personal workspaces -------------------------------------------------------

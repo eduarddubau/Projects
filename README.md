@@ -18,6 +18,7 @@ A full-stack project management application — ASP.NET Core 10 API, Angular 22 
 - **Hybrid SSR** — public pages are server-rendered for first paint and SEO; authenticated routes are client-rendered. This keeps the API a client-agnostic, token-based JSON contract that a future mobile client can consume unchanged.
 - **GDPR-aware deletion model** — soft delete with a dedicated trash area. Projects can be hard-purged after a retention window; user erasure is implemented as anonymization (PII scrubbed, row retained) because audit foreign keys (`created_by`/`updated_by`) reference users with `Restrict` semantics.
 - **Workspaces** — every project belongs to a workspace, and every user gets a personal one on registration. Shared workspaces are the same entity with more members: owners invite by email (a known address joins immediately, an unknown one gets a redeemable token), members contribute, and owners alone can remove or move a project. Access is enforced inside the SQL query as a membership subquery, not after fetching, and a non-member gets 404 rather than 403 — existence and access are deliberately indistinguishable.
+- **Tasks and a kanban board** — projects hold tasks with a status, a single assignee, and start and due dates. The board is the project page's default view, with drag-and-drop between columns and a `?view=list` alternative for filtering and sorting. Ordering is an integer position renumbered per column, but a move is expressed as the neighbours it landed between, so the scheme stays server-side and swappable. Every drag outcome is also reachable from a card menu, which WCAG 2.2 SC 2.5.7 requires and the e2e suite exercises. Trashing a project does not touch its tasks — they fall out of every query through the same membership subquery and come back intact on restore.
 - **Cross-cutting hygiene** — automatic audit stamping in the DbContext, global exception handling with RFC 9457 ProblemDetails, request validation via FluentValidation, health checks (`/health`), OpenAPI with a Scalar reference UI in development.
 
 ## Getting started
@@ -78,4 +79,4 @@ compose.yaml        Dev stack: api, db, frontend (+ e2e profile)
 
 ## Status
 
-Actively developed. Workspaces and workspace-scoped project access are in place. Current focus is production hardening: rate limiting and account lockout, a production deployment target with TLS, and the account lifecycle (email confirmation, password reset).
+Actively developed. Workspaces, workspace-scoped project access, and tasks on a kanban board are in place. Current focus is production hardening: rate limiting and account lockout, a production deployment target with TLS, and the account lifecycle (email confirmation, password reset).

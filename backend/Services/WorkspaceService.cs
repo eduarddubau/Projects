@@ -285,6 +285,7 @@ public class WorkspaceService : IWorkspaceService
             await RequireNotLastOwnerAsync(id, userId, ct);
 
         _context.WorkspaceMembers.Remove(member);
+        await ClearTaskAssignmentsAsync(id, userId, ct);
         await _context.SaveChangesAsync(ct);
     }
 
@@ -309,6 +310,7 @@ public class WorkspaceService : IWorkspaceService
         var member = await FindMemberAsync(id, userId, ct);
 
         _context.WorkspaceMembers.Remove(member);
+        await ClearTaskAssignmentsAsync(id, userId, ct);
         await _context.SaveChangesAsync(ct);
     }
 
@@ -360,6 +362,29 @@ public class WorkspaceService : IWorkspaceService
             owner = owner[..maxOwner];
 
         return owner + PersonalWorkspaceSuffix;
+    }
+
+    /// <summary>
+    /// Unassigns the departing user from every task in the workspace, reaching into
+    /// soft-deleted projects too: restoring one would otherwise bring back a card naming
+    /// someone the remaining members can no longer see.
+    /// </summary>
+    private async Task ClearTaskAssignmentsAsync(
+        Guid workspaceId,
+        Guid userId,
+        CancellationToken ct
+    )
+    {
+        var assigned = await _context
+            .Tasks.IgnoreQueryFilters()
+            .InProjectsOf(
+                _context.Projects.IgnoreQueryFilters().Where(p => p.WorkspaceId == workspaceId)
+            )
+            .Where(t => t.AssigneeId == userId)
+            .ToListAsync(ct);
+
+        foreach (var task in assigned)
+            task.AssigneeId = null;
     }
 
     private Guid RequireCurrentUserId() =>

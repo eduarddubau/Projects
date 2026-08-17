@@ -340,6 +340,8 @@
       "restored": "Proiectul a fost restaurat.",
       "restoreFailed": "Proiectul nu a putut fi restaurat.",
       "moved": "Proiect mutat în {{name}}.",
+      "movedAndUnassignedOne": "Proiect mutat în {{name}}. {{count}} sarcină a rămas neatribuită — responsabilul nu este membru acolo.",
+      "movedAndUnassignedMany": "Proiect mutat în {{name}}. {{count}} sarcini au rămas neatribuite — responsabilii nu sunt membri acolo.",
       "moveFailed": "Proiectul nu a putut fi mutat."
     },
     "confirmDelete": {

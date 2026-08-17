@@ -3,7 +3,7 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Signal } from '@angular/core';
 import { API_URL } from '@core/tokens/app.tokens';
-import { Project } from '@core/models/project';
+import { MoveProjectResult, Project } from '@core/models/project';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
@@ -66,8 +66,8 @@ export class ProjectService {
     return this.http.post<Project>(`${this.apiUrl}/projects/${id}/restore`, {});
   }
 
-  moveProject(id: string, workspaceId: string): Observable<Project> {
-    return this.http.post<Project>(`${this.apiUrl}/projects/${id}/move`, { workspaceId });
+  moveProject(id: string, workspaceId: string): Observable<MoveProjectResult> {
+    return this.http.post<MoveProjectResult>(`${this.apiUrl}/projects/${id}/move`, { workspaceId });
   }
 
   // Admin — the trash only; a live project is reached through its workspace.
