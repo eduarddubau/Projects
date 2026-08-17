@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-// Uses dev3, whose display name the user-dashboard spec also reads. The edit
+// Uses dev3, whose display name the workspace-home spec also reads. The edit
 // test below therefore restores through the API in afterEach rather than through
 // the UI at the end of the test: a mid-test failure would otherwise leave the
 // account renamed for every later run, which is exactly what happened once.

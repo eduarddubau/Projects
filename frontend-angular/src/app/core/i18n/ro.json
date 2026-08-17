@@ -53,8 +53,7 @@
   },
   "header": {
     "nav": {
-      "dashboard": "Tablou de bord",
-      "projects": "Proiecte",
+      "home": "Acasă",
       "admin": "Administrare"
     },
     "health": {
@@ -72,10 +71,8 @@
     "getStarted": "Începe acum",
     "openNav": "Deschide meniul de navigare",
     "menu": {
-      "dashboard": "Tablou de bord",
+      "home": "Acasă",
       "profile": "Profilul meu",
-      "projects": "Proiecte",
-      "myProjects": "Proiectele mele",
       "trash": "Coș de gunoi",
       "adminPanel": "Panou de administrare",
       "signOut": "Deconectare",
@@ -192,44 +189,6 @@
       }
     }
   },
-  "userDashboard": {
-    "greeting": {
-      "morning": "Bună dimineața",
-      "afternoon": "Bună ziua",
-      "evening": "Bună seara"
-    },
-    "taglines": {
-      "morning": "Profită de zi",
-      "afternoon": "Menține ritmul",
-      "evening": "Relaxează-te, ai meritat-o",
-      "weather": {
-        "clear": "Bucură-te de soare",
-        "clearNight": "Cer senin la noapte",
-        "cloudy": "Cer înnorat, minte limpede",
-        "fog": "Străbate ceața cu calm",
-        "rain": "Fă-te comod, plouă",
-        "snow": "Îmbracă-te gros, ninge",
-        "storm": "Vine o furtună"
-      }
-    },
-    "loading": "Se încarcă tabloul de bord...",
-    "loadFailed": "Datele tabloului de bord nu au putut fi încărcate.",
-    "stats": {
-      "activeProjects": "Proiecte active",
-      "inTrash": "În coșul de gunoi",
-      "lastActivity": "Ultima activitate"
-    },
-    "recent": {
-      "title": "Proiecte recente",
-      "viewAll": "Toate spațiile de lucru",
-      "name": "Nume",
-      "lastActivity": "Ultima activitate",
-      "empty": "Niciun proiect încă — creează-l pe primul."
-    },
-    "account": {
-      "viewProfile": "Vezi profilul"
-    }
-  },
   "profile": {
     "title": "Profilul meu",
     "subtitle": "Detaliile contului tău și numele afișat în aplicație.",
@@ -281,7 +240,7 @@
   },
   "projects": {
     "list": {
-      "title": "Proiectele mele",
+      "title": "Proiecte",
       "trash": "Coș de gunoi",
       "newProject": "Proiect nou",
       "searchLabel": "Caută proiecte",
@@ -295,7 +254,7 @@
     "detail": {
       "loading": "Se încarcă proiectul…",
       "notFound": "Nu am găsit acest proiect. Este posibil să fi fost șters.",
-      "backToProjects": "Înapoi la Proiecte",
+      "backToProjects": "Înapoi la proiecte",
       "moveTo": "Mută în spațiul de lucru",
       "noOtherWorkspaces": "Nu ai alte spații de lucru",
       "projectActions": "Acțiuni proiect"
@@ -319,7 +278,7 @@
       "selectPage": "Selectează pagina"
     },
     "trash": {
-      "back": "Înapoi la Proiectele mele",
+      "back": "Înapoi la proiecte",
       "title": "Coș de gunoi",
       "subtitle": "Proiectele șterse pot fi restaurate de aici până la expirarea perioadei de retenție.",
       "searchLabel": "Caută proiecte șterse",
@@ -703,6 +662,35 @@
       "moveDown": "Mută mai jos",
       "cardActions": "Acțiuni pentru {{title}}",
       "emptyColumn": "Nimic aici încă."
+    }
+  },
+  "workspaceHome": {
+    "greeting": {
+      "morning": "Bună dimineața",
+      "afternoon": "Bună ziua",
+      "evening": "Bună seara"
+    },
+    "taglines": {
+      "morning": "Profită de zi",
+      "afternoon": "Menține ritmul",
+      "evening": "Relaxează-te, ai meritat-o",
+      "weather": {
+        "clear": "Bucură-te de soare",
+        "clearNight": "Cer senin la noapte",
+        "cloudy": "Cer înnorat, minte limpede",
+        "fog": "Străbate ceața cu calm",
+        "rain": "Fă-te comod, plouă",
+        "snow": "Îmbracă-te gros, ninge",
+        "storm": "Vine o furtună"
+      }
+    },
+    "stats": {
+      "openTasks": "Sarcini deschise",
+      "assignedToMe": "Atribuite mie",
+      "loadFailed": "Cifrele acestui spațiu de lucru nu au putut fi încărcate."
+    },
+    "account": {
+      "viewProfile": "Vezi profilul"
     }
   }
 }

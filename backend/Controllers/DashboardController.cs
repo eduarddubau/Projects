@@ -6,7 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-// At-a-glance summaries; per-project rollups would live under Projects.
+// At-a-glance summaries; per-project rollups would live under Projects. The action's
+// route is absolute so the summary nests under the workspace that scopes it, the way
+// TasksController.GetProjectTasks nests a list under its project. The class-level
+// [Route] stays for any later action that doesn't do that — without it, a relative
+// route here would land at the site root rather than under /api.
 [Authorize(Policy = AppPolicies.StandardUser)]
 [ApiController]
 [Route("api/[controller]")]
@@ -21,11 +25,15 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [HttpGet]
+    [HttpGet("/api/workspaces/{workspaceId:guid}/dashboard")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<UserDashboardDto>> GetMyDashboard(CancellationToken ct)
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<WorkspaceDashboardDto>> GetWorkspaceDashboard(
+        Guid workspaceId,
+        CancellationToken ct
+    )
     {
-        var dashboard = await _dashboardService.GetMyDashboardAsync(ct);
-        return Ok(dashboard);
+        var dashboard = await _dashboardService.GetWorkspaceDashboardAsync(workspaceId, ct);
+        return dashboard is null ? NotFound() : Ok(dashboard);
     }
 }

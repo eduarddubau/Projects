@@ -1,26 +1,47 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
-test.describe('Dashboard as home', () => {
-  test('login lands on the dashboard; landing and logo route there when signed in', async ({
+// /dashboard is still the one URL every "go home" path targets, but it renders
+// nothing itself — a guard forwards it to the home of the current workspace.
+const workspaceHome = /\/w\/[0-9a-f-]+$/;
+
+async function login(page: Page): Promise<void> {
+  await page.goto('/login');
+  await page.locator('input[formcontrolname="email"]').fill('dev2@example.com');
+  await page.locator('input[formcontrolname="password"]').fill('Password123!');
+  await page.getByRole('button', { name: 'Sign In' }).click();
+}
+
+test.describe('Workspace home', () => {
+  test('login lands on the workspace home; landing and logo route there when signed in', async ({
     page,
   }) => {
-    await page.goto('/login');
-    await page.locator('input[formcontrolname="email"]').fill('dev2@example.com');
-    await page.locator('input[formcontrolname="password"]').fill('Password123!');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await login(page);
 
-    // Post-login default destination is the dashboard.
-    await page.waitForURL(/\/dashboard$/);
+    // Post-login default destination is /dashboard, which forwards to a workspace.
+    await page.waitForURL(workspaceHome);
     await expect(page.locator('.page-title')).toContainText('dev2');
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
 
-    // Visiting the marketing landing while signed in bounces to the dashboard.
+    // Visiting the marketing landing while signed in bounces home.
     await page.goto('/');
-    await page.waitForURL(/\/dashboard$/);
+    await page.waitForURL(workspaceHome);
 
-    // From elsewhere in the app, the brand logo returns to the dashboard ("home").
-    await page.locator('.nav-inline a', { hasText: 'Projects' }).click();
-    await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
+    // From elsewhere in the app, the brand logo returns home.
+    await page.getByRole('button', { name: 'Trash' }).click();
+    await expect(page).toHaveURL(/\/projects\/trash$/);
     await page.locator('a.brand').click();
-    await page.waitForURL(/\/dashboard$/);
+    await page.waitForURL(workspaceHome);
+  });
+
+  // The old /dashboard bookmark has to keep working, and must not be where the user
+  // ends up — that route has no page behind it.
+  test('a bookmarked /dashboard forwards to a workspace', async ({ page }) => {
+    await login(page);
+    await page.waitForURL(workspaceHome);
+
+    await page.goto('/dashboard');
+
+    await page.waitForURL(workspaceHome);
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
   });
 });

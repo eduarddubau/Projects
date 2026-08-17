@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { of } from 'rxjs';
 
-import { ProjectsComponent } from './projects.component';
+import { ProjectsCardComponent } from './projects-card.component';
 import { API_URL } from '@core/tokens/app.tokens';
 import { Project } from '@core/models/project';
 import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
@@ -27,16 +27,6 @@ function project(id: string, name: string): Project {
   };
 }
 
-// The component resolves its workspace from the route, so the param has to exist
-// or the resource stays idle and nothing is ever requested.
-const routeStub = {
-  paramMap: of(convertToParamMap({ workspaceId })),
-  snapshot: {
-    paramMap: convertToParamMap({ workspaceId }),
-    queryParamMap: convertToParamMap({}),
-  },
-};
-
 const alpha = project('11111111-1111-1111-1111-111111111111', 'Alpha');
 const beta = project('22222222-2222-2222-2222-222222222222', 'Beta');
 
@@ -46,14 +36,14 @@ function dialogStub(result: unknown) {
   return { open: () => ({ afterClosed: () => of(result) }) };
 }
 
-describe('ProjectsComponent', () => {
-  let fixture: ComponentFixture<ProjectsComponent>;
+describe('ProjectsCardComponent', () => {
+  let fixture: ComponentFixture<ProjectsCardComponent>;
   let httpMock: HttpTestingController;
 
-  async function setup(dialogResult: unknown = undefined) {
+  async function setup(dialogResult: unknown = undefined, id: string | null = workspaceId) {
     localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [ProjectsComponent],
+      imports: [ProjectsCardComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -61,11 +51,11 @@ describe('ProjectsComponent', () => {
         provideTranslocoTesting(),
         { provide: API_URL, useValue: apiUrl },
         { provide: MatDialog, useValue: dialogStub(dialogResult) },
-        { provide: ActivatedRoute, useValue: routeStub },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ProjectsComponent);
+    fixture = TestBed.createComponent(ProjectsCardComponent);
+    fixture.componentRef.setInput('workspaceId', id);
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
   }
@@ -85,6 +75,14 @@ describe('ProjectsComponent', () => {
     expect(rowText()).toContain('Beta');
   });
 
+  // The card stays idle rather than requesting /workspaces/null/projects while the
+  // host is still resolving the workspace.
+  it('requests nothing until it has a workspace', async () => {
+    await setup(undefined, null);
+
+    httpMock.expectNone(() => true);
+  });
+
   it('shows the error state when loading fails', async () => {
     await setup();
     httpMock.expectOne(listUrl).flush('boom', { status: 500, statusText: 'Server Error' });
@@ -92,6 +90,22 @@ describe('ProjectsComponent', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Failed to load projects. Please try again.');
+  });
+
+  // Every other table in the app wires this; this one silently did not, so the
+  // search box filtered nothing.
+  it('filters the rows through the search box', async () => {
+    await setup();
+    httpMock.expectOne(listUrl).flush([alpha, beta]);
+    await fixture.whenStable();
+
+    const search = (fixture.nativeElement as HTMLElement).querySelector('input[matInput]')!;
+    (search as HTMLInputElement).value = 'alph';
+    search.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(rowText()).toContain('Alpha');
+    expect(rowText()).not.toContain('Beta');
   });
 
   // The load path and the mutation path both run through the resource, so this

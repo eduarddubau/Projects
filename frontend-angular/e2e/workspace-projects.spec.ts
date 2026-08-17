@@ -19,12 +19,11 @@ async function openAcmeProjects(page: Page): Promise<string> {
   // selected id, and clicking it too early navigates to the previous workspace.
   await expect(page.locator('.ws-trigger')).toContainText('Acme Team');
 
-  await page.locator('.nav-inline a', { hasText: 'Projects' }).click();
+  await page.locator('.nav-inline a', { hasText: 'Home' }).click();
 
-  // The URL first. The dashboard's recent list spans workspaces, so it also holds
-  // an "Acme Website Redesign" row — asserting on the row alone is satisfied
-  // before the navigation has happened at all.
-  await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects$/);
+  // The row, not the URL: switching workspace already navigated to the new home, so a
+  // /w/{any-id} match is satisfied by the workspace being left as much as the one being
+  // entered and pins nothing. An Acme project appearing is the real evidence.
   await expect(page.locator('tr', { hasText: 'Acme Website Redesign' })).toBeVisible();
 
   return new URL(page.url()).pathname.split('/')[2];
@@ -84,8 +83,8 @@ test.describe('Workspace-scoped projects', () => {
 
     // A project of its own, so a rerun never fights the seeded ones over a name.
     const name = `Movable ${Date.now()}`;
-    await page.locator('.nav-inline a', { hasText: 'Projects' }).click();
-    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects$/);
+    await page.locator('.nav-inline a', { hasText: 'Home' }).click();
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+$/);
     const personalId = new URL(page.url()).pathname.split('/')[2];
 
     await page.getByRole('button', { name: 'New Project' }).click();
@@ -105,8 +104,7 @@ test.describe('Workspace-scoped projects', () => {
     await expect(page).not.toHaveURL(new RegExp(`/w/${personalId}/`));
     await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects\/[0-9a-f-]+$/);
 
-    // Clean up, or every rerun leaves another project in Acme Team and eventually
-    // pushes the seeded ones out of the dashboard's five recent rows.
+    // Clean up, or every rerun leaves another project in Acme Team.
     await page.getByRole('button', { name: 'Project actions' }).click();
     await page.getByRole('menuitem', { name: 'Delete' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();

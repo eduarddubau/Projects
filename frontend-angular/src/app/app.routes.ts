@@ -3,6 +3,7 @@ import { authGuard } from '@core/guards/auth.guard';
 import { adminGuard } from '@core/guards/admin.guard';
 import { guestGuard } from '@core/guards/guest.guard';
 import { workspaceGuard } from '@core/guards/workspace.guard';
+import { workspaceHomeGuard } from '@core/guards/workspace-home.guard';
 import { standardUserGuard } from '@core/guards/standard-user.guard';
 
 export const routes: Routes = [
@@ -42,9 +43,19 @@ export const routes: Routes = [
     canActivate: [authGuard, standardUserGuard, workspaceGuard],
     children: [
       {
-        path: 'projects',
+        // The workspace home: greeting, the workspace's numbers, and its projects.
+        path: '',
         loadComponent: () =>
-          import('./features/projects/projects.component').then((m) => m.ProjectsComponent),
+          import('./features/workspace-home/workspace-home.component').then(
+            (m) => m.WorkspaceHomeComponent,
+          ),
+      },
+      {
+        // The projects list is the home page now. pathMatch 'full' so only the bare
+        // /projects folds in — /projects/trash and /projects/:id still route below.
+        path: 'projects',
+        pathMatch: 'full',
+        redirectTo: '',
       },
       {
         path: 'projects/trash',
@@ -83,12 +94,13 @@ export const routes: Routes = [
       ),
   },
   {
+    // The stable "home" URL, kept so bookmarks and every redirect that means "home"
+    // have one target. workspaceHomeGuard always forwards it to /w/{best}, so this
+    // route never activates and needs no component — the empty children array is only
+    // the shape Angular requires of a route that renders nothing itself.
     path: 'dashboard',
-    canActivate: [authGuard, standardUserGuard],
-    loadComponent: () =>
-      import('./features/user-dashboard/user-dashboard.component').then(
-        (m) => m.UserDashboardComponent,
-      ),
+    canActivate: [authGuard, standardUserGuard, workspaceHomeGuard],
+    children: [],
   },
   {
     path: 'profile',

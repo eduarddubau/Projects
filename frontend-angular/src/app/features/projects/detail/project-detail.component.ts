@@ -200,7 +200,7 @@ export class ProjectDetailComponent {
         this.projectService.deleteProject(project.id).subscribe({
           next: () => {
             this.notify('projects.notifications.deleted');
-            this.router.navigate(['/w', this.workspaceId(), 'projects']);
+            this.router.navigate(['/w', this.workspaceId()]);
           },
           error: () => this.notify('projects.notifications.deleteFailed', 5000),
         });

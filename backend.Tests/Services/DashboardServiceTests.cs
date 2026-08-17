@@ -1,18 +1,14 @@
-using Backend.Config;
 using Backend.Data;
 using Backend.Models;
 using Backend.Services;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Backend.Tests.Services;
 
 public sealed class DashboardServiceTests : IDisposable
 {
-    private const int TrashWindowDays = 30;
-
     private readonly Mock<ICurrentUserService> _currentUser = new();
     private readonly AppDbContext _context;
     private readonly DashboardService _service;
@@ -20,6 +16,7 @@ public sealed class DashboardServiceTests : IDisposable
     private readonly Guid _otherUserId = Guid.NewGuid();
 
     private readonly Workspace _mine;
+    private readonly Workspace _alsoMine;
     private readonly Workspace _theirs;
 
     public DashboardServiceTests()
@@ -29,15 +26,12 @@ public sealed class DashboardServiceTests : IDisposable
             .Options;
 
         _context = new AppDbContext(options, _currentUser.Object);
-        _service = new DashboardService(
-            _context,
-            _currentUser.Object,
-            Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays })
-        );
+        _service = new DashboardService(_context, _currentUser.Object);
 
         _currentUser.Setup(c => c.UserGuid).Returns(_userId);
 
         _mine = AddWorkspace("Mine", _userId);
+        _alsoMine = AddWorkspace("Also mine", _userId);
         _theirs = AddWorkspace("Theirs", _otherUserId);
     }
 
@@ -61,108 +55,120 @@ public sealed class DashboardServiceTests : IDisposable
         return workspace;
     }
 
-    private User AddUser(
-        string email,
-        bool isDeleted = false,
-        bool isAnonymized = false,
-        DateTime? createdAt = null
-    )
-    {
-        var user = new User
-        {
-            Email = email,
-            UserName = email,
-            FirstName = "Alan",
-            LastName = "Turing",
-            IsDeleted = isDeleted,
-            IsAnonymized = isAnonymized,
-            CreatedAt = createdAt ?? default,
-        };
-        _context.Users.Add(user);
-        _context.SaveChanges();
-        return user;
-    }
-
     // Audit stamping lives in SaveChangesAsync only, so the sync save here
     // persists these timestamps untouched.
-    private Project AddProject(
-        string name,
-        Workspace workspace,
-        Guid? createdBy = null,
-        DateTime? deletedAt = null,
-        DateTime? createdAt = null,
-        DateTime? updatedAt = null
-    )
+    private Project AddProject(string name, Workspace workspace, DateTime? deletedAt = null)
     {
         var project = new Project
         {
             Name = name,
-            CreatedBy = createdBy ?? _userId,
+            CreatedBy = _userId,
             WorkspaceId = workspace.Id,
             IsDeleted = deletedAt is not null,
             DeletedAt = deletedAt,
-            CreatedAt = createdAt ?? default,
-            UpdatedAt = updatedAt,
         };
         _context.Projects.Add(project);
         _context.SaveChanges();
         return project;
     }
 
-    [Fact]
-    public async Task GetMyDashboardAsync_ReturnsCountsRecentAndLastActivity()
+    private void AddTask(string title, Project project, Guid? assigneeId, TaskItemStatus status)
     {
-        AddProject("Older", _mine, createdAt: DateTime.UtcNow.AddDays(-10));
-        var newest = AddProject(
-            "Newest",
-            _mine,
-            createdAt: DateTime.UtcNow.AddDays(-8),
-            updatedAt: DateTime.UtcNow.AddDays(-1)
+        _context.Tasks.Add(
+            new TaskItem
+            {
+                Title = title,
+                ProjectId = project.Id,
+                AssigneeId = assigneeId,
+                Status = status,
+            }
         );
-        AddProject("Trashed", _mine, deletedAt: DateTime.UtcNow.AddDays(-5));
-        AddProject(
-            "Expired trash",
-            _mine,
-            deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
-        );
-        AddProject(
-            "In a workspace I am not in",
-            _theirs,
-            createdBy: _otherUserId,
-            createdAt: DateTime.UtcNow
-        );
-
-        var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
-
-        Assert.Equal(2, result.ActiveProjectCount);
-        Assert.Equal(1, result.DeletedProjectCount);
-        Assert.Equal(["Newest", "Older"], result.RecentProjects.Select(p => p.Name));
-        Assert.Equal(newest.UpdatedAt, result.LastActivityAt);
+        _context.SaveChanges();
     }
 
     [Fact]
-    public async Task GetMyDashboardAsync_CapsRecentProjectsAtFive()
+    public async Task GetWorkspaceDashboardAsync_CountsOnlyTheWorkspaceAskedFor()
     {
-        for (var i = 0; i < 7; i++)
-            AddProject($"Project {i}", _mine, createdAt: DateTime.UtcNow.AddDays(-i));
+        AddTask("Here", AddProject("One", _mine), _userId, TaskItemStatus.Todo);
+        AddTask("Also here", AddProject("Two", _mine), _userId, TaskItemStatus.Todo);
+        AddTask(
+            "Elsewhere but still mine",
+            AddProject("Other", _alsoMine),
+            _userId,
+            TaskItemStatus.Todo
+        );
 
-        var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetWorkspaceDashboardAsync(
+            _mine.Id,
+            TestContext.Current.CancellationToken
+        );
 
-        Assert.Equal(7, result.ActiveProjectCount);
-        Assert.Equal(5, result.RecentProjects.Count);
+        // Two, not three: the other workspace is the caller's too, and still must not count.
+        Assert.Equal(2, result!.OpenTaskCount);
+        Assert.Equal(2, result.MyOpenTaskCount);
     }
 
     [Fact]
-    public async Task GetMyDashboardAsync_WhenNoProjects_ReturnsZerosAndNoActivity()
+    public async Task GetWorkspaceDashboardAsync_ExcludesTasksOfTrashedProjects()
     {
-        AddProject("In a workspace I am not in", _theirs, createdBy: _otherUserId);
+        var live = AddProject("Live", _mine);
+        var trashed = AddProject("Trashed", _mine, deletedAt: DateTime.UtcNow.AddDays(-1));
+        AddTask("Mine, open", live, _userId, TaskItemStatus.Todo);
+        AddTask("Mine, but the project is in the trash", trashed, _userId, TaskItemStatus.Todo);
 
-        var result = await _service.GetMyDashboardAsync(TestContext.Current.CancellationToken);
+        var result = await _service.GetWorkspaceDashboardAsync(
+            _mine.Id,
+            TestContext.Current.CancellationToken
+        );
 
-        Assert.Equal(0, result.ActiveProjectCount);
-        Assert.Equal(0, result.DeletedProjectCount);
-        Assert.Null(result.LastActivityAt);
-        Assert.Empty(result.RecentProjects);
+        Assert.Equal(1, result!.OpenTaskCount);
+        Assert.Equal(1, result.MyOpenTaskCount);
+    }
+
+    [Fact]
+    public async Task GetWorkspaceDashboardAsync_CountsUnfinishedTasksAndMyShareOfThem()
+    {
+        var project = AddProject("Project", _mine);
+        AddTask("Mine, todo", project, _userId, TaskItemStatus.Todo);
+        AddTask("Mine, in progress", project, _userId, TaskItemStatus.InProgress);
+        AddTask("Mine, done", project, _userId, TaskItemStatus.Done);
+        AddTask("Theirs, todo", project, _otherUserId, TaskItemStatus.Todo);
+        AddTask("Theirs, done", project, _otherUserId, TaskItemStatus.Done);
+        AddTask("Nobody's, todo", project, null, TaskItemStatus.Todo);
+
+        var result = await _service.GetWorkspaceDashboardAsync(
+            _mine.Id,
+            TestContext.Current.CancellationToken
+        );
+
+        // Four open of six, and an unassigned one counts toward the workspace but not me.
+        Assert.Equal(4, result!.OpenTaskCount);
+        Assert.Equal(2, result.MyOpenTaskCount);
+    }
+
+    [Fact]
+    public async Task GetWorkspaceDashboardAsync_WhenNotAMember_ReturnsNull()
+    {
+        AddTask("Not for me", AddProject("Not for me", _theirs), _otherUserId, TaskItemStatus.Todo);
+
+        var result = await _service.GetWorkspaceDashboardAsync(
+            _theirs.Id,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetWorkspaceDashboardAsync_WhenEmpty_ReturnsZeroes()
+    {
+        var result = await _service.GetWorkspaceDashboardAsync(
+            _mine.Id,
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.Equal(0, result!.OpenTaskCount);
+        Assert.Equal(0, result.MyOpenTaskCount);
     }
 
     public void Dispose() => _context.Dispose();

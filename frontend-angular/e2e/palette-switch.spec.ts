@@ -8,7 +8,7 @@ test.describe('Colour scheme switching', () => {
     await page.locator('input[formcontrolname="email"]').fill('dev2@example.com');
     await page.locator('input[formcontrolname="password"]').fill('Password123!');
     await page.locator('button[type="submit"]').click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+$/);
   });
 
   test('applies a scheme, keeps the menu open, and survives reload via the pre-paint script', async ({

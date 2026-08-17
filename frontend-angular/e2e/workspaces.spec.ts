@@ -11,7 +11,7 @@ test.describe('Workspaces', () => {
     await page.locator('input[formcontrolname="email"]').fill('dev1@example.com');
     await page.locator('input[formcontrolname="password"]').fill('Password123!');
     await page.locator('button[type="submit"]').click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+$/);
   });
 
   test.afterEach(async ({ page }) => {

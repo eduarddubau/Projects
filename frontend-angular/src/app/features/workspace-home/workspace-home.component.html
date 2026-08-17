@@ -1,0 +1,74 @@
+<app-aurora></app-aurora>
+
+<div class="page-container home-container" *transloco="let t">
+  <header class="home-header">
+    <a
+      routerLink="/profile"
+      class="home-avatar-link"
+      [attr.aria-label]="t('workspaceHome.account.viewProfile')"
+    >
+      <span class="avatar-circle home-avatar" aria-hidden="true">{{ initials() }}</span>
+    </a>
+    <div class="home-heading">
+      <!-- The comma rides with the greeting, and the gap before the name is CSS. Angular
+           collapses the whitespace between these two elements either way, so laying the
+           comma out in the markup renders "Good afternoon , dev1" or "afternoon,dev1"
+           depending on where the line breaks — never the one space it should be. -->
+      <h1 class="page-title">
+        @if (displayName(); as name) {
+          <span>{{ t(greetingKey()) }},</span>
+          <a routerLink="/profile" class="name-link">{{ name }}</a>
+        } @else {
+          <span>{{ t(greetingKey()) }}</span>
+        }
+      </h1>
+      <p class="page-subtitle">{{ t(taglineKey()) }}</p>
+    </div>
+
+    <!-- Everything below is one workspace's; say which one, next to the greeting. -->
+    <span class="workspace-scope">
+      <mat-icon aria-hidden="true">workspaces</mat-icon>
+      {{ isPersonal() ? t('workspaces.personal') : workspaceName() }}
+    </span>
+  </header>
+
+  <!-- The tiles carry their own loading and error states: a failed count is no
+       reason to withhold the projects below it. -->
+  <section class="overview">
+    <app-weather-widget (loaded)="onWeatherLoaded($event)"></app-weather-widget>
+
+    @if (dashboard.hasValue()) {
+      @let d = dashboard.value();
+
+      <div class="kpi">
+        <span class="kpi-value">{{ d.openTaskCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">check_circle_outline</mat-icon>
+          {{ t('workspaceHome.stats.openTasks') }}
+        </span>
+      </div>
+
+      <div class="kpi">
+        <span class="kpi-value">{{ d.myOpenTaskCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">task_alt</mat-icon>
+          {{ t('workspaceHome.stats.assignedToMe') }}
+        </span>
+      </div>
+    } @else if (dashboard.error()) {
+      <p class="kpi-state">
+        <mat-icon color="warn">error_outline</mat-icon>
+        {{ t('workspaceHome.stats.loadFailed') }}
+      </p>
+    } @else {
+      <div class="kpi-state">
+        <mat-spinner diameter="28"></mat-spinner>
+      </div>
+    }
+  </section>
+
+  <section class="projects-section">
+    <h2 class="section-title">{{ t('projects.list.title') }}</h2>
+    <app-projects-card [workspaceId]="workspaceId()"></app-projects-card>
+  </section>
+</div>

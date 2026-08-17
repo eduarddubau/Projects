@@ -1,61 +1,55 @@
-using Backend.Config;
 using Backend.Data;
 using Backend.DTOs.Dashboard;
-using Backend.Mappings;
+using Backend.Models;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
-/// <summary>The signed-in user's home, aggregated across their workspaces.</summary>
+/// <summary>The numbers on one workspace's home. Scoped to a single workspace, never
+/// aggregated across them: the page they feed acts on one workspace, so counting more
+/// than that would make the tiles and the buttons disagree.</summary>
 public class DashboardService : IDashboardService
 {
     private readonly AppDbContext _context;
     private readonly ICurrentUserService _currentUser;
-    private readonly int _trashWindowDays;
 
-    public DashboardService(
-        AppDbContext context,
-        ICurrentUserService currentUser,
-        IOptions<ProjectRetentionOptions> retentionOptions
-    )
+    public DashboardService(AppDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
         _currentUser = currentUser;
-        _trashWindowDays = retentionOptions.Value.TrashWindowDays;
     }
 
-    public async Task<UserDashboardDto> GetMyDashboardAsync(CancellationToken ct = default)
+    public async Task<WorkspaceDashboardDto?> GetWorkspaceDashboardAsync(
+        Guid workspaceId,
+        CancellationToken ct = default
+    )
     {
-        var myProjects = _context.Projects.InWorkspacesOf(
-            _context.WorkspaceMembers,
-            _currentUser.UserGuid
+        var userId = _currentUser.UserGuid;
+
+        // Null, not zeroes: a workspace the caller cannot reach is a 404, not an empty one.
+        var isMember = await _context.WorkspaceMembers.AnyAsync(
+            m => m.WorkspaceId == workspaceId && m.UserId == userId,
+            ct
         );
+        if (!isMember)
+            return null;
 
-        var activeCount = await myProjects.CountAsync(ct);
+        // Carries the Projects query filter, so a trashed project's tasks drop out of
+        // both counts and come back on restore, with nothing written either way.
+        var workspaceProjects = _context.Projects.Where(p => p.WorkspaceId == workspaceId);
 
-        // Counts what the trash view shows: deletions still inside the retention window.
-        var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
-        var deletedCount = await _context
-            .Projects.IgnoreQueryFilters()
-            .InWorkspacesOf(_context.WorkspaceMembers, _currentUser.UserGuid)
-            .CountAsync(p => p.IsDeleted && p.DeletedAt >= cutoff, ct);
+        var openTasks = _context
+            .Tasks.InProjectsOf(workspaceProjects)
+            .Where(t => t.Status != TaskItemStatus.Done);
 
-        var recentProjects = await myProjects
-            .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
-            .Take(5)
-            .MapToDto()
-            .ToListAsync(ct);
+        var openTaskCount = await openTasks.CountAsync(ct);
+        var myOpenTaskCount = await openTasks.CountAsync(t => t.AssigneeId == userId, ct);
 
-        var latest = recentProjects.FirstOrDefault();
-
-        return new UserDashboardDto
+        return new WorkspaceDashboardDto
         {
-            ActiveProjectCount = activeCount,
-            DeletedProjectCount = deletedCount,
-            LastActivityAt = latest is null ? null : latest.UpdatedAt ?? latest.CreatedAt,
-            RecentProjects = recentProjects,
+            OpenTaskCount = openTaskCount,
+            MyOpenTaskCount = myOpenTaskCount,
         };
     }
 }

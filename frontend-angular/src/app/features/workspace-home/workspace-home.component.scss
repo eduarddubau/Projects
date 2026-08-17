@@ -1,35 +1,35 @@
-.dashboard-container {
+.home-container {
   display: flex;
   flex-direction: column;
   gap: 32px; // airier section rhythm (8pt scale: 32–48px between sections)
 }
 
-.dash-header {
+.home-header {
   display: flex;
   align-items: center;
   gap: 18px;
 
-  // Avatar links to the profile (replaces the old button); subtle ring on focus.
-  .dash-avatar-link {
+  // Avatar links to the profile; subtle ring on focus.
+  .home-avatar-link {
     flex: 0 0 auto;
     display: inline-flex;
     border-radius: 50%;
     outline: none;
 
-    .dash-avatar {
+    .home-avatar {
       width: 56px;
       height: 56px;
       font-size: 1.25rem;
       transition: box-shadow 0.15s ease;
     }
 
-    &:hover .dash-avatar,
-    &:focus-visible .dash-avatar {
+    &:hover .home-avatar,
+    &:focus-visible .home-avatar {
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 22%, transparent);
     }
   }
 
-  .dash-heading {
+  .home-heading {
     min-width: 0;
 
     .page-title {
@@ -42,6 +42,9 @@
 
     // The name doubles as the profile link; reads as heading text until hovered.
     .name-link {
+      // The word space after the comma. See the template — markup whitespace is
+      // collapsed away here, so this is the only place it can come from.
+      margin-inline-start: 0.28em;
       color: inherit;
       text-decoration: none;
       text-underline-offset: 3px;
@@ -52,6 +55,29 @@
         text-decoration-color: var(--mat-sys-primary);
       }
     }
+  }
+}
+
+// Names the workspace everything below belongs to. Flat by default, per the card
+// rule — a hairline, no resting shadow.
+.workspace-scope {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: var(--app-hairline);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: nowrap;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--mat-sys-primary);
   }
 }
 
@@ -77,7 +103,6 @@
   border-radius: 14px;
   color: inherit;
   text-decoration: none;
-  transition: background-color 0.15s ease;
 
   // Short centred divider ahead of each metric (weather has none — it's first).
   &::before {
@@ -90,13 +115,6 @@
     transform: translateY(-50%);
     background: var(--mat-sys-outline-variant);
   }
-}
-
-// Only the metrics that navigate get a hover surface.
-a.kpi:hover,
-a.kpi:focus-visible {
-  background: var(--mat-sys-surface-container);
-  outline: none;
 }
 
 .kpi-value {
@@ -115,21 +133,50 @@ a.kpi:focus-visible {
   font-size: 0.82rem;
   color: var(--mat-sys-on-surface-variant);
 
+  // One accent across the band: the tiles are peers, and colouring them apart
+  // implied a distinction between the two numbers that isn't there.
   .kpi-icon {
     width: 18px;
     height: 18px;
     font-size: 18px;
-
-    &.projects {
-      color: var(--mat-sys-primary);
-    }
-    &.deleted {
-      color: var(--mat-sys-error);
-    }
+    color: var(--mat-sys-primary);
   }
 }
 
+.projects-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .section-title {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+}
+
+// Stands in for both tiles, so the band keeps its shape while the counts load.
+.kpi-state {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 28px;
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
 @media (max-width: 640px) {
+  .home-header {
+    flex-wrap: wrap;
+  }
+
+  .workspace-scope {
+    margin-inline-start: 0;
+  }
+
   .overview {
     grid-template-columns: 1fr;
 
@@ -150,25 +197,9 @@ a.kpi:focus-visible {
       transform: none;
     }
   }
-}
 
-.recent-card {
-  .card-header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .kpi-state {
+    grid-column: auto;
+    padding: 14px 4px;
   }
-}
-
-.clickable-row {
-  cursor: pointer;
-
-  &:hover {
-    background: color-mix(in srgb, var(--mat-sys-primary) 5%, transparent);
-  }
-}
-
-.empty-hint {
-  color: var(--mat-sys-on-surface-variant);
-  margin: 8px 0 4px;
 }

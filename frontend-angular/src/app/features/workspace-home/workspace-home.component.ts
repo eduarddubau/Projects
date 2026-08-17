@@ -6,55 +6,61 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { DashboardService } from '@core/services/dashboard.service';
 import { AuthService } from '@core/services/auth.service';
-import { LanguageService } from '@core/services/language.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { CurrentWeather } from '@core/models/weather';
-import { Project } from '@core/models/project';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { WeatherWidgetComponent } from '@shared/weather-widget/weather-widget.component';
+import { ProjectsCardComponent } from '../projects/list/projects-card.component';
 
+/**
+ * The home of one workspace: who you are, how that workspace is doing, and its projects.
+ *
+ * Everything on it is scoped to the workspace in the path — the switcher in the header
+ * governs the whole page, and no number here counts a workspace you are looking away
+ * from. The account-level view across workspaces is /workspaces, which lists workspaces
+ * rather than merging their contents.
+ */
 @Component({
-  selector: 'app-user-dashboard',
-  templateUrl: './user-dashboard.component.html',
-  styleUrl: './user-dashboard.component.scss',
+  selector: 'app-workspace-home',
+  templateUrl: './workspace-home.component.html',
+  styleUrl: './workspace-home.component.scss',
   imports: [
     RouterLink,
-    DatePipe,
-    MatCardModule,
-    MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatTableModule,
     AuroraComponent,
     WeatherWidgetComponent,
+    ProjectsCardComponent,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class UserDashboardComponent {
+export class WorkspaceHomeComponent {
   private dashboardService = inject(DashboardService);
   private authService = inject(AuthService);
-  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
-  private languageService = inject(LanguageService);
+  private route = inject(ActivatedRoute);
   private workspaceContext = inject(WorkspaceContextService);
 
-  currentWorkspaceId = this.workspaceContext.currentWorkspaceId;
+  // From paramMap, not the snapshot: switching workspace navigates between two
+  // instances of this same route, and Angular reuses the component.
+  workspaceId = toSignal(this.route.paramMap.pipe(map((p) => p.get('workspaceId'))), {
+    initialValue: this.route.snapshot.paramMap.get('workspaceId'),
+  });
 
-  /** Locale for the date pipes; 'ro' locale data is registered in provideI18n. */
-  dateLocale = computed(() => (this.languageService.lang() === 'ro' ? 'ro' : 'en-US'));
+  workspaceName = computed(() => this.workspaceContext.currentWorkspace()?.name ?? '');
 
-  dashboard = this.dashboardService.myDashboard();
+  isPersonal = computed(() => this.workspaceContext.currentWorkspace()?.isPersonal ?? false);
+
+  dashboard = this.dashboardService.workspaceDashboard(this.workspaceId);
 
   currentUser = this.authService.currentUser;
   displayName = this.authService.displayName;
@@ -76,29 +82,19 @@ export class UserDashboardComponent {
     return 'evening';
   });
 
-  greetingKey = computed(() => `userDashboard.greeting.${this.partOfDay()}`);
+  greetingKey = computed(() => `workspaceHome.greeting.${this.partOfDay()}`);
 
   // A weather-mood line once the widget reports in, else a time-of-day one.
   taglineKey = computed(() => {
     const weather = this.weather();
     return weather && weather.conditionKey !== 'unknown'
-      ? `userDashboard.taglines.weather.${weatherMood(weather)}`
-      : `userDashboard.taglines.${this.partOfDay()}`;
+      ? `workspaceHome.taglines.weather.${weatherMood(weather)}`
+      : `workspaceHome.taglines.${this.partOfDay()}`;
   });
-
-  recentColumns = ['name', 'lastActivity'];
 
   onWeatherLoaded(weather: CurrentWeather): void {
     this.weather.set(weather);
     this.cdr.markForCheck();
-  }
-
-  openProject(project: Project): void {
-    this.router.navigate(['/w', project.workspaceId, 'projects', project.id]);
-  }
-
-  lastActivity(project: Project): string {
-    return project.updatedAt ?? project.createdAt;
   }
 }
 

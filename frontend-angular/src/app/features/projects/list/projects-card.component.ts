@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  afterNextRender,
-  inject,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
@@ -14,12 +8,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
-import { map } from 'rxjs/operators';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
@@ -29,14 +22,17 @@ import { Project } from '@core/models/project';
 import {
   ProjectFormDialogComponent,
   ProjectFormResult,
-} from './project-form-dialog/project-form-dialog.component';
+} from '../project-form-dialog/project-form-dialog.component';
 import { TableState } from '@shared/table/table-state';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
-import { AuroraComponent } from '@shared/aurora/aurora.component';
 
+/**
+ * The workspace's projects, as a card. Takes its workspace from the caller rather than
+ * the route so it can sit inside the workspace home alongside that page's other content.
+ */
 @Component({
-  selector: 'app-projects',
-  templateUrl: './projects.component.html',
+  selector: 'app-projects-card',
+  templateUrl: './projects-card.component.html',
   imports: [
     MatTableModule,
     MatPaginatorModule,
@@ -49,29 +45,24 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
     MatTooltipModule,
     RouterLink,
     DatePipe,
-    AuroraComponent,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [{ provide: MatPaginatorIntl, useClass: TranslocoPaginatorIntl }],
 })
-export class ProjectsComponent {
+export class ProjectsCardComponent {
   private projectService = inject(ProjectService);
   private workspaceContext = inject(WorkspaceContextService);
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private transloco = inject(TranslocoService);
 
-  isOwner = this.workspaceContext.isOwner;
+  /** Null while the host is still resolving it; the resource stays idle until it isn't. */
+  workspaceId = input.required<string | null>();
 
-  // From paramMap, not the snapshot: switching workspace navigates between two
-  // instances of this same route, and Angular reuses the component.
-  workspaceId = toSignal(this.route.paramMap.pipe(map((p) => p.get('workspaceId'))), {
-    initialValue: this.route.snapshot.paramMap.get('workspaceId'),
-  });
+  isOwner = this.workspaceContext.isOwner;
 
   projects = this.projectService.workspaceProjects(this.workspaceId);
 
@@ -95,17 +86,6 @@ export class ProjectsComponent {
   });
 
   displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
-
-  constructor() {
-    // Deep link from the dashboard's "New Project" button: open the create
-    // dialog on arrival, then drop the flag so a reload won't reopen it.
-    afterNextRender(() => {
-      if (this.route.snapshot.queryParamMap.has('new')) {
-        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
-        this.openCreateDialog();
-      }
-    });
-  }
 
   openCreateDialog(): void {
     this.dialog

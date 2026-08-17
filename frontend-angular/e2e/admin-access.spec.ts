@@ -29,7 +29,7 @@ test.describe('Admin access', () => {
 
     // adminGuard redirects authenticated non-admins home. Not to a project list:
     // that now needs a workspace id the guard has no business resolving.
-    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+$/);
     await expect(page.getByRole('heading', { name: 'Admin Dashboard' })).toHaveCount(0);
   });
 });

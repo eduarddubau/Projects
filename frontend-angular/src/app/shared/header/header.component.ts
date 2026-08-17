@@ -52,7 +52,8 @@ export class HeaderComponent {
 
   appName = APP_NAME;
 
-  // Admins have no user dashboard to go home to.
+  // Admins have no workspace home to go to. /dashboard rather than /w/{id}: the id
+  // may not be resolved yet, and the guard on /dashboard forwards to the right one.
   homeLink = computed(() => {
     if (!this.isAuthenticated()) return '/';
     return this.isAdmin() ? '/admin' : '/dashboard';

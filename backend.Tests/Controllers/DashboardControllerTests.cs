@@ -1,7 +1,5 @@
 using Backend.Controllers;
 using Backend.DTOs.Dashboard;
-using Backend.DTOs.Project;
-using Backend.DTOs.User;
 using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -19,22 +17,34 @@ public class DashboardControllerTests
     }
 
     [Fact]
-    public async Task GetMyDashboard_ReturnsOkWithDashboard()
+    public async Task GetWorkspaceDashboard_ReturnsOkWithDashboard()
     {
-        var dashboard = new UserDashboardDto
-        {
-            ActiveProjectCount = 2,
-            DeletedProjectCount = 1,
-            LastActivityAt = DateTime.UtcNow,
-            RecentProjects = [new ProjectResponseDto { Id = Guid.NewGuid(), Name = "My Project" }],
-        };
+        var workspaceId = Guid.NewGuid();
+        var dashboard = new WorkspaceDashboardDto { OpenTaskCount = 12, MyOpenTaskCount = 5 };
         _dashboardService
-            .Setup(s => s.GetMyDashboardAsync(It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetWorkspaceDashboardAsync(workspaceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(dashboard);
 
-        var result = await _controller.GetMyDashboard(CancellationToken.None);
+        var result = await _controller.GetWorkspaceDashboard(workspaceId, CancellationToken.None);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(dashboard, okResult.Value);
+    }
+
+    [Fact]
+    public async Task GetWorkspaceDashboard_WhenServiceReturnsNull_Returns404()
+    {
+        _dashboardService
+            .Setup(s =>
+                s.GetWorkspaceDashboardAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((WorkspaceDashboardDto?)null);
+
+        var result = await _controller.GetWorkspaceDashboard(
+            Guid.NewGuid(),
+            CancellationToken.None
+        );
+
+        Assert.IsType<NotFoundResult>(result.Result);
     }
 }

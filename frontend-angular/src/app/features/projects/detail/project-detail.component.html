@@ -10,7 +10,7 @@
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
       <p>{{ t('projects.detail.notFound') }}</p>
-      <a mat-stroked-button [routerLink]="['/w', workspaceId(), 'projects']">{{
+      <a mat-stroked-button [routerLink]="['/w', workspaceId()]">{{
         t('projects.detail.backToProjects')
       }}</a>
     </div>
@@ -20,7 +20,7 @@
     <header class="project-header">
       <a
         class="back-link"
-        [routerLink]="['/w', workspaceId(), 'projects']"
+        [routerLink]="['/w', workspaceId()]"
         [attr.aria-label]="t('projects.detail.backToProjects')"
       >
         <mat-icon>arrow_back</mat-icon>

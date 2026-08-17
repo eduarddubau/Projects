@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('My Projects CRUD', () => {
+test.describe('Projects CRUD', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
     await page.locator('input[formcontrolname="email"]').fill('dev2@example.com');
@@ -8,8 +8,8 @@ test.describe('My Projects CRUD', () => {
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 
-    await page.locator('.nav-inline a', { hasText: 'Projects' }).click();
-    await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
+    await page.locator('.nav-inline a', { hasText: 'Home' }).click();
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
   });
 
   test('creates, edits, deletes, and restores a project via Trash', async ({ page }) => {
@@ -42,7 +42,7 @@ test.describe('My Projects CRUD', () => {
     await dialog.getByRole('button', { name: 'Delete' }).click();
 
     await expect(page.getByText('Project deleted.')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Trash' }).click();
@@ -54,8 +54,8 @@ test.describe('My Projects CRUD', () => {
     await expect(page.getByText('Project restored.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
 
-    await page.getByRole('button', { name: 'Back to My Projects' }).click();
-    await expect(page.getByRole('heading', { name: 'My Projects' })).toBeVisible();
+    await page.getByRole('button', { name: 'Back to projects' }).click();
+    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toBeVisible();
   });
 });

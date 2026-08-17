@@ -27,18 +27,16 @@
 
     <!-- Inline nav (desktop) -->
     <nav class="nav-inline">
-      @if (isAuthenticated()) {
-        @if (!isAdmin()) {
-          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active-link">{{
-            t('nav.dashboard')
-          }}</a>
-        }
+      @if (isAuthenticated() && !isAdmin()) {
         @if (currentWorkspaceId(); as id) {
+          <!-- exact: /w/{id} prefixes every workspace route, so without it the home
+               link reads as active on members, settings and project detail too. -->
           <a
             class="nav-link"
-            [routerLink]="['/w', id, 'projects']"
+            [routerLink]="['/w', id]"
             routerLinkActive="active-link"
-            >{{ t('nav.projects') }}</a
+            [routerLinkActiveOptions]="{ exact: true }"
+            >{{ t('nav.home') }}</a
           >
         }
       }
@@ -135,7 +133,7 @@
         <mat-divider></mat-divider>
         <button mat-menu-item routerLink="/dashboard">
           <mat-icon>space_dashboard</mat-icon>
-          <span>{{ t('menu.dashboard') }}</span>
+          <span>{{ t('menu.home') }}</span>
         </button>
       }
       <button mat-menu-item routerLink="/profile">
@@ -143,10 +141,6 @@
         <span>{{ t('menu.profile') }}</span>
       </button>
       @if (currentWorkspaceId(); as id) {
-        <button mat-menu-item [routerLink]="['/w', id, 'projects']">
-          <mat-icon>folder</mat-icon>
-          <span>{{ t('menu.projects') }}</span>
-        </button>
         <button mat-menu-item [routerLink]="['/w', id, 'projects', 'trash']">
           <mat-icon>delete_outline</mat-icon>
           <span>{{ t('menu.trash') }}</span>
