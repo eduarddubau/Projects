@@ -655,7 +655,11 @@ public sealed class WorkspaceServiceTests : IDisposable
             (_caller, WorkspaceRole.Owner),
             (member, WorkspaceRole.Member)
         );
-        var elsewhere = AddWorkspace("Other Team", isPersonal: false, (member, WorkspaceRole.Owner));
+        var elsewhere = AddWorkspace(
+            "Other Team",
+            isPersonal: false,
+            (member, WorkspaceRole.Owner)
+        );
 
         var theirs = AddTask(AddProject("Redesign", shared), member.Id);
         var mine = AddTask(AddProject("Roadmap", shared), _caller.Id);
