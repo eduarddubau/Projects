@@ -660,8 +660,7 @@
       "title": "Titlu",
       "assignee": "Responsabil",
       "status": "Stare",
-      "dueDate": "Termen",
-      "actions": "Acțiuni"
+      "dueDate": "Termen"
     },
     "form": {
       "newTitle": "Sarcină nouă",

@@ -1,6 +1,15 @@
+// A button rather than a span: the row's click handler is mouse-only, and this is
+// the keyboard path to the same editor, matching the board's card title.
 .task-title {
   display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
   font-weight: 500;
+  text-align: left;
+  cursor: pointer;
 }
 
 .task-subtitle {

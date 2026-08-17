@@ -11,21 +11,23 @@
   } @else {
     <div class="board" cdkDropListGroup>
       @for (status of statuses; track status) {
-        <section
-          class="board-column"
-          [attr.aria-label]="t('tasks.status.' + status)"
-          cdkDropList
-          [id]="'column-' + status"
-          [cdkDropListData]="status"
-          [cdkDropListConnectedTo]="dropListIds"
-          (cdkDropListDropped)="drop($event, status)"
-        >
+        <section class="board-column" [attr.aria-label]="t('tasks.status.' + status)">
           <header class="column-header">
             <h3>{{ t('tasks.status.' + status) }}</h3>
             <span class="column-count">{{ column(status).length }}</span>
           </header>
 
-          <div class="column-cards">
+          <!-- The drop list has to be the element that directly holds the cards. On the
+               column it was appending the placeholder after this div rather than between
+               the cards, so the gap opened below the stack instead of inside it. -->
+          <div
+            class="column-cards"
+            cdkDropList
+            [id]="'column-' + status"
+            [cdkDropListData]="status"
+            [cdkDropListConnectedTo]="dropListIds"
+            (cdkDropListDropped)="drop($event, status)"
+          >
             @for (task of column(status); track task.id) {
               <article class="task-card" cdkDrag [cdkDragData]="task">
                 <div class="card-placeholder" *cdkDragPlaceholder></div>

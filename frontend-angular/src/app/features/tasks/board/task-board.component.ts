@@ -164,10 +164,15 @@ export class TaskBoardComponent {
       .open(TaskFormDialogComponent, { width: '560px', data: { task, members: this.members } })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((payload) => {
-        if (!payload) return;
+      .subscribe((result) => {
+        if (!result) return;
 
-        this.taskService.updateTask(task.id, payload).subscribe({
+        if (result.action === 'delete') {
+          this.confirmDelete(task);
+          return;
+        }
+
+        this.taskService.updateTask(task.id, result.payload).subscribe({
           next: (saved) => {
             this.tasks().update((list) =>
               sortTasks(list.map((item) => (item.id === saved.id ? saved : item))),

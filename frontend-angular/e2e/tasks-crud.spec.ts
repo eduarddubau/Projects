@@ -35,19 +35,21 @@ test.describe('Tasks', () => {
     const row = page.locator('tr', { hasText: title });
     await expect(row).toBeVisible();
 
-    await row.getByRole('button', { name: 'Edit task' }).click();
+    await row.click();
     dialog = page.getByRole('dialog');
     await dialog.getByLabel('Title').fill(updated);
     await dialog.getByRole('button', { name: 'Save' }).click();
     await expect(page.getByText('Task updated.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updated })).toBeVisible();
 
+    // Deleting is inside the editor now, so it opens the form and asks from there.
+    await page.locator('tr', { hasText: updated }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await page
-      .locator('tr', { hasText: updated })
-      .getByRole('button', { name: 'Delete task' })
+      .getByRole('dialog')
+      .filter({ hasText: 'Delete task?' })
+      .getByRole('button', { name: 'Delete' })
       .click();
-    dialog = page.getByRole('dialog');
-    await dialog.getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByText('Task deleted.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updated })).toHaveCount(0);
   });

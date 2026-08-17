@@ -660,8 +660,7 @@
       "title": "Title",
       "assignee": "Assignee",
       "status": "Status",
-      "dueDate": "Due",
-      "actions": "Actions"
+      "dueDate": "Due"
     },
     "form": {
       "newTitle": "New Task",

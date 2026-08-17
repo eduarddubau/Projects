@@ -17,7 +17,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -46,7 +45,6 @@ import { TaskFormDialogComponent } from '../task-form-dialog/task-form-dialog.co
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    MatTooltipModule,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,7 +67,7 @@ export class TaskListComponent {
 
   dateLocale = computed(() => (this.languageService.lang() === 'ro' ? 'ro' : 'en-US'));
 
-  readonly displayedColumns = ['title', 'assignee', 'status', 'dueDate', 'actions'];
+  readonly displayedColumns = ['title', 'assignee', 'status', 'dueDate'];
 
   /** Which quick filters are on. Client-side: the payload is one project's tasks. */
   mineOnly = signal(false);
@@ -126,8 +124,8 @@ export class TaskListComponent {
     );
   }
 
-  // Creating is a page-level action and lives in the shell's view bar; the list only
-  // edits and deletes rows it is already showing.
+  // Creating is a page-level action and lives in the shell's view bar. The row opens
+  // this, and deleting is one of the things the editor can close with.
   openEdit(task: Task): void {
     this.dialog
       .open(TaskFormDialogComponent, {
@@ -136,10 +134,15 @@ export class TaskListComponent {
       })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((payload) => {
-        if (!payload) return;
+      .subscribe((result) => {
+        if (!result) return;
 
-        this.taskService.updateTask(task.id, payload).subscribe({
+        if (result.action === 'delete') {
+          this.confirmDelete(task);
+          return;
+        }
+
+        this.taskService.updateTask(task.id, result.payload).subscribe({
           next: (saved) => {
             // Re-sort: an edit can change status, which moves the row to another group.
             this.tasks().update((list) =>

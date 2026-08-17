@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -25,6 +26,9 @@ export interface TaskFormDialogData {
    * when the dialog opens can be empty and never fills in. */
   members: Signal<readonly WorkspaceMember[]>;
 }
+
+/** Delete closes the dialog with an intent; the caller still asks for confirmation. */
+export type TaskFormResult = { action: 'save'; payload: TaskPayload } | { action: 'delete' };
 
 /** Mirrors the server's 400 so the error shows before submitting; the server stays the authority. */
 function dueOnOrAfterStart(group: AbstractControl): ValidationErrors | null {
@@ -44,6 +48,7 @@ function dueOnOrAfterStart(group: AbstractControl): ValidationErrors | null {
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatIconModule,
     MatDatepickerModule,
     TranslocoDirective,
   ],
@@ -58,7 +63,7 @@ function dueOnOrAfterStart(group: AbstractControl): ValidationErrors | null {
 })
 export class TaskFormDialogComponent {
   private fb = inject(FormBuilder);
-  private dialogRef = inject(MatDialogRef<TaskFormDialogComponent, TaskPayload>);
+  private dialogRef = inject(MatDialogRef<TaskFormDialogComponent, TaskFormResult>);
   data = inject<TaskFormDialogData>(MAT_DIALOG_DATA);
 
   readonly statuses = TASK_STATUSES;
@@ -101,13 +106,20 @@ export class TaskFormDialogComponent {
     const { title, description, status, assigneeId, startDate, dueDate } = this.form.getRawValue();
 
     this.dialogRef.close({
-      title,
-      description: description || undefined,
-      status,
-      assigneeId: assigneeId || undefined,
-      startDate: toIsoDate(startDate),
-      dueDate: toIsoDate(dueDate),
+      action: 'save',
+      payload: {
+        title,
+        description: description || undefined,
+        status,
+        assigneeId: assigneeId || undefined,
+        startDate: toIsoDate(startDate),
+        dueDate: toIsoDate(dueDate),
+      },
     });
+  }
+
+  requestDelete(): void {
+    this.dialogRef.close({ action: 'delete' });
   }
 
   cancel(): void {

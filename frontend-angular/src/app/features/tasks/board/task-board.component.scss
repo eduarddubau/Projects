@@ -144,6 +144,13 @@
   text-align: center;
 }
 
+// Out of the way while a drag is live, or the placeholder lands under a line of
+// text telling you the column is empty.
+.cdk-drop-list-dragging .column-empty,
+.cdk-drop-list-receiving .column-empty {
+  display: none;
+}
+
 // The gap the card will occupy: an outline, so the column does not jump as it moves.
 .card-placeholder {
   border: 1px dashed color-mix(in srgb, var(--mat-sys-primary) 50%, transparent);

@@ -22,3 +22,8 @@
   color: var(--mat-sys-error);
   font: var(--mat-sys-body-small);
 }
+
+// The far end of the row, away from the Save that sits next to Cancel.
+.delete-action {
+  margin-right: auto;
+}

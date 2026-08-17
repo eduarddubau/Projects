@@ -67,6 +67,17 @@
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
+      @if (isEditMode) {
+        <button
+          type="button"
+          mat-stroked-button
+          class="button-danger delete-action"
+          (click)="requestDelete()"
+        >
+          <mat-icon>delete</mat-icon>
+          {{ t('common.actions.delete') }}
+        </button>
+      }
       <button type="button" mat-button (click)="cancel()">{{ t('common.actions.cancel') }}</button>
       <button type="submit" mat-flat-button [disabled]="form.invalid">
         {{ isEditMode ? t('common.actions.save') : t('common.actions.create') }}

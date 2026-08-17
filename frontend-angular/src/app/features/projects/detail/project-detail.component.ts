@@ -25,14 +25,17 @@ import { WorkspaceService } from '@core/services/workspace.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { Project } from '@core/models/project';
 import { Workspace } from '@core/models/workspace';
-import { TaskPayload, sortTasks } from '@core/models/task';
+import { sortTasks } from '@core/models/task';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import {
   ProjectFormDialogComponent,
   ProjectFormResult,
 } from '../project-form-dialog/project-form-dialog.component';
-import { TaskFormDialogComponent } from '@features/tasks/task-form-dialog/task-form-dialog.component';
+import {
+  TaskFormDialogComponent,
+  TaskFormResult,
+} from '@features/tasks/task-form-dialog/task-form-dialog.component';
 import { TaskListComponent } from '@features/tasks/task-list/task-list.component';
 import { TaskBoardComponent } from '@features/tasks/board/task-board.component';
 
@@ -154,10 +157,11 @@ export class ProjectDetailComponent {
       .open(TaskFormDialogComponent, { width: '560px', data: { members: this.members } })
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((payload: TaskPayload | undefined) => {
-        if (!payload) return;
+      // Only 'save' can arrive: the dialog offers no delete for a task that does not exist yet.
+      .subscribe((result: TaskFormResult | undefined) => {
+        if (result?.action !== 'save') return;
 
-        this.taskService.createTask(projectId, payload).subscribe({
+        this.taskService.createTask(projectId, result.payload).subscribe({
           next: (created) => {
             // value() throws while the resource is in its error state, and this button
             // is reachable there; refetch instead of splicing into a list we can't read.
