@@ -1,0 +1,122 @@
+<ng-container *transloco="let t">
+  @if (tasks().isLoading()) {
+    <div class="state-container">
+      <p>{{ t('tasks.list.loading') }}</p>
+    </div>
+  } @else if (tasks().error()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ t('tasks.list.loadFailed') }}</p>
+    </div>
+  } @else {
+    <div class="board" cdkDropListGroup>
+      @for (status of statuses; track status) {
+        <section
+          class="board-column"
+          [attr.aria-label]="t('tasks.status.' + status)"
+          cdkDropList
+          [id]="'column-' + status"
+          [cdkDropListData]="status"
+          [cdkDropListConnectedTo]="dropListIds"
+          (cdkDropListDropped)="drop($event, status)"
+        >
+          <header class="column-header">
+            <h3>{{ t('tasks.status.' + status) }}</h3>
+            <span class="column-count">{{ column(status).length }}</span>
+          </header>
+
+          <div class="column-cards">
+            @for (task of column(status); track task.id) {
+              <article class="task-card" cdkDrag [cdkDragData]="task">
+                <div class="card-placeholder" *cdkDragPlaceholder></div>
+
+                <div class="card-top">
+                  <button
+                    type="button"
+                    class="card-title"
+                    (click)="openEdit(task)"
+                    [attr.aria-label]="t('tasks.actions.edit') + ': ' + task.title"
+                  >
+                    {{ task.title }}
+                  </button>
+
+                  <button
+                    mat-icon-button
+                    class="card-menu"
+                    [matMenuTriggerFor]="cardMenu"
+                    [attr.aria-label]="t('tasks.board.cardActions', { title: task.title })"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+
+                  <mat-menu #cardMenu="matMenu">
+                    <button mat-menu-item (click)="openEdit(task)">
+                      <mat-icon>edit</mat-icon>
+                      <span>{{ t('tasks.actions.edit') }}</span>
+                    </button>
+
+                    <button mat-menu-item [matMenuTriggerFor]="moveMenu">
+                      <mat-icon>swap_horiz</mat-icon>
+                      <span>{{ t('tasks.board.moveTo') }}</span>
+                    </button>
+
+                    <button mat-menu-item [disabled]="isFirst(task)" (click)="moveUp(task)">
+                      <mat-icon>arrow_upward</mat-icon>
+                      <span>{{ t('tasks.board.moveUp') }}</span>
+                    </button>
+
+                    <button mat-menu-item [disabled]="isLast(task)" (click)="moveDown(task)">
+                      <mat-icon>arrow_downward</mat-icon>
+                      <span>{{ t('tasks.board.moveDown') }}</span>
+                    </button>
+
+                    <button mat-menu-item class="button-danger" (click)="confirmDelete(task)">
+                      <mat-icon>delete</mat-icon>
+                      <span>{{ t('tasks.actions.delete') }}</span>
+                    </button>
+                  </mat-menu>
+
+                  <mat-menu #moveMenu="matMenu">
+                    @for (target of statuses; track target) {
+                      <button
+                        mat-menu-item
+                        [disabled]="target === task.status"
+                        (click)="moveToStatus(task, target)"
+                      >
+                        {{ t('tasks.status.' + target) }}
+                      </button>
+                    }
+                  </mat-menu>
+                </div>
+
+                <footer class="card-meta">
+                  @if (task.dueDate) {
+                    <span class="due" [class.due-overdue]="isOverdue(task.dueDate, task.status)">
+                      <mat-icon>{{
+                        isOverdue(task.dueDate, task.status) ? 'event_busy' : 'event'
+                      }}</mat-icon>
+                      {{ asDate(task.dueDate) | date: 'MMM d' : undefined : dateLocale() }}
+                    </span>
+                  }
+
+                  @if (task.assigneeDisplayName) {
+                    <span
+                      class="avatar-circle"
+                      [matTooltip]="task.assigneeDisplayName"
+                      [attr.aria-label]="task.assigneeDisplayName"
+                      >{{ task.assigneeDisplayName.charAt(0) }}</span
+                    >
+                  } @else {
+                    <span class="unassigned">{{ t('tasks.unassigned') }}</span>
+                  }
+                </footer>
+              </article>
+            } @empty {
+              <p class="column-empty">{{ t('tasks.board.emptyColumn') }}</p>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  }
+</ng-container>

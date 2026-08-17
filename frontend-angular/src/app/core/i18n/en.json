@@ -652,8 +652,7 @@
       "loadFailed": "Failed to load tasks. Please try again.",
       "tableAria": "Tasks",
       "noSearchResults": "No tasks match your search.",
-      "empty": "No tasks yet — create your first one.",
-      "heading": "Tasks"
+      "empty": "No tasks yet — create your first one."
     },
     "table": {
       "title": "Title",
@@ -690,8 +689,19 @@
       "updateFailed": "Failed to update the task.",
       "deleted": "Task deleted.",
       "deleteFailed": "Failed to delete the task.",
-      "moved": "Task moved.",
       "moveFailed": "Failed to move the task."
+    },
+    "view": {
+      "switcher": "Task view",
+      "board": "Board",
+      "list": "List"
+    },
+    "board": {
+      "moveTo": "Move to",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "cardActions": "Actions for {{title}}",
+      "emptyColumn": "Nothing here yet."
     }
   }
 }

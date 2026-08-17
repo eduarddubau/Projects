@@ -69,7 +69,20 @@
     </header>
 
     <div class="view-bar">
-      <h2 class="section-heading">{{ t('tasks.list.heading') }}</h2>
+      <mat-button-toggle-group
+        [value]="view()"
+        (change)="setView($event.value)"
+        [attr.aria-label]="t('tasks.view.switcher')"
+      >
+        <mat-button-toggle value="board">
+          <mat-icon>view_kanban</mat-icon>
+          {{ t('tasks.view.board') }}
+        </mat-button-toggle>
+        <mat-button-toggle value="list">
+          <mat-icon>view_list</mat-icon>
+          {{ t('tasks.view.list') }}
+        </mat-button-toggle>
+      </mat-button-toggle-group>
 
       <button mat-flat-button (click)="newTask()">
         <mat-icon>add</mat-icon>
@@ -77,6 +90,10 @@
       </button>
     </div>
 
-    <app-task-list [tasks]="tasks" [members]="members()" />
+    @if (view() === 'list') {
+      <app-task-list [tasks]="tasks" [members]="members()" />
+    } @else {
+      <app-task-board [tasks]="tasks" [members]="members()" />
+    }
   }
 </div>

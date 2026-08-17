@@ -652,8 +652,7 @@
       "loadFailed": "Încărcarea sarcinilor a eșuat. Încearcă din nou.",
       "tableAria": "Sarcini",
       "noSearchResults": "Nicio sarcină nu corespunde căutării.",
-      "empty": "Nicio sarcină încă — creeaz-o pe prima.",
-      "heading": "Sarcini"
+      "empty": "Nicio sarcină încă — creeaz-o pe prima."
     },
     "table": {
       "title": "Titlu",
@@ -690,8 +689,19 @@
       "updateFailed": "Actualizarea sarcinii a eșuat.",
       "deleted": "Sarcină ștearsă.",
       "deleteFailed": "Ștergerea sarcinii a eșuat.",
-      "moved": "Sarcină mutată.",
       "moveFailed": "Mutarea sarcinii a eșuat."
+    },
+    "view": {
+      "switcher": "Vizualizare sarcini",
+      "board": "Panou",
+      "list": "Listă"
+    },
+    "board": {
+      "moveTo": "Mută în",
+      "moveUp": "Mută mai sus",
+      "moveDown": "Mută mai jos",
+      "cardActions": "Acțiuni pentru {{title}}",
+      "emptyColumn": "Nimic aici încă."
     }
   }
 }

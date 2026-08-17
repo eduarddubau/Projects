@@ -28,6 +28,8 @@ test.describe('Tasks', () => {
     await dialog.getByRole('button', { name: 'Create' }).click();
     await expect(page.getByText('Task created.')).toBeVisible();
 
+    await page.getByRole('radio', { name: 'List' }).click();
+
     // Search rather than scan: the list pages at 10, and every rerun adds a task.
     await page.getByLabel('Search tasks').fill(title);
     const row = page.locator('tr', { hasText: title });
@@ -65,6 +67,7 @@ test.describe('Tasks', () => {
 
   test('filters the list to overdue tasks', async ({ page }) => {
     await openSeededProject(page);
+    await page.getByRole('radio', { name: 'List' }).click();
     // Wait for rows before counting, or the filter is compared against an empty table.
     const rows = page.locator('table tbody tr');
     await expect(rows.first()).toBeVisible();
@@ -77,5 +80,98 @@ test.describe('Tasks', () => {
 
     expect(after).toBeGreaterThan(0);
     expect(after).toBeLessThan(before);
+  });
+
+  test('opens on the board and the toggle round-trips through the URL', async ({ page }) => {
+    await openSeededProject(page);
+
+    // No ?view= in the URL: a bare project link is the board.
+    expect(new URL(page.url()).searchParams.get('view')).toBeNull();
+    await expect(page.getByRole('heading', { name: 'To do' })).toBeVisible();
+
+    await page.getByRole('radio', { name: 'List' }).click();
+    await expect(page).toHaveURL(/view=list/);
+    await expect(page.getByRole('table', { name: 'Tasks' })).toBeVisible();
+
+    await page.getByRole('radio', { name: 'Board' }).click();
+    await expect(page).toHaveURL(/view=board/);
+    await expect(page.getByRole('heading', { name: 'In progress' })).toBeVisible();
+  });
+
+  test('a ?view=list link opens directly on the list', async ({ page }) => {
+    await openSeededProject(page);
+    await page.goto(`${page.url().split('?')[0]}?view=list`);
+
+    await expect(page.getByRole('table', { name: 'Tasks' })).toBeVisible();
+  });
+
+  // WCAG 2.2 SC 2.5.7 requires a no-drag path for everything dragging can do, and
+  // Playwright's drag against the CDK is flaky, so the menu is what gets tested.
+  test('moves a card between columns through the card menu', async ({ page }) => {
+    await openSeededProject(page);
+    const title = `E2E Board ${Date.now()}`;
+
+    await page.getByRole('button', { name: 'New Task' }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Title').fill(title);
+    await dialog.getByRole('button', { name: 'Create' }).click();
+    await expect(page.getByText('Task created.')).toBeVisible();
+
+    const todo = page.locator('section', { hasText: 'To do' }).first();
+    await expect(todo.locator('article', { hasText: title })).toBeVisible();
+
+    await page.getByRole('button', { name: `Actions for ${title}` }).click();
+    await page.getByRole('menuitem', { name: 'Move to' }).click();
+    await page.getByRole('menuitem', { name: 'Done' }).click();
+
+    const done = page.locator('section', { hasText: 'Done' }).first();
+    await expect(done.locator('article', { hasText: title })).toBeVisible();
+
+    // Survives a reload, so the move reached the server rather than only the signal.
+    await page.reload();
+    await expect(
+      page.locator('section', { hasText: 'Done' }).first().locator('article', { hasText: title }),
+    ).toBeVisible();
+
+    await page.getByRole('button', { name: `Actions for ${title}` }).click();
+    await page.getByRole('menuitem', { name: 'Delete task' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByText('Task deleted.')).toBeVisible();
+  });
+
+  test('reorders within a column through the card menu', async ({ page }) => {
+    await openSeededProject(page);
+
+    const todo = page.locator('section', { hasText: 'To do' }).first();
+    const titleAt = async (index: number) =>
+      (await todo.locator('article .card-title').nth(index).innerText()).trim();
+
+    const second = await titleAt(1);
+    await page.getByRole('button', { name: `Actions for ${second}` }).click();
+    await page.getByRole('menuitem', { name: 'Move up' }).click();
+
+    await expect(todo.locator('article .card-title').first()).toHaveText(second);
+
+    // Put it back so a rerun starts from the same board.
+    await page.getByRole('button', { name: `Actions for ${second}` }).click();
+    await page.getByRole('menuitem', { name: 'Move down' }).click();
+    await expect(todo.locator('article .card-title').nth(1)).toHaveText(second);
+  });
+
+  test('the first card cannot move up and the last cannot move down', async ({ page }) => {
+    await openSeededProject(page);
+
+    const todo = page.locator('section', { hasText: 'To do' }).first();
+    const first = (await todo.locator('article .card-title').first().innerText()).trim();
+
+    await page.getByRole('button', { name: `Actions for ${first}` }).click();
+    await expect(page.getByRole('menuitem', { name: 'Move up' })).toBeDisabled();
+    await expect(page.getByRole('menuitem', { name: 'Move down' })).toBeEnabled();
+    await page.keyboard.press('Escape');
+
+    const last = (await todo.locator('article .card-title').last().innerText()).trim();
+    await page.getByRole('button', { name: `Actions for ${last}` }).click();
+    await expect(page.getByRole('menuitem', { name: 'Move down' })).toBeDisabled();
+    await expect(page.getByRole('menuitem', { name: 'Move up' })).toBeEnabled();
   });
 });

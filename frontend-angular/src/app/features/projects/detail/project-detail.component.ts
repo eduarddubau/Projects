@@ -9,12 +9,14 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { TranslocoDirective, TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { ProjectService } from '@core/services/project.service';
@@ -32,6 +34,9 @@ import {
 } from '../project-form-dialog/project-form-dialog.component';
 import { TaskFormDialogComponent } from '@features/tasks/task-form-dialog/task-form-dialog.component';
 import { TaskListComponent } from '@features/tasks/task-list/task-list.component';
+import { TaskBoardComponent } from '@features/tasks/board/task-board.component';
+
+export type TaskView = 'board' | 'list';
 
 @Component({
   selector: 'app-project-detail',
@@ -40,11 +45,13 @@ import { TaskListComponent } from '@features/tasks/task-list/task-list.component
   imports: [
     RouterLink,
     MatButtonModule,
+    MatButtonToggleModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatMenuModule,
     AuroraComponent,
     TaskListComponent,
+    TaskBoardComponent,
     TranslocoDirective,
     TranslocoPipe,
   ],
@@ -80,6 +87,14 @@ export class ProjectDetailComponent {
     this.project.hasValue() ? this.project.value().workspaceId : this.routeWorkspaceId,
   );
 
+  private viewParam = toSignal(this.route.queryParamMap.pipe(map((params) => params.get('view'))), {
+    initialValue: this.route.snapshot.queryParamMap.get('view'),
+  });
+
+  // A pure function of the URL and nothing else, so the server and the client's first
+  // render agree and there is no hydration swap to design around.
+  view = computed<TaskView>(() => (this.viewParam() === 'list' ? 'list' : 'board'));
+
   private membersResource = this.workspaceService.membersResource(
     computed(() => (this.project.hasValue() ? this.project.value().workspaceId : undefined)),
   );
@@ -100,6 +115,16 @@ export class ProjectDetailComponent {
     const holder = this.project.value().workspaceId;
     return this.workspaceContext.workspaces().filter((w) => w.id !== holder);
   });
+
+  setView(view: TaskView): void {
+    // replaceUrl so Back leaves the project rather than walking your view changes.
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { view },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
 
   openProjectEdit(project: Project): void {
     this.dialog
