@@ -28,6 +28,18 @@ html {
   );
 }
 
+// The button-toggle's selected state defaults to secondary-container, which the
+// accent blocks below deliberately leave alone — without this the Board/List
+// toggle stays violet under every scheme.
+html {
+  @include mat.button-toggle-overrides(
+    (
+      selected-state-background-color: var(--mat-sys-primary-container),
+      selected-state-text-color: var(--mat-sys-on-primary-container),
+    )
+  );
+}
+
 html[data-theme='light'] {
   color-scheme: light;
 }

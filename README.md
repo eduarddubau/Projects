@@ -18,7 +18,7 @@
 
 <p align="center">
   <img src="docs/workspace-home.webp" width="900"
-       alt="The workspace home in dark theme: a greeting for dev1, the local weather, counts of open tasks and tasks assigned to me, and the Acme Team workspace's two projects in a searchable table.">
+       alt="The workspace home in light theme with the default violet accent: a greeting for dev1, the local weather, counts of open tasks and tasks assigned to me, and the Acme Team workspace's two projects in a searchable table.">
 </p>
 
 > [!NOTE]
@@ -245,7 +245,7 @@ harmless from your own machine, which is the only place any of the three answers
 
 <p align="center">
   <img src="docs/board.webp" width="900"
-       alt="The kanban board for Acme Website Redesign in light theme: three columns — To do with four cards, In progress with two, Done with two — each card showing its title, due date and assignee, with an overdue date in red.">
+       alt="The kanban board for Acme Website Redesign in light theme with the emerald accent: three columns — To do with four cards, In progress with two, Done with two — cards carrying a title with a due date and assignee where they are set, one of them overdue in red.">
 </p>
 
 Three columns, drag between them, and a per-card menu carrying the same moves for anyone not using a
@@ -257,7 +257,7 @@ back intact on restore.
 
 <p align="center">
   <img src="docs/task-list.webp" width="900"
-       alt="The same project in list view, dark theme: a table of eight tasks with title, description, assignee, status chip and due date, above search, an Assigned to me filter and an Overdue filter, with pagination showing 1 to 8 of 8.">
+       alt="The same project in list view, light theme with the indigo accent: a table of eight tasks with title, description, assignee, status chip and due date, below search, an Assigned to me filter and an Overdue filter, with pagination showing 1 to 8 of 8.">
 </p>
 
 The same tasks, one `?view=list` away — search, _assigned to me_, _overdue_, and a paginator. The
@@ -268,7 +268,7 @@ problem: there is no per-user state to resolve before the first render.
 
 <p align="center">
   <img src="docs/members.webp" width="900"
-       alt="The Members page for Acme Team: Dev User1 as Owner marked You, Dev User2 and Dev User3 as Members with editable role dropdowns and remove buttons, above Invite people and Leave workspace actions.">
+       alt="The Members page for Acme Team in light theme with the rose accent: Dev User1 as Owner marked You, Dev User2 and Dev User3 as Members with editable role dropdowns and remove buttons, below a header carrying Invite people and Leave workspace.">
 </p>
 
 Roles are editable in place, and the actions that aren't yours simply aren't there. A personal
@@ -279,17 +279,19 @@ workspace" is not a thing the model should permit.
 
 <p align="center">
   <img src="docs/theming.webp" width="900"
-       alt="The profile menu open over the workspace home in light theme, showing the signed-in user and a row of five accent swatches — violet, indigo, emerald, rose and slate — above My Profile and Sign Out.">
+       alt="The profile menu open over the workspace home in dark theme, showing the signed-in user and a row of five accent swatches — violet, indigo, emerald, rose and slate — above My Profile and Sign Out.">
 </p>
 
 Five accents, two themes, independently chosen and both remembered. Untouched, the theme follows the
-OS — including live, if the OS flips at sunset.
+OS — including live, if the OS flips at sunset. The screenshots on this page run through all five
+accents — violet here and on the workspace home, then emerald, indigo, rose and slate. This one is
+the dark theme; the rest are light. Violet is the accent a new account gets.
 
 ### The admin area
 
 <p align="center">
   <img src="docs/admin-users.webp" width="900"
-       alt="The admin users table in dark theme, listing the seeded accounts with their roles and creation dates, with search, bulk selection and row actions.">
+       alt="The admin users table in light theme with the slate accent: the four seeded accounts with email and creation date, a Delete action on each row and a disabled one on the signed-in admin, beside a sidebar holding Dashboard, Users and the three trash views.">
 </p>
 
 An administrator administers, and holds no projects or workspaces of their own — enforced by an
