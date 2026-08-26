@@ -81,10 +81,26 @@ Seeded accounts, all with password `Password123!`:
 | `dev2@example.com` · `dev3@example.com` | Members of it, so invitations and role changes have someone to act on         |
 | `admin@example.com`                     | Administrator — sees the admin area, and deliberately owns no projects at all |
 
-Everything is reached through the reverse proxy on **one origin**. Neither the API nor the dev server
-publishes a port of its own, and two separate invariants rest on that: the API believes
-`X-Forwarded-For` only from the proxy's address, and the SSR server trusts the proxy's
-`X-Forwarded-Host`. Publish a port for either container and you have quietly broken one of them.
+Everything the browser touches arrives through the reverse proxy on **one origin**, which is the
+only port bound to every interface. Three more are published on `127.0.0.1` for debugging, and
+nothing in the app uses them:
+
+|                                       |                  |
+| ------------------------------------- | ---------------- |
+| Postgres, for a database client       | `127.0.0.1:5432` |
+| The API, unproxied                    | `127.0.0.1:8080` |
+| The Angular dev server, without nginx | `127.0.0.1:4200` |
+
+`DB_CONNECTION_STRING` in `.env` is the API's route to Postgres, not yours: its `Host=db` is a compose
+service name and will not resolve from your machine.
+
+Those doors are safe because the trust is pinned to an address rather than resting on their absence:
+`AuthProtection:TrustedProxyNetworks` names `10.99.0.10/32`, the proxy's fixed address on the compose
+network, and a request through a published port reaches the container from somewhere else, so its
+`X-Forwarded-For` is ignored and it keys on its own socket address. Widen that setting back to a
+subnet and `:8080` turns into a bypass again — a caller could pick its own rate-limit partition.
+`:4200` skips nginx, so the SSR server's `X-Forwarded-Host` there is whatever the caller sends —
+harmless from your own machine, which is the only place any of the three answers.
 
 ## Architecture
 
@@ -318,7 +334,9 @@ Two things worth knowing if you work on this repo. The frontend's `format:check`
 step for those, and `nginx/` is in `.prettierignore` (no parser for `.conf`), so it is format-gated
 by nothing. And a Playwright run from the host against compose needs
 `E2E_BASE_URL=http://localhost:8000`: the config's `localhost:4200` default is load-bearing for CI,
-which runs the API and dev server directly on the runner with no proxy at all.
+which runs the API and dev server directly on the runner with no proxy at all. Forgetting it used to
+fail fast on a refused connection; now that `4200` is published, the suite runs green against the dev
+server instead and nginx is never exercised, so a broken `default.conf` passes.
 
 ## Configuration
 
@@ -372,6 +390,12 @@ cd frontend-angular && npm install && npm start    # app on :4200 — open this 
 
 The dev server then proxies both paths, so the single-origin contract holds here too. There is no
 nginx in this mode, which is why `playwright.config.ts` defaults to `localhost:4200`.
+
+This mode and compose cannot run at once: compose holds `127.0.0.1:8080` and `127.0.0.1:4200`, so
+Kestrel and `ng serve` fail to bind. Worse quietly, the `127.0.0.1 api` line stays in `/etc/hosts`
+afterwards — with compose up and the host API down, `proxy.conf.json` resolves `api:8080` to the
+_containerized_ API, which has its own database and JWT key. Remove the line when you leave this
+mode.
 
 </details>
 

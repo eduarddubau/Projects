@@ -23,9 +23,11 @@ services:
     tmpfs:
       - /tmp/build:mode=777,exec
     working_dir: /workspaces/fullstack-app/backend
-    # Unpublished: a host-reachable port arrives from inside the trusted proxy range,
-    # so any caller could set X-Forwarded-For and choose its own rate-limit partition.
-    # The dev server still proxies /api here for compose-network peers.
+    ports:
+      # Safe only while TrustedProxyNetworks names the proxy's single address: a request
+      # arriving here comes from another IP, so its X-Forwarded-For is ignored. Widen that
+      # setting to a subnet and this port becomes a rate-limit bypass.
+      - "127.0.0.1:8080:8080"
     environment:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
       - Jwt__Key=${Jwt__Key}
@@ -60,7 +62,7 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       # Postgres 18+ stores data in a major-version subdirectory; mount the parent
       # so pg_upgrade --link can cross versions without a mount-point boundary.
@@ -81,8 +83,11 @@ services:
       # Without this Prettier finds no config and silently uses defaults. One
       # file, read-only: npm install runs package scripts as root in here.
       - ./.prettierrc:/workspaces/fullstack-app/.prettierrc:ro,z
-    # Unpublished: the SSR server trusts the proxy's X-Forwarded-Host, which only holds
-    # while the proxy is the sole route in from the host.
+    ports:
+      # Loopback because this skips nginx: X-Forwarded-Host here is whatever the caller
+      # sends. 4000 is absent on purpose, ng serve puts hybrid SSR on 4200 and nothing
+      # ever listens on 4000.
+      - "127.0.0.1:4200:4200"
     command: >
       sh -c "if [ ! -d 'node_modules' ] || [ ! -f 'node_modules/.bin/ng' ]; then npm install; fi &&
              npx ng serve --host 0.0.0.0"
