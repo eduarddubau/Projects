@@ -6,16 +6,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectService } from '@core/services/project.service';
-import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { TableState } from '@shared/table/table-state';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
@@ -32,7 +29,6 @@ import { Project } from '@core/models/project';
     MatInputModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    MatButtonModule,
     DatePipe,
     AuroraComponent,
     WorkspaceScopeComponent,
@@ -43,12 +39,8 @@ import { Project } from '@core/models/project';
 })
 export class TrashComponent {
   private projectService = inject(ProjectService);
-  private workspaceContext = inject(WorkspaceContextService);
   private route = inject(ActivatedRoute);
-  private snackBar = inject(MatSnackBar);
-  private transloco = inject(TranslocoService);
-
-  isOwner = this.workspaceContext.isOwner;
+  private router = inject(Router);
 
   workspaceId = toSignal(this.route.paramMap.pipe(map((p) => p.get('workspaceId'))), {
     initialValue: this.route.snapshot.paramMap.get('workspaceId'),
@@ -73,24 +65,10 @@ export class TrashComponent {
     },
   });
 
-  displayedColumns = ['index', 'name', 'description', 'deletedAt', 'actions'];
+  displayedColumns = ['index', 'name', 'description', 'deletedAt'];
 
-  restoreProject(project: Project): void {
-    this.projectService.restoreProject(project.id).subscribe({
-      next: () => {
-        this.deleted.update((list) => list.filter((p) => p.id !== project.id));
-        this.snackBar.open(
-          this.transloco.translate('projects.notifications.restored'),
-          this.transloco.translate('common.actions.close'),
-          { duration: 3000 },
-        );
-      },
-      error: () =>
-        this.snackBar.open(
-          this.transloco.translate('projects.notifications.restoreFailed'),
-          this.transloco.translate('common.actions.close'),
-          { duration: 5000 },
-        ),
-    });
+  // Restoring lives on the project's own page now, so this table only has to get you there.
+  openDetail(project: Project): void {
+    this.router.navigate(['/w', this.workspaceId(), 'projects', project.id]);
   }
 }

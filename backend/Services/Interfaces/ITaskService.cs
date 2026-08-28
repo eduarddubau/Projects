@@ -8,6 +8,11 @@ public interface ITaskService
         Guid projectId,
         CancellationToken ct = default
     );
+    Task<IEnumerable<WorkspaceTaskResponseDto>?> GetWorkspaceTasksAsync(
+        Guid workspaceId,
+        WorkspaceTaskQuery query,
+        CancellationToken ct = default
+    );
     Task<TaskResponseDto?> GetTaskByIdAsync(Guid id, CancellationToken ct = default);
     Task<TaskResponseDto?> CreateTaskAsync(
         Guid projectId,
@@ -20,6 +25,11 @@ public interface ITaskService
         CancellationToken ct = default
     );
     Task<bool> DeleteTaskByIdAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<TaskResponseDto>?> GetProjectDeletedTasksAsync(
+        Guid projectId,
+        CancellationToken ct = default
+    );
+    Task<TaskResponseDto?> RestoreTaskByIdAsync(Guid id, CancellationToken ct = default);
     Task<TaskResponseDto?> MoveTaskAsync(
         Guid id,
         MoveTaskRequest dto,

@@ -51,12 +51,13 @@ public class ProjectService : IProjectService
             .ToListAsync(ct);
     }
 
+    // Owner, not member: this list exists to serve restore, and restore is owner-only.
     public async Task<IEnumerable<ProjectResponseDto>> GetWorkspaceDeletedProjectsAsync(
         Guid workspaceId,
         CancellationToken ct = default
     )
     {
-        await _access.RequireMemberAsync(workspaceId, ct);
+        await _access.RequireOwnerAsync(workspaceId, ct);
 
         var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
 
@@ -70,12 +71,17 @@ public class ProjectService : IProjectService
             .ToListAsync(ct);
     }
 
+    // IgnoreQueryFilters so a trashed project still has a page — restoring one happens there.
+    // Safe to compose here, unlike in TaskService.RestoreTaskByIdAsync: the only filter it drops
+    // is the Projects one, since InWorkspacesOf reads workspace_members, which has none.
     public async Task<ProjectResponseDto?> GetProjectByIdAsync(
         Guid id,
         CancellationToken ct = default
     )
     {
-        var project = await AccessibleProjects
+        var project = await _context
+            .Projects.IgnoreQueryFilters()
+            .InWorkspacesOf(_context.WorkspaceMembers, _currentUser.UserGuid)
             .Include(p => p.Creator)
             .Include(p => p.Updater)
             .Include(p => p.Workspace)

@@ -45,6 +45,10 @@ export class WorkspaceShellComponent {
 
   canManage = this.context.canManageCurrent;
 
+  // Not canManage: that one excludes personal workspaces, which have no settings to
+  // manage but do have a trash of your own.
+  isOwner = this.context.isOwner;
+
   isHandset = toSignal(
     this.breakpoints
       .observe([Breakpoints.Handset, '(max-width: 720px)'])

@@ -1,0 +1,47 @@
+<section class="deleted-panel" *transloco="let t">
+  @let p = project();
+
+  <div class="deleted-banner" role="status">
+    <mat-icon>delete_outline</mat-icon>
+    <div>
+      <p class="banner-title">{{ t('projects.detail.inTrash') }}</p>
+      <p class="banner-body">
+        {{ canRestore() ? t('projects.detail.inTrashOwner') : t('projects.detail.inTrashMember') }}
+      </p>
+    </div>
+    @if (canRestore()) {
+      <button mat-flat-button (click)="restore.emit()">
+        <mat-icon>restore</mat-icon>
+        {{ t('common.actions.restore') }}
+      </button>
+    }
+  </div>
+
+  <!-- Name is not repeated here: the page's h1 above is the name field. -->
+  <dl class="project-fields">
+    <div>
+      <dt>{{ t('projects.detail.workspaceField') }}</dt>
+      <dd>{{ p.workspaceName }}</dd>
+    </div>
+    <div>
+      <dt>{{ t('projects.table.description') }}</dt>
+      <dd>{{ p.description || '—' }}</dd>
+    </div>
+    <div>
+      <dt>{{ t('projects.table.createdBy') }}</dt>
+      <dd>{{ p.createdByDisplayName || '—' }}</dd>
+    </div>
+    <div>
+      <dt>{{ t('projects.table.createdAt') }}</dt>
+      <dd>{{ p.createdAt | date: 'medium' : '' : dateLocale() }}</dd>
+    </div>
+    <div>
+      <dt>{{ t('projects.detail.deletedByField') }}</dt>
+      <dd>{{ p.updatedByDisplayName || '—' }}</dd>
+    </div>
+    <div>
+      <dt>{{ t('projects.table.deletedAt') }}</dt>
+      <dd>{{ p.deletedAt ? (p.deletedAt | date: 'medium' : '' : dateLocale()) : '—' }}</dd>
+    </div>
+  </dl>
+</section>

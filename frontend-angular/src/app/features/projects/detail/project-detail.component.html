@@ -10,7 +10,7 @@
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
       <p>{{ t('projects.detail.notFound') }}</p>
-      <a mat-stroked-button [routerLink]="['/w', workspaceId()]">{{
+      <a mat-stroked-button [routerLink]="['/w', workspaceId(), 'projects']">{{
         t('projects.detail.backToProjects')
       }}</a>
     </div>
@@ -18,10 +18,15 @@
     @let p = project.value();
 
     <header class="project-header">
+      <!-- Back to where you came from: a trashed project is only reachable from the trash. -->
       <a
         class="back-link"
-        [routerLink]="['/w', workspaceId()]"
-        [attr.aria-label]="t('projects.detail.backToProjects')"
+        [routerLink]="
+          p.isDeleted ? ['/w', workspaceId(), 'trash'] : ['/w', workspaceId(), 'projects']
+        "
+        [attr.aria-label]="
+          p.isDeleted ? t('projects.detail.backToTrash') : t('projects.detail.backToProjects')
+        "
       >
         <mat-icon>arrow_back</mat-icon>
       </a>
@@ -32,29 +37,54 @@
         @if (p.description) {
           <p class="page-subtitle">{{ p.description }}</p>
         }
+
+        <!-- Any member may edit any project, so who last did is worth showing. -->
+        @if (attribution(); as who) {
+          <p class="page-attribution">
+            {{
+              t('projects.detail.' + who.key, {
+                name: who.name,
+                date: who.date | date: 'mediumDate' : '' : dateLocale(),
+              })
+            }}
+          </p>
+        }
       </div>
 
-      <button
-        mat-icon-button
-        [matMenuTriggerFor]="projectMenu"
-        [attr.aria-label]="t('projects.detail.projectActions')"
-      >
-        <mat-icon>more_vert</mat-icon>
-      </button>
-      <mat-menu #projectMenu="matMenu">
-        <button mat-menu-item (click)="openProjectEdit(p)">
-          <mat-icon>edit</mat-icon>
-          <span>{{ t('common.actions.edit') }}</span>
+      <!-- No trigger when the menu would be empty: a member on a trashed project is offered
+           nothing here, and the panel below already says why. -->
+      @if (!p.isDeleted || isOwner()) {
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="projectMenu"
+          [attr.aria-label]="t('projects.detail.projectActions')"
+        >
+          <mat-icon>more_vert</mat-icon>
         </button>
-        @if (isOwner()) {
-          <button mat-menu-item [matMenuTriggerFor]="moveMenu">
-            <mat-icon>drive_file_move</mat-icon>
-            <span>{{ t('projects.detail.moveTo') }}</span>
+      }
+      <mat-menu #projectMenu="matMenu">
+        <!-- Nothing but Restore while it is in the trash: editing or moving a deleted
+             project writes to something no list will show. -->
+        @if (p.isDeleted) {
+          <button mat-menu-item (click)="restore(p)">
+            <mat-icon>restore</mat-icon>
+            <span>{{ t('common.actions.restore') }}</span>
           </button>
-          <button mat-menu-item class="button-danger" (click)="confirmDelete(p)">
-            <mat-icon>delete</mat-icon>
-            <span>{{ t('common.actions.delete') }}</span>
+        } @else {
+          <button mat-menu-item (click)="openProjectEdit(p)">
+            <mat-icon>edit</mat-icon>
+            <span>{{ t('common.actions.edit') }}</span>
           </button>
+          @if (isOwner()) {
+            <button mat-menu-item [matMenuTriggerFor]="moveMenu">
+              <mat-icon>drive_file_move</mat-icon>
+              <span>{{ t('projects.detail.moveTo') }}</span>
+            </button>
+            <button mat-menu-item class="button-danger" (click)="confirmDelete(p)">
+              <mat-icon>delete</mat-icon>
+              <span>{{ t('common.actions.delete') }}</span>
+            </button>
+          }
         }
       </mat-menu>
       <mat-menu #moveMenu="matMenu">
@@ -69,32 +99,49 @@
       </mat-menu>
     </header>
 
-    <div class="view-bar">
-      <mat-button-toggle-group
-        [value]="view()"
-        (change)="setView($event.value)"
-        [attr.aria-label]="t('tasks.view.switcher')"
-      >
-        <mat-button-toggle value="board">
-          <mat-icon>view_kanban</mat-icon>
-          {{ t('tasks.view.board') }}
-        </mat-button-toggle>
-        <mat-button-toggle value="list">
-          <mat-icon>view_list</mat-icon>
-          {{ t('tasks.view.list') }}
-        </mat-button-toggle>
-      </mat-button-toggle-group>
-
-      <button mat-flat-button (click)="newTask()">
-        <mat-icon>add</mat-icon>
-        {{ t('tasks.actions.new') }}
-      </button>
-    </div>
-
-    @if (view() === 'list') {
-      <app-task-list [tasks]="tasks" [members]="members()" />
+    <!-- Trashed: the panel stands in for the board, which a trashed project's tasks
+         endpoint refuses anyway. Live: the board, as normal. -->
+    @if (p.isDeleted) {
+      <app-project-trashed-panel [project]="p" [canRestore]="isOwner()" (restore)="restore(p)" />
     } @else {
-      <app-task-board [tasks]="tasks" [members]="members()" />
+      <div class="view-bar">
+        <mat-button-toggle-group
+          [value]="view()"
+          (change)="setView($event.value)"
+          [attr.aria-label]="t('tasks.view.switcher')"
+        >
+          <mat-button-toggle value="board">
+            <mat-icon>view_kanban</mat-icon>
+            {{ t('tasks.view.board') }}
+          </mat-button-toggle>
+          <mat-button-toggle value="list">
+            <mat-icon>view_list</mat-icon>
+            {{ t('tasks.view.list') }}
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
+        <!-- With the board's controls, not "Project actions": what it holds is the board's. -->
+        <button
+          mat-icon-button
+          class="task-trash-button"
+          (click)="openTaskTrash()"
+          [matTooltip]="t('tasks.trash.title')"
+          [attr.aria-label]="t('tasks.trash.title')"
+        >
+          <mat-icon>restore_from_trash</mat-icon>
+        </button>
+
+        <button mat-flat-button (click)="newTask()">
+          <mat-icon>add</mat-icon>
+          {{ t('tasks.actions.new') }}
+        </button>
+      </div>
+
+      @if (view() === 'list') {
+        <app-task-list [tasks]="tasks" [members]="members()" />
+      } @else {
+        <app-task-board [tasks]="tasks" [members]="members()" />
+      }
     }
   }
 </div>

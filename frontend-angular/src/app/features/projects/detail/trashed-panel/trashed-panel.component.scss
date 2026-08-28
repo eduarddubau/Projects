@@ -1,0 +1,72 @@
+// Flat, like every other card here: a hairline and a tinted ground, no resting shadow.
+.deleted-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mat-sys-surface-variant) 55%, var(--mat-sys-surface));
+
+  mat-icon {
+    flex: none;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  div {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  @media (max-width: 600px) {
+    flex-wrap: wrap;
+  }
+}
+
+.banner-title {
+  margin: 0;
+  font: var(--mat-sys-title-small);
+}
+
+.banner-body {
+  margin: 2px 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.deleted-panel {
+  margin-bottom: 20px;
+
+  .deleted-banner {
+    margin-bottom: 0;
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+// The project's own record, standing in for the board a trashed project has no business
+// showing. Same flat treatment as the banner it continues.
+.project-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+
+  dt {
+    margin-bottom: 2px;
+    color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-small);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  dd {
+    margin: 0;
+    font: var(--mat-sys-body-medium);
+    overflow-wrap: anywhere;
+  }
+}

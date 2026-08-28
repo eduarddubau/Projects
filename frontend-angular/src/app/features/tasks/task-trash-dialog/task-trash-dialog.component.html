@@ -1,0 +1,63 @@
+<!-- No prefix: the rows borrow tasks.status.* and common.actions.*, which sit outside it. -->
+<ng-container *transloco="let t">
+  <h2 mat-dialog-title>{{ t('tasks.trash.title') }}</h2>
+
+  <mat-dialog-content>
+    <p class="trash-hint">{{ t('tasks.trash.hint') }}</p>
+
+    @if (deleted.isLoading()) {
+      <div class="state-container">
+        <mat-spinner diameter="32"></mat-spinner>
+        <p>{{ t('tasks.trash.loading') }}</p>
+      </div>
+    } @else if (deleted.error()) {
+      <div class="state-container">
+        <mat-icon color="warn">error_outline</mat-icon>
+        <p>{{ t('tasks.trash.loadFailed') }}</p>
+      </div>
+    } @else if (deleted.value().length === 0) {
+      <div class="state-container">
+        <mat-icon>delete_outline</mat-icon>
+        <p>{{ t('tasks.trash.empty') }}</p>
+      </div>
+    } @else {
+      <ul class="trash-list">
+        @for (task of deleted.value(); track task.id) {
+          <li class="trash-row">
+            <div class="row-identity">
+              <span class="row-title">{{ task.title }}</span>
+              <span class="row-meta">
+                {{ t('tasks.status.' + task.status) }}
+                @if (task.deletedAt) {
+                  ·
+                  {{
+                    t('tasks.trash.deletedOn', {
+                      date: task.deletedAt | date: 'mediumDate' : '' : dateLocale(),
+                    })
+                  }}
+                }
+              </span>
+            </div>
+
+            <button
+              mat-stroked-button
+              (click)="restore(task)"
+              [disabled]="restoring()"
+              [attr.aria-label]="t('tasks.trash.restoreTask', { title: task.title })"
+            >
+              <mat-icon>restore</mat-icon>
+              {{ t('common.actions.restore') }}
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </mat-dialog-content>
+
+  <!-- Closes with "did anything come back", so the caller reloads the board only if so. -->
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="restoredAny()">
+      {{ t('common.actions.close') }}
+    </button>
+  </mat-dialog-actions>
+</ng-container>

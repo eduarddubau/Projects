@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+} from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginatorIntl } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
@@ -7,7 +14,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -24,7 +30,6 @@ import {
   ProjectFormResult,
 } from '../project-form-dialog/project-form-dialog.component';
 import { TableState } from '@shared/table/table-state';
-import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 
 /**
  * The workspace's projects, as a card. Takes its workspace from the caller rather than
@@ -42,7 +47,6 @@ import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.co
     MatProgressSpinnerModule,
     MatIconModule,
     MatButtonModule,
-    MatTooltipModule,
     RouterLink,
     DatePipe,
     TranslocoDirective,
@@ -62,7 +66,13 @@ export class ProjectsCardComponent {
   /** Null while the host is still resolving it; the resource stays idle until it isn't. */
   workspaceId = input.required<string | null>();
 
-  isOwner = this.workspaceContext.isOwner;
+  // Against the workspace this card was handed, not the context's current one — the input
+  // exists precisely so the card can render a workspace that isn't the selected one, and
+  // the owner-only actions have to follow it there.
+  isOwner = computed(() => {
+    const id = this.workspaceId();
+    return !!id && this.workspaceContext.workspaces().find((w) => w.id === id)?.myRole === 'Owner';
+  });
 
   projects = this.projectService.workspaceProjects(this.workspaceId);
 
@@ -85,7 +95,7 @@ export class ProjectsCardComponent {
     },
   });
 
-  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt', 'actions'];
+  displayedColumns = ['index', 'name', 'description', 'createdBy', 'createdAt'];
 
   openCreateDialog(): void {
     this.dialog
@@ -119,42 +129,5 @@ export class ProjectsCardComponent {
 
   openDetail(project: Project): void {
     this.router.navigate(['/w', this.workspaceId(), 'projects', project.id]);
-  }
-
-  confirmDelete(project: Project): void {
-    this.dialog
-      .open(ConfirmDialogComponent, {
-        width: '400px',
-        data: {
-          title: this.transloco.translate('projects.confirmDelete.title'),
-          message: this.transloco.translate('projects.confirmDelete.message', {
-            name: project.name,
-          }),
-          confirmLabel: this.transloco.translate('common.actions.delete'),
-          warn: true,
-        },
-      })
-      .afterClosed()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((confirmed: boolean | undefined) => {
-        if (!confirmed) return;
-
-        this.projectService.deleteProject(project.id).subscribe({
-          next: () => {
-            this.projects.update((list) => list.filter((p) => p.id !== project.id));
-            this.snackBar.open(
-              this.transloco.translate('projects.notifications.deleted'),
-              this.transloco.translate('common.actions.close'),
-              { duration: 3000 },
-            );
-          },
-          error: () =>
-            this.snackBar.open(
-              this.transloco.translate('projects.notifications.deleteFailed'),
-              this.transloco.translate('common.actions.close'),
-              { duration: 5000 },
-            ),
-        });
-      });
   }
 }

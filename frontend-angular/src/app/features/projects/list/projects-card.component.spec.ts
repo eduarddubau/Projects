@@ -124,18 +124,4 @@ describe('ProjectsCardComponent', () => {
     expect(rowText()).toContain('Gamma');
     expect(rowText()).toContain('Alpha');
   });
-
-  it('removes a deleted project from the table', async () => {
-    await setup(true);
-    httpMock.expectOne(listUrl).flush([alpha, beta]);
-    await fixture.whenStable();
-
-    fixture.componentInstance.confirmDelete(alpha);
-    httpMock.expectOne({ url: `${apiUrl}/projects/${alpha.id}`, method: 'DELETE' }).flush(null);
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(rowText()).not.toContain('Alpha');
-    expect(rowText()).toContain('Beta');
-  });
 });

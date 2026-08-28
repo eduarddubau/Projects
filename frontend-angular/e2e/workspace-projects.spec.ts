@@ -19,7 +19,7 @@ async function openAcmeProjects(page: Page): Promise<string> {
   // selected id, and clicking it too early navigates to the previous workspace.
   await expect(page.locator('.ws-trigger')).toContainText('Acme Team');
 
-  await page.locator('.ws-nav a', { hasText: 'Home' }).click();
+  await page.locator('.ws-nav a', { hasText: 'Projects' }).click();
 
   // The row, not the URL: switching workspace already navigated to the new home, so a
   // /w/{any-id} match is satisfied by the workspace being left as much as the one being
@@ -52,9 +52,10 @@ test.describe('Workspace-scoped projects', () => {
     await login(page, 'dev2@example.com');
     const workspaceId = await openAcmeProjects(page);
 
+    // No row-level assertion: the projects table has no actions column any more, so
+    // "a member sees no Delete here" would pass for everyone and prove nothing. The
+    // menu checks below are the real test.
     const row = page.locator('tr', { hasText: 'Acme Website Redesign' });
-    await expect(row.getByRole('button', { name: 'Delete' })).toHaveCount(0);
-
     await row.click();
 
     // Pin the workspace across the navigation. A bare /projects/<id> match also
@@ -83,8 +84,8 @@ test.describe('Workspace-scoped projects', () => {
 
     // A project of its own, so a rerun never fights the seeded ones over a name.
     const name = `Movable ${Date.now()}`;
-    await page.locator('.ws-nav a', { hasText: 'Home' }).click();
-    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+$/);
+    await page.locator('.ws-nav a', { hasText: 'Projects' }).click();
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects$/);
     const personalId = new URL(page.url()).pathname.split('/')[2];
 
     await page.getByRole('button', { name: 'New Project' }).click();
@@ -111,11 +112,16 @@ test.describe('Workspace-scoped projects', () => {
     await expect(page.getByText('Project deleted.')).toBeVisible();
   });
 
+  // The counterpart to the member test above. Delete left the table entirely, so this has
+  // to look where the action actually lives now — the detail page's actions menu.
   test('the owner of the workspace is offered delete', async ({ page }) => {
     await login(page, 'dev1@example.com');
     await openAcmeProjects(page);
 
-    const row = page.locator('tr', { hasText: 'Acme Q3 Roadmap' });
-    await expect(row.getByRole('button', { name: 'Delete' })).toBeVisible();
+    await page.locator('tr', { hasText: 'Acme Q3 Roadmap' }).click();
+    await page.getByRole('button', { name: 'Project actions' }).click();
+
+    await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Move to workspace' })).toBeVisible();
   });
 });

@@ -37,43 +37,38 @@ test.describe('Workspace home', () => {
     await expect(page.locator('.page-eyebrow')).toContainText('My Workspace');
   });
 
-  test('lists the workspace projects and opens one', async ({ page }) => {
-    const row = page.locator('tbody tr').first();
-    await expect(row).toBeVisible();
-    const name = (await row.locator('td').nth(1).innerText()).trim();
-    await row.click();
-
-    await page.waitForURL(/\/projects\/[0-9a-f-]+$/);
-    await expect(page.getByRole('heading', { name, level: 1 })).toBeVisible();
-  });
-
   test('links to the profile page', async ({ page }) => {
     await page.locator('.page-title .name-link').click();
 
     await expect(page.getByRole('heading', { name: 'My Profile' })).toBeVisible();
   });
 
-  // The button used to deep-link to a separate projects page; the table is on this
-  // page now, so it opens the dialog in place.
-  test('New Project opens the create dialog without leaving the page', async ({ page }) => {
-    const url = page.url();
-    await page.getByRole('button', { name: 'New Project' }).click();
+  // Home leads with your own work, not the workspace's containers.
+  test('digests my tasks and the recently updated projects', async ({ page }) => {
+    await expect(page.getByRole('heading', { name: 'My tasks' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Recent projects' })).toBeVisible();
 
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
-    await expect(dialog.getByLabel('Name')).toBeVisible();
-    expect(page.url()).toBe(url);
+    // The full table is one click away, not on this page.
+    await expect(page.locator('tbody tr')).toHaveCount(0);
   });
 
-  // Every other table in the app filtered; this one's search box was never wired.
-  test('filters the project list from the search box', async ({ page }) => {
-    const rows = page.locator('tbody tr');
-    const before = await rows.count();
-    expect(before).toBeGreaterThan(0);
+  test('the recent projects shortcut opens the projects page', async ({ page }) => {
+    await page
+      .locator('.home-section', { hasText: 'Recent projects' })
+      .getByRole('link', { name: 'View all' })
+      .click();
 
-    await page.getByLabel('Search projects').fill('zzz-no-such-project');
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/projects$/);
+    await expect(page.getByRole('button', { name: 'New Project' })).toBeVisible();
+  });
 
-    await expect(page.getByText('No projects found matching your search.')).toBeVisible();
-    await expect(rows).toHaveCount(0);
+  test('the my-tasks shortcut opens the tasks page', async ({ page }) => {
+    await page
+      .locator('.home-section', { hasText: 'My tasks' })
+      .getByRole('link', { name: 'View all' })
+      .click();
+
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/tasks$/);
+    await expect(page.getByRole('heading', { name: 'Tasks', level: 1 })).toBeVisible();
   });
 });

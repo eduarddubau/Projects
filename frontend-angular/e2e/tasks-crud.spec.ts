@@ -11,7 +11,7 @@ async function openSeededProject(page: import('@playwright/test').Page) {
   await page.locator('.ws-trigger').click();
   await page.locator('.ws-item', { hasText: 'Acme Team' }).click();
 
-  await page.locator('.ws-nav a', { hasText: 'Home' }).click();
+  await page.locator('.ws-nav a', { hasText: 'Projects' }).click();
   await page.locator('tr', { hasText: 'Acme Website Redesign' }).click();
   await expect(page.getByRole('heading', { name: 'Acme Website Redesign' })).toBeVisible();
 }
@@ -165,7 +165,7 @@ test.describe('Tasks', () => {
 
     // Its own project: the move takes every task in it out of Acme Team.
     const name = `Movable ${Date.now()}`;
-    await page.locator('.ws-nav a', { hasText: 'Home' }).click();
+    await page.locator('.ws-nav a', { hasText: 'Projects' }).click();
     await page.getByRole('button', { name: 'New Project' }).click();
     let dialog = page.getByRole('dialog');
     await dialog.getByLabel('Name').fill(name);

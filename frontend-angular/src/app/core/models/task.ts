@@ -27,6 +27,11 @@ export interface Task {
   deletedAt?: string;
 }
 
+/** A task read away from its board, so it carries the project it belongs to. */
+export interface WorkspaceTask extends Task {
+  projectName: string;
+}
+
 /**
  * The order the API returns: workflow status, then position within its column.
  * Re-applied after a local insert so a new card lands in its own column rather

@@ -20,15 +20,16 @@ test.describe('Workspace home', () => {
     // Post-login default destination is /dashboard, which forwards to a workspace.
     await page.waitForURL(workspaceHome);
     await expect(page.locator('.page-title')).toContainText('dev2');
-    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
+    // The home is the personal digest; the projects table lives on /projects.
+    await expect(page.getByRole('heading', { name: 'My tasks' })).toBeVisible();
 
     // Visiting the marketing landing while signed in bounces home.
     await page.goto('/');
     await page.waitForURL(workspaceHome);
 
     // From elsewhere in the app, the brand logo returns home.
-    await page.getByRole('button', { name: 'Trash' }).click();
-    await expect(page).toHaveURL(/\/projects\/trash$/);
+    await page.locator('.ws-nav a', { hasText: 'Trash' }).click();
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/trash$/);
     await page.locator('a.brand').click();
     await page.waitForURL(workspaceHome);
   });
@@ -42,6 +43,6 @@ test.describe('Workspace home', () => {
     await page.goto('/dashboard');
 
     await page.waitForURL(workspaceHome);
-    await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'My tasks' })).toBeVisible();
   });
 });

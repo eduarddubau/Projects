@@ -64,6 +64,18 @@
       @if (form.hasError('dueBeforeStart')) {
         <p class="form-error">{{ t('tasks.form.dueBeforeStart') }}</p>
       }
+
+      <!-- Any member may edit any task, so say whose words these were before yours. -->
+      @if (attribution(); as who) {
+        <p class="form-attribution">
+          {{
+            t('tasks.form.' + who.key, {
+              name: who.name,
+              date: who.date | date: 'mediumDate' : '' : dateLocale(),
+            })
+          }}
+        </p>
+      }
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">

@@ -55,6 +55,19 @@ public class TasksController : ControllerBase
         return CreatedAtAction(nameof(GetTaskById), new { id = response.Id }, response);
     }
 
+    [HttpGet("/api/workspaces/{workspaceId:guid}/tasks")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<WorkspaceTaskResponseDto>>> GetWorkspaceTasks(
+        Guid workspaceId,
+        [FromQuery] WorkspaceTaskQuery query,
+        CancellationToken ct
+    )
+    {
+        var tasks = await _taskService.GetWorkspaceTasksAsync(workspaceId, query, ct);
+        return tasks is null ? NotFound() : Ok(tasks);
+    }
+
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -97,6 +110,35 @@ public class TasksController : ControllerBase
             return NotFound(new { message = "Task not found." });
 
         return NoContent();
+    }
+
+    [HttpGet("/api/projects/{projectId:guid}/tasks/trash")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<TaskResponseDto>>> GetProjectDeletedTasks(
+        Guid projectId,
+        CancellationToken ct
+    )
+    {
+        var trash = await _taskService.GetProjectDeletedTasksAsync(projectId, ct);
+
+        if (trash is null)
+            return NotFound();
+
+        return Ok(trash);
+    }
+
+    [HttpPost("{id:guid}/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TaskResponseDto>> RestoreTaskById(Guid id, CancellationToken ct)
+    {
+        var restored = await _taskService.RestoreTaskByIdAsync(id, ct);
+
+        if (restored is null)
+            return NotFound(new { message = "Task not found." });
+
+        return Ok(restored);
     }
 
     [HttpPost("{id:guid}/move")]

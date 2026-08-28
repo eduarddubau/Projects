@@ -62,8 +62,69 @@
     }
   </section>
 
-  <section class="projects-section">
-    <h2 class="section-title">{{ t('projects.list.title') }}</h2>
-    <app-projects-card [workspaceId]="workspaceId()"></app-projects-card>
+  <section class="home-section">
+    <div class="section-head">
+      <h2 class="section-title">{{ t('workspaceHome.myTasks.title') }}</h2>
+      <a class="section-link" [routerLink]="['/w', workspaceId(), 'tasks']">
+        {{ t('workspaceHome.viewAll') }}
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+      </a>
+    </div>
+
+    @if (tasks.isLoading()) {
+      <div class="state-container">
+        <mat-spinner diameter="32"></mat-spinner>
+      </div>
+    } @else if (tasks.error()) {
+      <p class="section-state">
+        <mat-icon color="warn">error_outline</mat-icon>
+        {{ t('workspaceHome.myTasks.loadFailed') }}
+      </p>
+    } @else if (myTasks().length === 0) {
+      <p class="section-state">{{ t('workspaceHome.myTasks.empty') }}</p>
+    } @else {
+      <app-task-rows [tasks]="myTasks()" [workspaceId]="workspaceId()" />
+    }
+  </section>
+
+  <section class="home-section">
+    <div class="section-head">
+      <h2 class="section-title">{{ t('workspaceHome.recentProjects.title') }}</h2>
+      <a class="section-link" [routerLink]="['/w', workspaceId(), 'projects']">
+        {{ t('workspaceHome.viewAll') }}
+        <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+      </a>
+    </div>
+
+    @if (projects.isLoading()) {
+      <div class="state-container">
+        <mat-spinner diameter="32"></mat-spinner>
+      </div>
+    } @else if (projects.error()) {
+      <p class="section-state">
+        <mat-icon color="warn">error_outline</mat-icon>
+        {{ t('workspaceHome.recentProjects.loadFailed') }}
+      </p>
+    } @else if (recentProjects().length === 0) {
+      <p class="section-state">{{ t('workspaceHome.recentProjects.empty') }}</p>
+    } @else {
+      <div class="project-grid">
+        @for (project of recentProjects(); track project.id) {
+          <a class="project-card" [routerLink]="['/w', workspaceId(), 'projects', project.id]">
+            <span class="project-name">{{ project.name }}</span>
+            @if (project.description) {
+              <span class="project-description">{{ project.description }}</span>
+            }
+            <span class="project-updated">
+              {{ t('workspaceHome.recentProjects.updated') }}
+              {{
+                project.updatedAt ?? project.createdAt
+                  | date: 'mediumDate' : undefined : dateLocale()
+              }}
+            </span>
+          </a>
+        }
+      </div>
+    }
   </section>
 </div>

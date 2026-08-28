@@ -1,0 +1,33 @@
+<ul class="task-rows" *transloco="let t; prefix: 'tasks.workspace'">
+  @for (task of tasks(); track task.id) {
+    <li class="task-row">
+      <a class="task-link" [routerLink]="['/w', workspaceId(), 'projects', task.projectId]">
+        <span class="task-title">{{ task.title }}</span>
+        <span class="task-project">
+          <mat-icon aria-hidden="true">folder_open</mat-icon>
+          {{ task.projectName }}
+        </span>
+      </a>
+
+      <span class="task-meta">
+        @if (task.dueDate) {
+          <span class="due" [class.due-overdue]="isOverdue(task.dueDate, task.status)">
+            <mat-icon aria-hidden="true">{{
+              isOverdue(task.dueDate, task.status) ? 'event_busy' : 'event'
+            }}</mat-icon>
+            {{ asDate(task.dueDate) | date: 'MMM d' : undefined : dateLocale() }}
+          </span>
+        }
+
+        @if (task.assigneeDisplayName; as assignee) {
+          <span class="assignee" [matTooltip]="assignee">
+            <span class="avatar-circle" aria-hidden="true">{{ assignee.charAt(0) }}</span>
+            <span class="sr-only">{{ assignee }}</span>
+          </span>
+        } @else {
+          <span class="unassigned">{{ t('unassigned') }}</span>
+        }
+      </span>
+    </li>
+  }
+</ul>

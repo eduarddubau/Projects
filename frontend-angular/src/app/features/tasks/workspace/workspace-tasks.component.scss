@@ -1,0 +1,30 @@
+.filter-bar {
+  margin-bottom: 24px;
+}
+
+.task-group {
+  margin-bottom: 28px;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.group-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--mat-sys-surface-container-high);
+  font-size: 0.7rem;
+  letter-spacing: 0;
+}

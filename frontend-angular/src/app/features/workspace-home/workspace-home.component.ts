@@ -6,6 +6,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -13,13 +14,16 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { DashboardService } from '@core/services/dashboard.service';
+import { ProjectService } from '@core/services/project.service';
+import { TaskFilter, TaskService } from '@core/services/task.service';
+import { LanguageService } from '@core/services/language.service';
 import { AuthService } from '@core/services/auth.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { CurrentWeather } from '@core/models/weather';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 import { WeatherWidgetComponent } from '@shared/weather-widget/weather-widget.component';
-import { ProjectsCardComponent } from '../projects/list/projects-card.component';
+import { TaskRowsComponent } from '@shared/task-rows/task-rows.component';
 
 /**
  * The home of one workspace: who you are, how that workspace is doing, and its projects.
@@ -34,19 +38,23 @@ import { ProjectsCardComponent } from '../projects/list/projects-card.component'
   templateUrl: './workspace-home.component.html',
   styleUrl: './workspace-home.component.scss',
   imports: [
+    DatePipe,
     RouterLink,
     MatIconModule,
     MatProgressSpinnerModule,
     AuroraComponent,
     WorkspaceScopeComponent,
     WeatherWidgetComponent,
-    ProjectsCardComponent,
+    TaskRowsComponent,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkspaceHomeComponent {
   private dashboardService = inject(DashboardService);
+  private projectService = inject(ProjectService);
+  private taskService = inject(TaskService);
+  private languageService = inject(LanguageService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
@@ -59,6 +67,24 @@ export class WorkspaceHomeComponent {
   });
 
   dashboard = this.dashboardService.workspaceDashboard(this.workspaceId);
+
+  // Home is the personal digest, so this half is always "assigned to me"; the Tasks
+  // page is where the filter is a control.
+  private myWork = signal<TaskFilter>('mine');
+  tasks = this.taskService.workspaceTasks(this.workspaceId, this.myWork);
+  projects = this.projectService.workspaceProjects(this.workspaceId);
+
+  // The API already returns soonest-due first with the undated last, so the head of
+  // the list is the most urgent work without re-sorting it here.
+  myTasks = computed(() => this.tasks.value().slice(0, 5));
+
+  recentProjects = computed(() =>
+    [...this.projects.value()]
+      .sort((a, b) => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt))
+      .slice(0, 4),
+  );
+
+  dateLocale = this.languageService.dateLocale;
 
   currentUser = this.authService.currentUser;
   displayName = this.authService.displayName;

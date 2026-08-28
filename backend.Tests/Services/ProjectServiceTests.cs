@@ -20,8 +20,10 @@ public sealed class ProjectServiceTests : IDisposable
     private readonly Guid _otherUserId = Guid.NewGuid();
     private const int TrashWindowDays = 30;
 
-    // Owner here, plain member of the shared one, absent from the foreign one.
+    // Owner of the personal and owned ones, plain member of the shared one, absent
+    // from the foreign one.
     private readonly Workspace _personal;
+    private readonly Workspace _owned;
     private readonly Workspace _shared;
     private readonly Workspace _foreign;
 
@@ -42,6 +44,12 @@ public sealed class ProjectServiceTests : IDisposable
         );
 
         _personal = AddWorkspace("Personal", isPersonal: true, (_userId, WorkspaceRole.Owner));
+        _owned = AddWorkspace(
+            "Owned",
+            isPersonal: false,
+            (_userId, WorkspaceRole.Owner),
+            (_otherUserId, WorkspaceRole.Member)
+        );
         _shared = AddWorkspace(
             "Shared",
             isPersonal: false,
@@ -179,20 +187,31 @@ public sealed class ProjectServiceTests : IDisposable
         Assert.Equal(["RecentlyDeleted"], result.Select(p => p.Name));
     }
 
+    // The trash is the workspace's, not "things I deleted".
     [Fact]
     public async Task GetWorkspaceDeletedProjectsAsync_IncludesProjectsDeletedByOtherMembers()
     {
         AddProject(
             "Theirs",
-            _shared,
+            _owned,
             createdBy: _otherUserId,
             isDeleted: true,
             deletedAt: DateTime.UtcNow.AddDays(-1)
         );
 
-        var result = await _service.GetWorkspaceDeletedProjectsAsync(_shared.Id, Ct);
+        var result = await _service.GetWorkspaceDeletedProjectsAsync(_owned.Id, Ct);
 
         Assert.Equal(["Theirs"], result.Select(p => p.Name));
+    }
+
+    [Fact]
+    public async Task GetWorkspaceDeletedProjectsAsync_WhenAMemberButNotTheOwner_Throws403()
+    {
+        AddProject("Theirs", _shared, isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            _service.GetWorkspaceDeletedProjectsAsync(_shared.Id, Ct)
+        );
     }
 
     [Fact]
@@ -213,6 +232,38 @@ public sealed class ProjectServiceTests : IDisposable
         Assert.NotNull(result);
         Assert.Equal(project.Id, result!.Id);
         Assert.Equal(_shared.Id, result.WorkspaceId);
+    }
+
+    // A trashed project keeps its page: restoring happens there rather than from a button in
+    // the trash table, so the detail route has to be able to load one.
+    [Fact]
+    public async Task GetProjectByIdAsync_WhenTheProjectIsInTheTrash_StillReturnsIt()
+    {
+        var project = AddProject(
+            "Trashed",
+            _personal,
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow.AddDays(-1)
+        );
+
+        var result = await _service.GetProjectByIdAsync(project.Id, Ct);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsDeleted);
+    }
+
+    // The looser filter must not loosen the access check with it.
+    [Fact]
+    public async Task GetProjectByIdAsync_WhenTrashedInAWorkspaceIDoNotBelongTo_ReturnsNull()
+    {
+        var project = AddProject(
+            "Theirs",
+            _foreign,
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow.AddDays(-1)
+        );
+
+        Assert.Null(await _service.GetProjectByIdAsync(project.Id, Ct));
     }
 
     [Fact]

@@ -1,4 +1,4 @@
-import { fromIsoDate, isOverdue, toIsoDate, todayIso } from './iso-date';
+import { fromIsoDate, dueBucket, isOverdue, toIsoDate, todayIso } from './iso-date';
 
 describe('iso-date', () => {
   it('formats a local Date without shifting the day', () => {
@@ -52,6 +52,31 @@ describe('iso-date', () => {
 
     it('does not flag a task with no due date', () => {
       expect(isOverdue(undefined, 'Todo')).toBe(false);
+    });
+  });
+  describe('dueBucket', () => {
+    const today = '2026-08-20';
+
+    it('bands a date against the given day rather than the clock', () => {
+      expect(dueBucket('2026-08-19', today)).toBe('overdue');
+      expect(dueBucket('2026-08-20', today)).toBe('today');
+      expect(dueBucket('2026-08-23', today)).toBe('thisWeek');
+      expect(dueBucket('2026-09-01', today)).toBe('later');
+    });
+
+    it('puts an undated task in its own band, never in overdue', () => {
+      expect(dueBucket(undefined, today)).toBe('none');
+    });
+
+    // Six days out, inclusive — the boundary is the part that silently drifts.
+    it('ends the week band on the sixth day', () => {
+      expect(dueBucket('2026-08-26', today)).toBe('thisWeek');
+      expect(dueBucket('2026-08-27', today)).toBe('later');
+    });
+
+    // The window is a day count, so it has to survive a month rolling over.
+    it('crosses a month boundary', () => {
+      expect(dueBucket('2026-09-02', '2026-08-30')).toBe('thisWeek');
     });
   });
 });

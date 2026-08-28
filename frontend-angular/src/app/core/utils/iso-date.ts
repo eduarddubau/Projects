@@ -28,3 +28,22 @@ export function todayIso(): string {
 export function isOverdue(dueDate: string | undefined, status: TaskStatus): boolean {
   return !!dueDate && status !== 'Done' && dueDate < todayIso();
 }
+
+/** The groups a task list is banded into, in the order they are shown. */
+export const DUE_BUCKETS = ['overdue', 'today', 'thisWeek', 'later', 'none'] as const;
+
+export type DueBucket = (typeof DUE_BUCKETS)[number];
+
+/** Which band a due date falls in. Lexicographic comparison is date comparison here. */
+export function dueBucket(dueDate: string | undefined, today = todayIso()): DueBucket {
+  if (!dueDate) return 'none';
+  if (dueDate < today) return 'overdue';
+  if (dueDate === today) return 'today';
+
+  // Six days out, not "to Sunday": a rolling window means the band never empties
+  // itself late in the week, when it is the one people are actually reading.
+  const horizon = fromIsoDate(today)!;
+  horizon.setDate(horizon.getDate() + 6);
+
+  return dueDate <= toIsoDate(horizon)! ? 'thisWeek' : 'later';
+}

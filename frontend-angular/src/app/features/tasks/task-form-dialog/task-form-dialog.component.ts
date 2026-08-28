@@ -14,11 +14,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { DatePipe } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Task, TaskPayload, TASK_STATUSES } from '@core/models/task';
 import { WorkspaceMember } from '@core/models/workspace';
 import { LanguageService } from '@core/services/language.service';
 import { fromIsoDate, toIsoDate } from '@core/utils/iso-date';
+import { attributionOf } from '@core/utils/attribution';
 
 export interface TaskFormDialogData {
   task?: Task;
@@ -50,6 +52,7 @@ function dueOnOrAfterStart(group: AbstractControl): ValidationErrors | null {
     MatButtonModule,
     MatIconModule,
     MatDatepickerModule,
+    DatePipe,
     TranslocoDirective,
   ],
   providers: [
@@ -68,6 +71,11 @@ export class TaskFormDialogComponent {
 
   readonly statuses = TASK_STATUSES;
   isEditMode = !!this.data.task;
+
+  dateLocale = inject(LanguageService).dateLocale;
+
+  // Null while creating: there is nobody to attribute yet.
+  attribution = computed(() => (this.data.task ? attributionOf(this.data.task) : null));
 
   // An assignee who has since left the workspace is not in members, so the field shows
   // blank while the form still carries their id — saving keeps them rather than clearing.

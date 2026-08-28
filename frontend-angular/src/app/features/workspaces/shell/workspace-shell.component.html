@@ -20,6 +20,26 @@
         <mat-icon matListItemIcon>home</mat-icon>
         <span matListItemTitle>{{ t('home') }}</span>
       </a>
+      <!-- Prefix matching, unlike home: it has to light on a project's own page too, and
+           nothing else lives under /projects now that the trash moved out. -->
+      <a
+        mat-list-item
+        [routerLink]="['/w', workspaceId(), 'projects']"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)"
+      >
+        <mat-icon matListItemIcon>folder_open</mat-icon>
+        <span matListItemTitle>{{ t('projects') }}</span>
+      </a>
+      <a
+        mat-list-item
+        [routerLink]="['/w', workspaceId(), 'tasks']"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)"
+      >
+        <mat-icon matListItemIcon>check_circle_outline</mat-icon>
+        <span matListItemTitle>{{ t('tasks') }}</span>
+      </a>
       <a
         mat-list-item
         [routerLink]="['/w', workspaceId(), 'members']"
@@ -40,15 +60,17 @@
           <span matListItemTitle>{{ t('settings') }}</span>
         </a>
       }
-      <a
-        mat-list-item
-        [routerLink]="['/w', workspaceId(), 'projects', 'trash']"
-        routerLinkActive="active"
-        (click)="closeIfHandset(drawer)"
-      >
-        <mat-icon matListItemIcon>delete_outline</mat-icon>
-        <span matListItemTitle>{{ t('trash') }}</span>
-      </a>
+      @if (isOwner()) {
+        <a
+          mat-list-item
+          [routerLink]="['/w', workspaceId(), 'trash']"
+          routerLinkActive="active"
+          (click)="closeIfHandset(drawer)"
+        >
+          <mat-icon matListItemIcon>delete_outline</mat-icon>
+          <span matListItemTitle>{{ t('trash') }}</span>
+        </a>
+      }
     </mat-nav-list>
   </mat-sidenav>
 

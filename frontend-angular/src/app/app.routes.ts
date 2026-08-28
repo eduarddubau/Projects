@@ -4,6 +4,7 @@ import { adminGuard } from '@core/guards/admin.guard';
 import { guestGuard } from '@core/guards/guest.guard';
 import { workspaceGuard } from '@core/guards/workspace.guard';
 import { workspaceHomeGuard } from '@core/guards/workspace-home.guard';
+import { workspaceOwnerGuard } from '@core/guards/workspace-owner.guard';
 import { standardUserGuard } from '@core/guards/standard-user.guard';
 
 export const routes: Routes = [
@@ -47,7 +48,7 @@ export const routes: Routes = [
       ),
     children: [
       {
-        // The workspace home: greeting, the workspace's numbers, and its projects.
+        // The workspace home: greeting, the workspace's numbers, and your own work in it.
         path: '',
         loadComponent: () =>
           import('./features/workspace-home/workspace-home.component').then(
@@ -55,14 +56,25 @@ export const routes: Routes = [
           ),
       },
       {
-        // The projects list is the home page now. pathMatch 'full' so only the bare
-        // /projects folds in — /projects/trash and /projects/:id still route below.
         path: 'projects',
-        pathMatch: 'full',
-        redirectTo: '',
+        loadComponent: () =>
+          import('./features/projects/list/projects-page.component').then(
+            (m) => m.ProjectsPageComponent,
+          ),
       },
       {
-        path: 'projects/trash',
+        path: 'tasks',
+        loadComponent: () =>
+          import('./features/tasks/workspace/workspace-tasks.component').then(
+            (m) => m.WorkspaceTasksComponent,
+          ),
+      },
+      {
+        // Its own destination, not projects/trash. As a child of the projects route it made
+        // the sidebar unsolvable — no routerLinkActive setting could light Projects on a
+        // project's page while leaving it dark here.
+        path: 'trash',
+        canActivate: [workspaceOwnerGuard],
         loadComponent: () =>
           import('./features/projects/trash/trash.component').then((m) => m.TrashComponent),
       },

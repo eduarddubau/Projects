@@ -239,6 +239,7 @@
   "projects": {
     "list": {
       "title": "Projects",
+      "subtitle": "Everything this workspace is working on.",
       "trash": "Trash",
       "newProject": "New Project",
       "searchLabel": "Search projects",
@@ -255,7 +256,16 @@
       "backToProjects": "Back to projects",
       "moveTo": "Move to workspace",
       "noOtherWorkspaces": "No other workspaces",
-      "projectActions": "Project actions"
+      "projectActions": "Project actions",
+      "editedBy": "Last edited by {{name}} on {{date}}",
+      "createdBy": "Created by {{name}} on {{date}}",
+      "backToTrash": "Back to trash",
+      "inTrash": "This project is in the trash.",
+      "inTrashOwner": "Restore it to bring the project and its tasks back.",
+      "inTrashMember": "A workspace owner can restore it.",
+      "deletedBy": "Deleted by {{name}} on {{date}}",
+      "workspaceField": "Workspace",
+      "deletedByField": "Deleted by"
     },
     "form": {
       "editTitle": "Edit Project",
@@ -302,7 +312,7 @@
     },
     "confirmDelete": {
       "title": "Delete Project",
-      "message": "Are you sure you want to delete \"{{name}}\"? You can restore it from Trash later."
+      "message": "Are you sure you want to delete \"{{name}}\"? You can restore it from the trash."
     },
     "serverErrors": {
       "duplicateName": "This workspace already has a project with this name.",
@@ -474,6 +484,8 @@
     },
     "nav": {
       "home": "Home",
+      "projects": "Projects",
+      "tasks": "Tasks",
       "members": "Members",
       "settings": "Settings",
       "trash": "Trash",
@@ -637,11 +649,14 @@
       "titleRequired": "Title is required.",
       "titleMaxLength": "Title must be 200 characters or fewer.",
       "descriptionMaxLength": "Description must be 2000 characters or fewer.",
-      "dueBeforeStart": "The due date cannot be before the start date."
+      "dueBeforeStart": "The due date cannot be before the start date.",
+      "editedBy": "Last edited by {{name}} on {{date}}",
+      "createdBy": "Created by {{name}} on {{date}}",
+      "deletedBy": "Deleted by {{name}} on {{date}}"
     },
     "confirmDelete": {
       "title": "Delete task?",
-      "message": "This will delete \"{{title}}\"."
+      "message": "This will delete \"{{title}}\". You can restore it from Recently deleted."
     },
     "errors": {
       "assigneeNotMember": "That person is not a member of this workspace."
@@ -666,6 +681,44 @@
       "moveDown": "Move down",
       "cardActions": "Actions for {{title}}",
       "emptyColumn": "Nothing here yet."
+    },
+    "workspace": {
+      "title": "Tasks",
+      "subtitle": "Every open task across this workspace's projects.",
+      "filterLabel": "Filter tasks",
+      "filters": {
+        "mine": "Assigned to me",
+        "all": "All",
+        "overdue": "Overdue",
+        "unassigned": "Unassigned"
+      },
+      "buckets": {
+        "overdue": "Overdue",
+        "today": "Due today",
+        "thisWeek": "This week",
+        "later": "Later",
+        "none": "No due date"
+      },
+      "unassigned": "Unassigned",
+      "loading": "Loading tasks...",
+      "loadFailed": "Couldn't load the tasks. Please try again.",
+      "empty": {
+        "mine": "Nothing is assigned to you in this workspace.",
+        "all": "No open tasks in this workspace.",
+        "overdue": "Nothing is overdue.",
+        "unassigned": "Every open task has an assignee."
+      }
+    },
+    "trash": {
+      "title": "Recently deleted",
+      "hint": "Tasks deleted here can be restored until their retention window runs out.",
+      "loading": "Loading deleted tasks…",
+      "loadFailed": "Couldn't load deleted tasks.",
+      "empty": "Nothing has been deleted here recently.",
+      "deletedOn": "deleted {{date}}",
+      "restoreTask": "Restore {{title}}",
+      "restored": "Task restored.",
+      "restoreFailed": "Couldn't restore the task."
     }
   },
   "workspaceHome": {
@@ -695,6 +748,18 @@
     },
     "account": {
       "viewProfile": "View profile"
+    },
+    "viewAll": "View all",
+    "myTasks": {
+      "title": "My tasks",
+      "empty": "Nothing is assigned to you here right now.",
+      "loadFailed": "Couldn't load your tasks."
+    },
+    "recentProjects": {
+      "title": "Recent projects",
+      "updated": "Updated",
+      "empty": "No projects in this workspace yet.",
+      "loadFailed": "Couldn't load the projects."
     }
   }
 }

@@ -1,0 +1,48 @@
+<app-aurora />
+
+<div class="page-container" *transloco="let t; prefix: 'tasks.workspace'">
+  <div class="page-header-stack">
+    <app-workspace-scope />
+    <h1 class="page-title">{{ t('title') }}</h1>
+    <p class="page-subtitle">{{ t('subtitle') }}</p>
+  </div>
+
+  <mat-button-toggle-group
+    class="filter-bar"
+    [value]="filter()"
+    (change)="setFilter($event.value)"
+    [attr.aria-label]="t('filterLabel')"
+  >
+    @for (option of filters; track option) {
+      <mat-button-toggle [value]="option">{{ t('filters.' + option) }}</mat-button-toggle>
+    }
+  </mat-button-toggle-group>
+
+  @if (tasks.isLoading()) {
+    <div class="state-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ t('loading') }}</p>
+    </div>
+  } @else if (tasks.error()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ t('loadFailed') }}</p>
+    </div>
+  } @else if (groups().length === 0) {
+    <div class="state-container">
+      <mat-icon>task_alt</mat-icon>
+      <p>{{ t('empty.' + filter()) }}</p>
+    </div>
+  } @else {
+    @for (group of groups(); track group.bucket) {
+      <section class="task-group">
+        <h2 class="group-title">
+          {{ t('buckets.' + group.bucket) }}
+          <span class="group-count">{{ group.tasks.length }}</span>
+        </h2>
+
+        <app-task-rows [tasks]="group.tasks" [workspaceId]="workspaceId()" />
+      </section>
+    }
+  }
+</div>

@@ -6,20 +6,31 @@ using Backend.Mappings;
 using Backend.Models;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
 /// <summary>Tasks the caller can reach through the workspace holding their project.</summary>
-// No owner check anywhere, deliberately: any member may create, edit, move and delete a task.
+// No owner check anywhere, deliberately: any member may create, edit, move, delete and
+// restore a task. Safe only because deleting is recoverable — take the trash away and this
+// policy has to change with it.
 public class TaskService : ITaskService
 {
     private readonly AppDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly int _trashWindowDays;
 
-    public TaskService(AppDbContext context, ICurrentUserService currentUser)
+    // One trash window for the whole app; the options type is named for the first thing
+    // that needed it.
+    public TaskService(
+        AppDbContext context,
+        ICurrentUserService currentUser,
+        IOptions<ProjectRetentionOptions> retentionOptions
+    )
     {
         _context = context;
         _currentUser = currentUser;
+        _trashWindowDays = retentionOptions.Value.TrashWindowDays;
     }
 
     // Carries the Projects query filter, so tasks of a trashed project fall out of every
@@ -54,6 +65,49 @@ public class TaskService : ITaskService
             .ThenBy(t => t.Position)
             .ThenBy(t => t.Id)
             .MapToDto()
+            .ToListAsync(ct);
+    }
+
+    public async Task<IEnumerable<WorkspaceTaskResponseDto>?> GetWorkspaceTasksAsync(
+        Guid workspaceId,
+        WorkspaceTaskQuery query,
+        CancellationToken ct = default
+    )
+    {
+        var userId = _currentUser.UserGuid;
+
+        // Null, not empty: a workspace the caller cannot reach is a 404, not one with no tasks.
+        var isMember = await _context.WorkspaceMembers.AnyAsync(
+            m => m.WorkspaceId == workspaceId && m.UserId == userId,
+            ct
+        );
+        if (!isMember)
+            return null;
+
+        // Carries the Projects query filter, so a trashed project's tasks drop out here
+        // and come back on restore, with nothing written either way.
+        var tasks = _context
+            .Tasks.InProjectsOf(_context.Projects.Where(p => p.WorkspaceId == workspaceId))
+            .Where(t => t.Status != TaskItemStatus.Done);
+
+        tasks = query.Assignee switch
+        {
+            TaskAssigneeFilter.Me => tasks.Where(t => t.AssigneeId == userId),
+            TaskAssigneeFilter.Unassigned => tasks.Where(t => t.AssigneeId == null),
+            _ => tasks,
+        };
+
+        if (query.DueBefore is DateOnly cutoff)
+            tasks = tasks.Where(t => t.DueDate != null && t.DueDate < cutoff);
+
+        return await tasks
+            // Undated last, then soonest first. Ordering on a bool behaves the same on
+            // Postgres and the in-memory provider, unlike the string-persisted status enum.
+            .OrderBy(t => t.DueDate == null)
+            .ThenBy(t => t.DueDate)
+            .ThenBy(t => t.CreatedAt)
+            .ThenBy(t => t.Id)
+            .MapToWorkspaceDto()
             .ToListAsync(ct);
     }
 
@@ -168,6 +222,84 @@ public class TaskService : ITaskService
         await _context.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    public async Task<IEnumerable<TaskResponseDto>?> GetProjectDeletedTasksAsync(
+        Guid projectId,
+        CancellationToken ct = default
+    )
+    {
+        // A trashed project's task trash 404s: AccessibleProjects filters it out.
+        if (!await AccessibleProjects.AnyAsync(p => p.Id == projectId, ct))
+            return null;
+
+        var cutoff = TrashCutoff;
+
+        // No Include: MapToDto projects, and EF drops an Include on a projected query.
+        return await _context
+            .Tasks.IgnoreQueryFilters()
+            .Where(t => t.ProjectId == projectId && t.IsDeleted && t.DeletedAt >= cutoff)
+            .OrderByDescending(t => t.DeletedAt)
+            .ThenBy(t => t.Id)
+            .MapToDto()
+            .ToListAsync(ct);
+    }
+
+    public async Task<TaskResponseDto?> RestoreTaskByIdAsync(
+        Guid id,
+        CancellationToken ct = default
+    )
+    {
+        var task = await _context
+            .Tasks.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(t => t.Id == id, ct);
+
+        if (task is null)
+            return null;
+
+        // A separate, filtered query on purpose. IgnoreQueryFilters() above is query-wide in
+        // EF, so composing the access check into it would switch off the Projects soft-delete
+        // filter too — and restore a task into a project that is itself in the trash, where it
+        // would sit invisible until someone restored the project and it silently reappeared.
+        if (!await AccessibleProjects.AnyAsync(p => p.Id == task.ProjectId, ct))
+            return null;
+
+        if (task.IsDeleted)
+        {
+            // The window is policy, not decoration: a task the trash no longer lists must not
+            // stay restorable by anyone who kept its id.
+            if (task.DeletedAt < TrashCutoff)
+                return null;
+
+            task.IsDeleted = false;
+            task.DeletedAt = null;
+            task.Position = await RestoredPositionAsync(task, ct);
+            await _context.SaveChangesAsync(ct);
+        }
+
+        return await LoadDtoAsync(task, ct);
+    }
+
+    private DateTime TrashCutoff => DateTime.UtcNow.AddDays(-_trashWindowDays);
+
+    /// <summary>
+    /// Where a restored card lands. Its old position is usually still free — deleting
+    /// deliberately leaves the gap — but a card created since will have taken it, because
+    /// NextPositionAsync counts from the live maximum. Two cards on one position order by
+    /// Id, which is arbitrary, so the late arrival goes to the end instead.
+    /// </summary>
+    private async Task<int> RestoredPositionAsync(TaskItem task, CancellationToken ct)
+    {
+        var taken = await _context.Tasks.AnyAsync(
+            t =>
+                t.ProjectId == task.ProjectId
+                && t.Status == task.Status
+                && t.Id != task.Id
+                && t.Position == task.Position,
+            ct
+        );
+
+        return taken ? await NextPositionAsync(task.ProjectId, task.Status, ct) : task.Position;
     }
 
     public async Task<TaskResponseDto?> MoveTaskAsync(

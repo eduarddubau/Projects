@@ -8,7 +8,7 @@ test.describe('Projects CRUD', () => {
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 
-    await page.locator('.ws-nav a', { hasText: 'Home' }).click();
+    await page.locator('.ws-nav a', { hasText: 'Projects' }).click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
   });
 
@@ -50,12 +50,43 @@ test.describe('Projects CRUD', () => {
     const trashRow = page.locator('tr', { hasText: updatedName });
     await expect(trashRow).toBeVisible();
 
-    await trashRow.getByRole('button', { name: 'Restore' }).click();
-    await expect(page.getByText('Project restored.')).toBeVisible();
-    await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
+    // Restoring lives on the project's own page now, so the trash row opens it.
+    await trashRow.click();
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]{36}\/projects\/[0-9a-f-]{36}$/);
+    await expect(page.getByText('This project is in the trash.')).toBeVisible();
+    // The board is not rendered for a trashed project.
+    await expect(page.getByRole('button', { name: 'New Task' })).toHaveCount(0);
+    // The whole record stands in for it, deletion metadata included.
+    const fields = page.locator('.project-fields');
+    await expect(fields).toContainText('Created by an E2E test.');
+    await expect(fields.locator('dt', { hasText: 'Deleted At' })).toBeVisible();
+    await expect(fields.locator('dt', { hasText: 'Deleted by' })).toBeVisible();
+    await expect(fields.locator('dt', { hasText: 'Workspace' })).toBeVisible();
 
-    await page.locator('.ws-nav a', { hasText: 'Home' }).click();
+    await page.getByRole('button', { name: 'Restore' }).first().click();
+    await expect(page.getByText('Project restored.')).toBeVisible();
+    // The page stays put and turns back into a normal project.
+    await expect(page.getByText('This project is in the trash.')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'New Task' })).toBeVisible();
+
+    await page.locator('.ws-nav a', { hasText: 'Projects' }).click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toBeVisible();
+  });
+
+  // Restoring is owner-only, so the page is too. dev2 owns its personal workspace —
+  // where the test above uses Trash freely — but is a plain member of Acme Team.
+  test('hides Trash from a plain member, by link and by URL', async ({ page }) => {
+    await page.locator('.ws-trigger').click();
+    await page.locator('.ws-item', { hasText: 'Acme Team' }).click();
+    await expect(page.locator('.ws-trigger')).toContainText('Acme Team');
+
+    await expect(page.locator('.ws-nav a', { hasText: 'Trash' })).toHaveCount(0);
+
+    // Typing the URL lands on the workspace home instead. The pattern is anchored so
+    // it cannot pass against the /trash URL the goto starts from.
+    const workspace = /\/w\/[0-9a-f-]{36}/.exec(page.url())![0];
+    await page.goto(`${workspace}/trash`);
+    await expect(page).toHaveURL(new RegExp(`${workspace}$`));
   });
 });

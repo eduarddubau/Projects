@@ -1,3 +1,4 @@
+using Backend.Config;
 using Backend.Data;
 using Backend.DTOs.Task;
 using Backend.Exceptions;
@@ -5,6 +6,7 @@ using Backend.Models;
 using Backend.Services;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Backend.Tests.Services;
@@ -17,6 +19,7 @@ public sealed class TaskServiceTests : IDisposable
     private readonly Guid _userId = Guid.NewGuid();
     private readonly Guid _otherUserId = Guid.NewGuid();
     private readonly Guid _strangerId = Guid.NewGuid();
+    private const int TrashWindowDays = 30;
 
     // Member of the shared workspace, absent from the foreign one.
     private readonly Workspace _shared;
@@ -33,7 +36,11 @@ public sealed class TaskServiceTests : IDisposable
         _context = new AppDbContext(options, _currentUser.Object);
         _currentUser.Setup(c => c.UserGuid).Returns(_userId);
 
-        _service = new TaskService(_context, _currentUser.Object);
+        _service = new TaskService(
+            _context,
+            _currentUser.Object,
+            Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays })
+        );
 
         _shared = AddWorkspace(
             "Shared",
@@ -82,7 +89,11 @@ public sealed class TaskServiceTests : IDisposable
         string title,
         TaskItemStatus status = TaskItemStatus.Todo,
         int position = 0,
-        Project? project = null
+        Project? project = null,
+        Guid? assigneeId = null,
+        DateOnly? dueDate = null,
+        bool isDeleted = false,
+        DateTime? deletedAt = null
     )
     {
         var task = new TaskItem
@@ -91,8 +102,14 @@ public sealed class TaskServiceTests : IDisposable
             Status = status,
             Position = position,
             ProjectId = (project ?? _project).Id,
+            AssigneeId = assigneeId,
+            DueDate = dueDate,
+            IsDeleted = isDeleted,
+            DeletedAt = deletedAt,
         };
         _context.Tasks.Add(task);
+        // Synchronous on purpose: only SaveChangesAsync carries the audit interceptor, which
+        // forces IsDeleted back to false on an Added row. This is how a test seeds one deleted.
         _context.SaveChanges();
         return task;
     }
@@ -349,6 +366,151 @@ public sealed class TaskServiceTests : IDisposable
         Assert.Null(await _service.GetTaskByIdAsync(task.Id, Ct));
     }
 
+    // Task trash and restore. The caller is a plain Member of _shared throughout, which is
+    // the point: deleting stays member-open because it is recoverable by the same member.
+
+    [Fact]
+    public async Task GetProjectDeletedTasksAsync_ReturnsDeletedTasksWithinRetentionWindow()
+    {
+        AddTask("Live");
+        AddTask("RecentlyDeleted", isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+        AddTask(
+            "OldDeleted",
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
+        );
+
+        var result = await _service.GetProjectDeletedTasksAsync(_project.Id, Ct);
+
+        Assert.NotNull(result);
+        Assert.Equal(["RecentlyDeleted"], result.Select(t => t.Title));
+    }
+
+    [Fact]
+    public async Task GetProjectDeletedTasksAsync_ForAForeignProject_ReturnsNull()
+    {
+        AddTask("Theirs", project: _foreignProject, isDeleted: true, deletedAt: DateTime.UtcNow);
+
+        Assert.Null(await _service.GetProjectDeletedTasksAsync(_foreignProject.Id, Ct));
+    }
+
+    // A trashed project takes its task trash with it, rather than offering restores back
+    // into a project that is not there. Falls out of AccessibleProjects, but pin it.
+    [Fact]
+    public async Task GetProjectDeletedTasksAsync_WhenTheProjectItselfIsDeleted_ReturnsNull()
+    {
+        AddTask("Doomed", isDeleted: true, deletedAt: DateTime.UtcNow);
+        _project.IsDeleted = true;
+        _project.DeletedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(Ct);
+
+        Assert.Null(await _service.GetProjectDeletedTasksAsync(_project.Id, Ct));
+    }
+
+    [Fact]
+    public async Task RestoreTaskByIdAsync_BringsTheTaskBackToItsBoard()
+    {
+        var task = AddTask("Back", isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+
+        var restored = await _service.RestoreTaskByIdAsync(task.Id, Ct);
+
+        Assert.NotNull(restored);
+        Assert.False(restored.IsDeleted);
+        Assert.Null(restored.DeletedAt);
+        Assert.NotNull(await _service.GetTaskByIdAsync(task.Id, Ct));
+        Assert.Empty((await _service.GetProjectDeletedTasksAsync(_project.Id, Ct))!);
+    }
+
+    // Position is a sort key, never an index, so the gap the delete left is where it lands.
+    [Fact]
+    public async Task RestoreTaskByIdAsync_PutsTheCardBackInItsOldColumnPosition()
+    {
+        AddTask("First", position: 0);
+        var removed = AddTask("Second", position: 1);
+        AddTask("Third", position: 2);
+
+        Assert.True(await _service.DeleteTaskByIdAsync(removed.Id, Ct));
+        Assert.Equal(["First", "Third"], ColumnTitles(TaskItemStatus.Todo));
+
+        await _service.RestoreTaskByIdAsync(removed.Id, Ct);
+
+        Assert.Equal(["First", "Second", "Third"], ColumnTitles(TaskItemStatus.Todo));
+    }
+
+    [Fact]
+    public async Task RestoreTaskByIdAsync_ForAForeignProjectsTask_ReturnsNull()
+    {
+        var task = AddTask(
+            "Theirs",
+            project: _foreignProject,
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow
+        );
+
+        Assert.Null(await _service.RestoreTaskByIdAsync(task.Id, Ct));
+    }
+
+    // Restoring something already live is a no-op, not an error: two people can hit Restore
+    // on the same row from a list neither has refreshed.
+    [Fact]
+    public async Task RestoreTaskByIdAsync_OnALiveTask_ReturnsItUnchanged()
+    {
+        var task = AddTask("Live");
+
+        var restored = await _service.RestoreTaskByIdAsync(task.Id, Ct);
+
+        Assert.NotNull(restored);
+        Assert.False(restored.IsDeleted);
+    }
+
+    // IgnoreQueryFilters() is query-wide in EF, so composing the access check into the same
+    // query switched off the Projects filter and let this through. It would have left a live
+    // task under a trashed project, invisible until the project came back.
+    [Fact]
+    public async Task RestoreTaskByIdAsync_WhenTheProjectIsItselfDeleted_ReturnsNull()
+    {
+        var task = AddTask("Orphan", isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+        _project.IsDeleted = true;
+        _project.DeletedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(Ct);
+
+        Assert.Null(await _service.RestoreTaskByIdAsync(task.Id, Ct));
+
+        var stored = _context.Tasks.IgnoreQueryFilters().Single(t => t.Id == task.Id);
+        Assert.True(stored.IsDeleted);
+    }
+
+    // The retention window is policy, not a display filter: a row the trash stopped listing
+    // must not stay restorable by anyone still holding its id.
+    [Fact]
+    public async Task RestoreTaskByIdAsync_PastTheRetentionWindow_ReturnsNull()
+    {
+        var task = AddTask(
+            "Ancient",
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
+        );
+
+        Assert.Null(await _service.RestoreTaskByIdAsync(task.Id, Ct));
+    }
+
+    // Deleting leaves the gap, but creating counts from the live maximum and fills it. Two
+    // cards on one position order by Id, which is arbitrary, so the late arrival goes last.
+    [Fact]
+    public async Task RestoreTaskByIdAsync_WhenSomethingTookItsPosition_GoesToTheEnd()
+    {
+        AddTask("First", position: 0);
+        var removed = AddTask("Second", position: 1);
+
+        Assert.True(await _service.DeleteTaskByIdAsync(removed.Id, Ct));
+        var created = await _service.CreateTaskAsync(_project.Id, Create("Third"), Ct);
+        Assert.Equal(removed.Position, created!.Position);
+
+        await _service.RestoreTaskByIdAsync(removed.Id, Ct);
+
+        Assert.Equal(["First", "Third", "Second"], ColumnTitles(TaskItemStatus.Todo));
+    }
+
     // Completion stamping
 
     [Fact]
@@ -483,6 +645,114 @@ public sealed class TaskServiceTests : IDisposable
 
         Assert.Equal(start, created!.StartDate);
         Assert.Equal(due, created.DueDate);
+    }
+
+    // Workspace task list
+
+    private async Task<List<WorkspaceTaskResponseDto>> WorkspaceTasks(
+        TaskAssigneeFilter assignee = TaskAssigneeFilter.Any,
+        DateOnly? dueBefore = null
+    )
+    {
+        var result = await _service.GetWorkspaceTasksAsync(
+            _shared.Id,
+            new WorkspaceTaskQuery { Assignee = assignee, DueBefore = dueBefore },
+            Ct
+        );
+        return [.. result!];
+    }
+
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_ReturnsNullForAWorkspaceTheCallerIsNotIn()
+    {
+        AddTask("Hidden", project: _foreignProject);
+
+        Assert.Null(
+            await _service.GetWorkspaceTasksAsync(_foreign.Id, new WorkspaceTaskQuery(), Ct)
+        );
+    }
+
+    // The board is where Done lives; this list is work still to do.
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_LeavesOutDoneTasks()
+    {
+        AddTask("Open");
+        AddTask("Finished", TaskItemStatus.Done);
+
+        Assert.Equal(["Open"], (await WorkspaceTasks()).Select(t => t.Title));
+    }
+
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_LeavesOutTasksOfATrashedProject()
+    {
+        var doomed = AddProject("Doomed", _shared);
+        AddTask("Kept");
+        AddTask("Goes with the project", project: doomed);
+
+        doomed.IsDeleted = true;
+        doomed.DeletedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(Ct);
+
+        Assert.Equal(["Kept"], (await WorkspaceTasks()).Select(t => t.Title));
+    }
+
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_FiltersToTheCallersOwnTasks()
+    {
+        AddTask("Mine", assigneeId: _userId);
+        AddTask("Theirs", assigneeId: _otherUserId);
+        AddTask("Nobody's");
+
+        Assert.Equal(["Mine"], (await WorkspaceTasks(TaskAssigneeFilter.Me)).Select(t => t.Title));
+    }
+
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_FiltersToUnassignedTasks()
+    {
+        AddTask("Mine", assigneeId: _userId);
+        AddTask("Nobody's");
+
+        Assert.Equal(
+            ["Nobody's"],
+            (await WorkspaceTasks(TaskAssigneeFilter.Unassigned)).Select(t => t.Title)
+        );
+    }
+
+    // An undated task is not overdue, which a naive "DueDate < today" on a null would get wrong.
+    // The cutoff is the caller's day, so the assertion does not depend on the test host's clock.
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_FiltersToDatesBeforeTheCallersDay()
+    {
+        var today = new DateOnly(2026, 8, 20);
+        AddTask("Late", dueDate: today.AddDays(-1));
+        AddTask("Due today", dueDate: today);
+        AddTask("Later", dueDate: today.AddDays(3));
+        AddTask("Undated");
+
+        Assert.Equal(["Late"], (await WorkspaceTasks(dueBefore: today)).Select(t => t.Title));
+    }
+
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_OrdersBySoonestDueWithUndatedLast()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        AddTask("Undated");
+        AddTask("Later", dueDate: today.AddDays(5));
+        AddTask("Soonest", dueDate: today.AddDays(1));
+
+        Assert.Equal(
+            ["Soonest", "Later", "Undated"],
+            (await WorkspaceTasks()).Select(t => t.Title)
+        );
+    }
+
+    // The row is read away from its board, so it has to say which project it belongs to.
+    [Fact]
+    public async Task GetWorkspaceTasksAsync_NamesTheProjectEachTaskIsIn()
+    {
+        AddTask("Somewhere");
+
+        Assert.Equal(_project.Name, (await WorkspaceTasks()).Single().ProjectName);
     }
 
     public void Dispose() => _context.Dispose();

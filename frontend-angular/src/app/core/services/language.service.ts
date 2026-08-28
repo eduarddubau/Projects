@@ -4,6 +4,7 @@ import {
   Injectable,
   PLATFORM_ID,
   REQUEST,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -43,6 +44,9 @@ export class LanguageService {
 
   /** Active language; drives Transloco, <html lang> and the switcher UI. */
   readonly lang = signal<Lang>(this.initialLang());
+
+  /** BCP 47 tag for DatePipe, which wants a locale rather than a Transloco lang id. */
+  readonly dateLocale = computed(() => (this.lang() === 'ro' ? 'ro' : 'en-US'));
 
   constructor() {
     this.apply(this.lang());

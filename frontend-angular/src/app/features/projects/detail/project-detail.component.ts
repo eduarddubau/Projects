@@ -7,6 +7,7 @@ import {
   ChangeDetectorRef,
   DestroyRef,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -14,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -23,9 +25,11 @@ import { ProjectService } from '@core/services/project.service';
 import { TaskService } from '@core/services/task.service';
 import { WorkspaceService } from '@core/services/workspace.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
+import { LanguageService } from '@core/services/language.service';
 import { Project } from '@core/models/project';
 import { Workspace } from '@core/models/workspace';
 import { sortTasks } from '@core/models/task';
+import { attributionOf } from '@core/utils/attribution';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
@@ -37,8 +41,10 @@ import {
   TaskFormDialogComponent,
   TaskFormResult,
 } from '@features/tasks/task-form-dialog/task-form-dialog.component';
+import { TaskTrashDialogComponent } from '@features/tasks/task-trash-dialog/task-trash-dialog.component';
 import { TaskListComponent } from '@features/tasks/task-list/task-list.component';
 import { TaskBoardComponent } from '@features/tasks/board/task-board.component';
+import { ProjectTrashedPanelComponent } from './trashed-panel/trashed-panel.component';
 
 export type TaskView = 'board' | 'list';
 
@@ -53,10 +59,13 @@ export type TaskView = 'board' | 'list';
     MatIconModule,
     MatProgressSpinnerModule,
     MatMenuModule,
+    MatTooltipModule,
+    DatePipe,
     AuroraComponent,
     WorkspaceScopeComponent,
     TaskListComponent,
     TaskBoardComponent,
+    ProjectTrashedPanelComponent,
     TranslocoDirective,
     TranslocoPipe,
   ],
@@ -74,6 +83,9 @@ export class ProjectDetailComponent {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private transloco = inject(TranslocoService);
+  private language = inject(LanguageService);
+
+  dateLocale = this.language.dateLocale;
 
   // Route params are read once here rather than watched: this route is only
   // reachable per-id, so the component is rebuilt when the id changes.
@@ -82,8 +94,17 @@ export class ProjectDetailComponent {
 
   project = this.projectService.project(this.projectId);
 
-  /** Owned here so the list and the board share one fetch. */
-  tasks = this.taskService.projectTasks(this.projectId);
+  /**
+   * Owned here so the list and the board share one fetch. Undefined — so the resource stays
+   * idle — while the project is in the trash: its tasks endpoint 404s, and the board is not
+   * rendered for it anyway, so fetching would only park an error in the resource.
+   */
+  tasks = this.taskService.projectTasks(
+    computed(() => {
+      if (!this.project.hasValue()) return undefined;
+      return this.project.value().isDeleted ? undefined : this.projectId();
+    }),
+  );
 
   // The project's own workspace, not the route's: moving a project reuses this
   // component, which would leave the back link and the delete redirect pointing
@@ -104,6 +125,10 @@ export class ProjectDetailComponent {
     computed(() => (this.project.hasValue() ? this.project.value().workspaceId : undefined)),
   );
   members = computed(() => (this.membersResource.hasValue() ? this.membersResource.value() : []));
+
+  attribution = computed(() =>
+    this.project.hasValue() ? attributionOf(this.project.value()) : null,
+  );
 
   // Read off the project, not the URL: this route resolves a project by id alone,
   // so the workspace in the path is a display detail and can name a different one.
@@ -181,6 +206,23 @@ export class ProjectDetailComponent {
       });
   }
 
+  openTaskTrash(): void {
+    const projectId = this.projectId();
+    if (!projectId) return;
+
+    this.dialog
+      .open(TaskTrashDialogComponent, { width: '560px', data: { projectId } })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      // Refetch rather than splice: a restored card lands back at its old position, and
+      // the server owns that ordering.
+      .subscribe((restoredAny: boolean | undefined) => {
+        if (!restoredAny) return;
+        this.tasks.reload();
+        this.cdr.markForCheck();
+      });
+  }
+
   confirmDelete(project: Project): void {
     this.dialog
       .open(ConfirmDialogComponent, {
@@ -202,10 +244,27 @@ export class ProjectDetailComponent {
         this.projectService.deleteProject(project.id).subscribe({
           next: () => {
             this.notify('projects.notifications.deleted');
-            this.router.navigate(['/w', this.workspaceId()]);
+            this.router.navigate(['/w', this.workspaceId(), 'projects']);
           },
           error: () => this.notify('projects.notifications.deleteFailed', 5000),
         });
+      });
+  }
+
+  // Stays on the page rather than bouncing to the list: set() flips the banner away and
+  // wakes the tasks resource, so the board fills in where the banner was.
+  restore(project: Project): void {
+    this.projectService
+      .restoreProject(project.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (restored) => {
+          this.project.set(restored);
+          this.cdr.markForCheck();
+          this.notify('projects.notifications.restored');
+        },
+        error: (err) =>
+          this.notify(serverErrorKey(err, 'projects.notifications.restoreFailed'), 5000),
       });
   }
 

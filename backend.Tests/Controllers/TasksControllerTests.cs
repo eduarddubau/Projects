@@ -162,6 +162,64 @@ public class TasksControllerTests
     }
 
     [Fact]
+    public async Task GetProjectDeletedTasks_ReturnsOkWithTheTrash()
+    {
+        var projectId = Guid.NewGuid();
+        var tasks = new[] { SampleTask() };
+        _taskService
+            .Setup(s => s.GetProjectDeletedTasksAsync(projectId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        var result = await _controller.GetProjectDeletedTasks(projectId, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(tasks, okResult.Value);
+    }
+
+    [Fact]
+    public async Task GetProjectDeletedTasks_ReturnsNotFoundWhenTheProjectIsUnreachable()
+    {
+        _taskService
+            .Setup(s =>
+                s.GetProjectDeletedTasksAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((IEnumerable<TaskResponseDto>?)null);
+
+        var result = await _controller.GetProjectDeletedTasks(
+            Guid.NewGuid(),
+            CancellationToken.None
+        );
+
+        Assert.IsType<NotFoundResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task RestoreTaskById_ReturnsOkWithTheRestoredTask()
+    {
+        var task = SampleTask();
+        _taskService
+            .Setup(s => s.RestoreTaskByIdAsync(task.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(task);
+
+        var result = await _controller.RestoreTaskById(task.Id, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(task, okResult.Value);
+    }
+
+    [Fact]
+    public async Task RestoreTaskById_ReturnsNotFoundWhenMissing()
+    {
+        _taskService
+            .Setup(s => s.RestoreTaskByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((TaskResponseDto?)null);
+
+        var result = await _controller.RestoreTaskById(Guid.NewGuid(), CancellationToken.None);
+
+        Assert.IsType<NotFoundObjectResult>(result.Result);
+    }
+
+    [Fact]
     public async Task MoveTask_ReturnsOkWithTheMovedTask()
     {
         var task = SampleTask();

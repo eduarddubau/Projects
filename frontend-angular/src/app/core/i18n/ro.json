@@ -239,6 +239,7 @@
   "projects": {
     "list": {
       "title": "Proiecte",
+      "subtitle": "Tot ce lucrează acest spațiu de lucru.",
       "trash": "Coș de gunoi",
       "newProject": "Proiect nou",
       "searchLabel": "Caută proiecte",
@@ -255,7 +256,16 @@
       "backToProjects": "Înapoi la proiecte",
       "moveTo": "Mută în spațiul de lucru",
       "noOtherWorkspaces": "Nu ai alte spații de lucru",
-      "projectActions": "Acțiuni proiect"
+      "projectActions": "Acțiuni proiect",
+      "editedBy": "Ultima modificare de {{name}} la {{date}}",
+      "createdBy": "Creat de {{name}} la {{date}}",
+      "backToTrash": "Înapoi la coș",
+      "inTrash": "Acest proiect este în coșul de gunoi.",
+      "inTrashOwner": "Restaurează-l pentru a aduce înapoi proiectul și sarcinile sale.",
+      "inTrashMember": "Un proprietar al spațiului de lucru îl poate restaura.",
+      "deletedBy": "Șters de {{name}} la {{date}}",
+      "workspaceField": "Spațiu de lucru",
+      "deletedByField": "Șters de"
     },
     "form": {
       "editTitle": "Editează proiectul",
@@ -302,7 +312,7 @@
     },
     "confirmDelete": {
       "title": "Șterge proiectul",
-      "message": "Sigur vrei să ștergi „{{name}}”? Îl poți restaura ulterior din Coșul de gunoi."
+      "message": "Sigur vrei să ștergi „{{name}}”? Îl poți restaura din coș."
     },
     "serverErrors": {
       "duplicateName": "Acest spațiu de lucru are deja un proiect cu acest nume.",
@@ -474,6 +484,8 @@
     },
     "nav": {
       "home": "Acasă",
+      "projects": "Proiecte",
+      "tasks": "Sarcini",
       "members": "Membri",
       "settings": "Setări",
       "trash": "Coș de gunoi",
@@ -637,11 +649,14 @@
       "titleRequired": "Titlul este obligatoriu.",
       "titleMaxLength": "Titlul trebuie să aibă cel mult 200 de caractere.",
       "descriptionMaxLength": "Descrierea trebuie să aibă cel mult 2000 de caractere.",
-      "dueBeforeStart": "Termenul limită nu poate fi înaintea datei de început."
+      "dueBeforeStart": "Termenul limită nu poate fi înaintea datei de început.",
+      "editedBy": "Ultima modificare de {{name}} la {{date}}",
+      "createdBy": "Creată de {{name}} la {{date}}",
+      "deletedBy": "Ștearsă de {{name}} la {{date}}"
     },
     "confirmDelete": {
       "title": "Ștergi sarcina?",
-      "message": "Aceasta va șterge „{{title}}”."
+      "message": "Aceasta va șterge „{{title}}”. O poți restaura din Șterse recent."
     },
     "errors": {
       "assigneeNotMember": "Această persoană nu este membră a acestui spațiu de lucru."
@@ -666,6 +681,44 @@
       "moveDown": "Mută mai jos",
       "cardActions": "Acțiuni pentru {{title}}",
       "emptyColumn": "Nimic aici încă."
+    },
+    "workspace": {
+      "title": "Sarcini",
+      "subtitle": "Toate sarcinile deschise din proiectele acestui spațiu de lucru.",
+      "filterLabel": "Filtrează sarcinile",
+      "filters": {
+        "mine": "Atribuite mie",
+        "all": "Toate",
+        "overdue": "Întârziate",
+        "unassigned": "Neatribuite"
+      },
+      "buckets": {
+        "overdue": "Întârziate",
+        "today": "Scadente azi",
+        "thisWeek": "Săptămâna aceasta",
+        "later": "Mai târziu",
+        "none": "Fără termen"
+      },
+      "unassigned": "Neatribuită",
+      "loading": "Se încarcă sarcinile...",
+      "loadFailed": "Sarcinile nu au putut fi încărcate. Încearcă din nou.",
+      "empty": {
+        "mine": "Nu ai nicio sarcină atribuită în acest spațiu de lucru.",
+        "all": "Nicio sarcină deschisă în acest spațiu de lucru.",
+        "overdue": "Nimic nu este întârziat.",
+        "unassigned": "Fiecare sarcină deschisă are un responsabil."
+      }
+    },
+    "trash": {
+      "title": "Șterse recent",
+      "hint": "Sarcinile șterse aici pot fi restaurate până la expirarea perioadei de păstrare.",
+      "loading": "Se încarcă sarcinile șterse…",
+      "loadFailed": "Sarcinile șterse nu au putut fi încărcate.",
+      "empty": "Nu s-a șters nimic aici recent.",
+      "deletedOn": "ștearsă la {{date}}",
+      "restoreTask": "Restaurează {{title}}",
+      "restored": "Sarcină restaurată.",
+      "restoreFailed": "Sarcina nu a putut fi restaurată."
     }
   },
   "workspaceHome": {
@@ -695,6 +748,18 @@
     },
     "account": {
       "viewProfile": "Vezi profilul"
+    },
+    "viewAll": "Vezi toate",
+    "myTasks": {
+      "title": "Sarcinile mele",
+      "empty": "Nu ai nimic atribuit aici momentan.",
+      "loadFailed": "Sarcinile tale nu au putut fi încărcate."
+    },
+    "recentProjects": {
+      "title": "Proiecte recente",
+      "updated": "Actualizat",
+      "empty": "Încă nu există proiecte în acest spațiu de lucru.",
+      "loadFailed": "Proiectele nu au putut fi încărcate."
     }
   }
 }
