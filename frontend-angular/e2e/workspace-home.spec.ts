@@ -34,7 +34,7 @@ test.describe('Workspace home', () => {
   // The switcher governs the whole page, so the page has to say which workspace it is
   // showing. Personal workspaces render the translated label, not their derived name.
   test('names the workspace everything on it belongs to', async ({ page }) => {
-    await expect(page.locator('.workspace-scope')).toContainText('My Workspace');
+    await expect(page.locator('.page-eyebrow')).toContainText('My Workspace');
   });
 
   test('lists the workspace projects and opens one', async ({ page }) => {

@@ -58,29 +58,6 @@
   }
 }
 
-// Names the workspace everything below belongs to. Flat by default, per the card
-// rule — a hairline, no resting shadow.
-.workspace-scope {
-  margin-inline-start: auto;
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border: var(--app-hairline);
-  border-radius: 999px;
-  font-size: 0.82rem;
-  color: var(--mat-sys-on-surface-variant);
-  white-space: nowrap;
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-    color: var(--mat-sys-primary);
-  }
-}
-
 // Overview band: ambient weather on the left, then the key metrics. Whitespace
 // and short hairline dividers do the separating — no boxes.
 .overview {
@@ -171,10 +148,6 @@
 @media (max-width: 640px) {
   .home-header {
     flex-wrap: wrap;
-  }
-
-  .workspace-scope {
-    margin-inline-start: 0;
   }
 
   .overview {

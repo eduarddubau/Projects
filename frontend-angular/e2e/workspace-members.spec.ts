@@ -42,7 +42,7 @@ test.describe('Workspace members', () => {
     await openAcmeMembers(page);
 
     await expect(page.getByRole('heading', { name: 'Members' })).toBeVisible();
-    await expect(page.locator('.page-subtitle')).toHaveText('Acme Team');
+    await expect(page.locator('.page-eyebrow')).toContainText('Acme Team');
     // Every seeded dev user joins Acme Team, so the count follows DEV_USER_COUNT
     // rather than being fixed here — one row per member is what matters.
     await expect(memberRows(page).first()).toBeVisible();

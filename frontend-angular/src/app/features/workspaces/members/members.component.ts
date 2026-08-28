@@ -25,6 +25,7 @@ import { WorkspaceService } from '@core/services/workspace.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { WorkspaceRole } from '@core/models/workspace';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
+import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import {
   InviteDialogComponent,
@@ -44,6 +45,7 @@ import {
     MatProgressSpinnerModule,
     DatePipe,
     AuroraComponent,
+    WorkspaceScopeComponent,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

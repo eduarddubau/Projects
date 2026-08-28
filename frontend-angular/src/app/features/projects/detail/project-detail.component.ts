@@ -28,6 +28,7 @@ import { Workspace } from '@core/models/workspace';
 import { sortTasks } from '@core/models/task';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
+import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 import {
   ProjectFormDialogComponent,
   ProjectFormResult,
@@ -53,6 +54,7 @@ export type TaskView = 'board' | 'list';
     MatProgressSpinnerModule,
     MatMenuModule,
     AuroraComponent,
+    WorkspaceScopeComponent,
     TaskListComponent,
     TaskBoardComponent,
     TranslocoDirective,

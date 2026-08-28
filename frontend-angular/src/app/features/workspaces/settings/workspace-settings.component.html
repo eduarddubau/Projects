@@ -4,11 +4,8 @@
   <div class="page-container">
     <div class="page-header">
       <div>
-        <h1>{{ t('workspaces.settings.title') }}</h1>
-        <!-- The stored personal name is an English possessive; untranslatable. -->
-        <p class="page-subtitle">
-          {{ workspace()?.isPersonal ? t('workspaces.personal') : workspace()?.name }}
-        </p>
+        <app-workspace-scope />
+        <h1 class="page-title">{{ t('workspaces.settings.title') }}</h1>
       </div>
     </div>
 

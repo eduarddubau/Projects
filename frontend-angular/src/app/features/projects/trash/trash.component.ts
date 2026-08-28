@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
@@ -18,12 +18,12 @@ import { ProjectService } from '@core/services/project.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { TableState } from '@shared/table/table-state';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
+import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 import { Project } from '@core/models/project';
 
 @Component({
   selector: 'app-trash',
   templateUrl: './trash.component.html',
-  styleUrl: './trash.component.scss',
   imports: [
     MatTableModule,
     MatPaginatorModule,
@@ -33,9 +33,9 @@ import { Project } from '@core/models/project';
     MatProgressSpinnerModule,
     MatIconModule,
     MatButtonModule,
-    RouterLink,
     DatePipe,
     AuroraComponent,
+    WorkspaceScopeComponent,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

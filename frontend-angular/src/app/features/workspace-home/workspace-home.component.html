@@ -10,6 +10,7 @@
       <span class="avatar-circle home-avatar" aria-hidden="true">{{ initials() }}</span>
     </a>
     <div class="home-heading">
+      <app-workspace-scope />
       <!-- The comma rides with the greeting, and the gap before the name is CSS. Angular
            collapses the whitespace between these two elements either way, so laying the
            comma out in the markup renders "Good afternoon , dev1" or "afternoon,dev1"
@@ -24,12 +25,6 @@
       </h1>
       <p class="page-subtitle">{{ t(taglineKey()) }}</p>
     </div>
-
-    <!-- Everything below is one workspace's; say which one, next to the greeting. -->
-    <span class="workspace-scope">
-      <mat-icon aria-hidden="true">workspaces</mat-icon>
-      {{ isPersonal() ? t('workspaces.personal') : workspaceName() }}
-    </span>
   </header>
 
   <!-- The tiles carry their own loading and error states: a failed count is no

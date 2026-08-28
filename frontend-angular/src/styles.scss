@@ -356,6 +356,7 @@ a {
 .header-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -532,6 +533,9 @@ table.mat-mdc-table {
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
+  // There is no global border-box reset, and only form controls get one from the
+  // UA sheet — without this the link variant overflows its grid column by its padding.
+  box-sizing: border-box;
   padding: 1.25rem;
   // --app-hairline is a whole `border` shorthand, not a colour.
   border: var(--app-hairline);

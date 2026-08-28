@@ -17,6 +17,7 @@ import { AuthService } from '@core/services/auth.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { CurrentWeather } from '@core/models/weather';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
+import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 import { WeatherWidgetComponent } from '@shared/weather-widget/weather-widget.component';
 import { ProjectsCardComponent } from '../projects/list/projects-card.component';
 
@@ -37,6 +38,7 @@ import { ProjectsCardComponent } from '../projects/list/projects-card.component'
     MatIconModule,
     MatProgressSpinnerModule,
     AuroraComponent,
+    WorkspaceScopeComponent,
     WeatherWidgetComponent,
     ProjectsCardComponent,
     TranslocoDirective,
@@ -55,10 +57,6 @@ export class WorkspaceHomeComponent {
   workspaceId = toSignal(this.route.paramMap.pipe(map((p) => p.get('workspaceId'))), {
     initialValue: this.route.snapshot.paramMap.get('workspaceId'),
   });
-
-  workspaceName = computed(() => this.workspaceContext.currentWorkspace()?.name ?? '');
-
-  isPersonal = computed(() => this.workspaceContext.currentWorkspace()?.isPersonal ?? false);
 
   dashboard = this.dashboardService.workspaceDashboard(this.workspaceId);
 

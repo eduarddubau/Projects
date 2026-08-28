@@ -2,10 +2,7 @@
 
 <div class="page-container" *transloco="let t">
   <div class="page-header-stack">
-    <button mat-button [routerLink]="['/w', workspaceId()]" class="back-button">
-      <mat-icon>arrow_back</mat-icon>
-      {{ t('projects.trash.back') }}
-    </button>
+    <app-workspace-scope />
     <h1 class="page-title">{{ t('projects.trash.title') }}</h1>
     <p class="page-subtitle">{{ t('projects.trash.subtitle') }}</p>
   </div>

@@ -38,7 +38,7 @@ async function createWorkspaceAndOpenMembers(page: Page, name: string) {
 
   await page.locator('.ws-card.is-current').click();
   await page.locator('.ws-nav a', { hasText: 'Members' }).click();
-  await expect(page.locator('.page-subtitle')).toHaveText(name);
+  await expect(page.locator('.page-eyebrow')).toContainText(name);
 }
 
 test.describe('Invitations', () => {

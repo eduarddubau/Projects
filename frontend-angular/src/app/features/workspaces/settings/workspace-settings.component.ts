@@ -20,6 +20,7 @@ import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { WorkspaceService } from '@core/services/workspace.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
+import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -41,6 +42,7 @@ import {
     MatIconModule,
     MatInputModule,
     AuroraComponent,
+    WorkspaceScopeComponent,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

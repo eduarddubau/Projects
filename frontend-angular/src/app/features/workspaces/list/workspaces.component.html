@@ -2,7 +2,10 @@
 
 <div class="page-container" *transloco="let t">
   <div class="page-header">
-    <h1 class="page-title">{{ t('workspaces.list.title') }}</h1>
+    <div>
+      <h1 class="page-title">{{ t('workspaces.list.title') }}</h1>
+      <p class="page-subtitle">{{ t('workspaces.list.subtitle') }}</p>
+    </div>
     <div class="header-actions">
       <button mat-stroked-button routerLink="/workspaces/trash">
         <mat-icon>delete_outline</mat-icon>
@@ -14,8 +17,6 @@
       </button>
     </div>
   </div>
-
-  <p class="page-subtitle">{{ t('workspaces.list.subtitle') }}</p>
 
   @if (isLoading()) {
     <div class="state-container">

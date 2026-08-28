@@ -54,7 +54,7 @@ test.describe('Projects CRUD', () => {
     await expect(page.getByText('Project restored.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toHaveCount(0);
 
-    await page.getByRole('button', { name: 'Back to projects' }).click();
+    await page.locator('.ws-nav a', { hasText: 'Home' }).click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
     await expect(page.locator('tr', { hasText: updatedName })).toBeVisible();
   });

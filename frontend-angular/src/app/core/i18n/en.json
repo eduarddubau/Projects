@@ -276,7 +276,6 @@
       "selectPage": "Select page"
     },
     "trash": {
-      "back": "Back to projects",
       "title": "Trash",
       "subtitle": "Deleted projects can be restored from here until their retention window runs out.",
       "searchLabel": "Search deleted projects",

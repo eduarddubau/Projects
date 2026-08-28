@@ -27,6 +27,7 @@
       </a>
 
       <div class="project-identity">
+        <app-workspace-scope [workspaceId]="workspaceId()" />
         <h1 class="page-title">{{ p.name }}</h1>
         @if (p.description) {
           <p class="page-subtitle">{{ p.description }}</p>
