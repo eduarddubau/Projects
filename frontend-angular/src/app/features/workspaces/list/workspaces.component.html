@@ -17,7 +17,17 @@
 
   <p class="page-subtitle">{{ t('workspaces.list.subtitle') }}</p>
 
-  @if (workspaces().length === 0) {
+  @if (isLoading()) {
+    <div class="state-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>{{ t('workspaces.list.loading') }}</p>
+    </div>
+  } @else if (hasError()) {
+    <div class="state-container">
+      <mat-icon color="warn">error_outline</mat-icon>
+      <p>{{ t('workspaces.list.loadFailed') }}</p>
+    </div>
+  } @else if (workspaces().length === 0) {
     <div class="state-container">
       <mat-icon>workspaces</mat-icon>
       <p>{{ t('workspaces.list.empty') }}</p>
@@ -25,12 +35,11 @@
   } @else {
     <div class="ws-grid">
       @for (w of workspaces(); track w.id) {
-        <button
-          type="button"
+        <a
           class="ws-card is-selectable"
+          [routerLink]="['/w', w.id]"
           [class.is-current]="w.id === currentWorkspaceId()"
           [attr.aria-current]="w.id === currentWorkspaceId() ? 'true' : null"
-          (click)="select(w.id)"
         >
           <span class="ws-card-head">
             <span class="ws-card-name">
@@ -60,7 +69,7 @@
               </span>
             }
           </span>
-        </button>
+        </a>
       }
     </div>
   }

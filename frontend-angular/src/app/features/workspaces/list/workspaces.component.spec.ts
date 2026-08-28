@@ -41,7 +41,11 @@ describe('WorkspacesComponent', () => {
   let httpMock: HttpTestingController;
   let context: WorkspaceContextService;
 
-  async function setup(list: Workspace[] = [personal, acme], dialogResult: unknown = undefined) {
+  async function setup(
+    list: Workspace[] = [personal, acme],
+    dialogResult: unknown = undefined,
+    failLoad = false,
+  ) {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [WorkspacesComponent],
@@ -56,13 +60,11 @@ describe('WorkspacesComponent', () => {
     }).compileComponents();
 
     context = TestBed.inject(WorkspaceContextService);
-    // The page reads the store rather than fetching: the header switcher has
-    // already loaded the list by the time anyone can navigate here.
-    list.forEach((w) => context.upsert(w));
-    if (list.length) context.setCurrent(list[0].id);
-
     fixture = TestBed.createComponent(WorkspacesComponent);
     httpMock = TestBed.inject(HttpTestingController);
+    const load = httpMock.expectOne(`${apiUrl}/workspaces`);
+    if (failLoad) load.flush('boom', { status: 500, statusText: 'Server Error' });
+    else load.flush(list);
     fixture.detectChanges();
   }
 
@@ -76,11 +78,10 @@ describe('WorkspacesComponent', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('renders one card per workspace without fetching', async () => {
+  // Nothing else loads the list on the way here, so the page has to.
+  it('fetches the list and renders one card per workspace', async () => {
     await setup();
 
-    // The switcher owns the fetch; a second one here would flicker.
-    httpMock.expectNone(`${apiUrl}/workspaces`);
     expect(cards().length).toBe(2);
     expect(text()).toContain('Acme Team');
   });
@@ -100,15 +101,24 @@ describe('WorkspacesComponent', () => {
     expect(current[0].getAttribute('aria-current')).toBe('true');
   });
 
-  it('switching sets the current workspace', async () => {
+  // The page is a chooser: picking a workspace has to take you into it, and the
+  // route guard is what makes the choice current.
+  it('links each card to its workspace home', async () => {
     await setup();
-    expect(context.currentWorkspaceId()).toBe(personal.id);
 
-    fixture.componentInstance.select(acme.id);
-    fixture.detectChanges();
+    expect(cards().map((c) => c.getAttribute('href'))).toEqual([
+      `/w/${personal.id}`,
+      `/w/${acme.id}`,
+    ]);
+  });
 
-    expect(context.currentWorkspaceId()).toBe(acme.id);
-    expect(cards()[1].classList.contains('is-current')).toBe(true);
+  // A failed load must not read as "you have none" — the home guard sends people
+  // here precisely when it could not load them.
+  it('shows an error state when the list fails to load', async () => {
+    await setup([], undefined, true);
+
+    expect(cards().length).toBe(0);
+    expect(text()).toContain('Failed to load your workspaces.');
   });
 
   it('shows the empty state when there are no workspaces', async () => {

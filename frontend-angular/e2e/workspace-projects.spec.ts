@@ -19,7 +19,7 @@ async function openAcmeProjects(page: Page): Promise<string> {
   // selected id, and clicking it too early navigates to the previous workspace.
   await expect(page.locator('.ws-trigger')).toContainText('Acme Team');
 
-  await page.locator('.nav-inline a', { hasText: 'Home' }).click();
+  await page.locator('.ws-nav a', { hasText: 'Home' }).click();
 
   // The row, not the URL: switching workspace already navigated to the new home, so a
   // /w/{any-id} match is satisfied by the workspace being left as much as the one being
@@ -83,7 +83,7 @@ test.describe('Workspace-scoped projects', () => {
 
     // A project of its own, so a rerun never fights the seeded ones over a name.
     const name = `Movable ${Date.now()}`;
-    await page.locator('.nav-inline a', { hasText: 'Home' }).click();
+    await page.locator('.ws-nav a', { hasText: 'Home' }).click();
     await expect(page).toHaveURL(/\/w\/[0-9a-f-]+$/);
     const personalId = new URL(page.url()).pathname.split('/')[2];
 

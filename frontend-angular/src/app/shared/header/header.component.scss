@@ -90,27 +90,6 @@
   display: none;
 }
 
-@media (max-width: 720px) {
-  .nav-inline {
-    display: none;
-  }
-  .nav-hamburger {
-    display: inline-flex;
-  }
-  // Scoped to the bar on purpose. mat-menu content is projected into an overlay
-  // but keeps this template's encapsulation attribute, so an unscoped rule would
-  // also hide the workspace list inside #mobileMenu — at exactly the widths where
-  // that menu is the only way to reach it.
-  .app-header app-workspace-switcher {
-    display: none;
-  }
-
-  .profile-button .user-text-stack,
-  .profile-button .arrow-icon {
-    display: none;
-  }
-}
-
 .status-dot {
   width: 8px;
   height: 8px;
@@ -242,5 +221,19 @@
     width: 20px;
     height: 20px;
     opacity: 0.6;
+  }
+}
+
+// Last in the file: these tie with the rules they undo, so order decides.
+@media (max-width: 720px) {
+  .nav-inline {
+    display: none;
+  }
+  .nav-hamburger {
+    display: inline-flex;
+  }
+  .profile-button .user-text-stack,
+  .profile-button .arrow-icon {
+    display: none;
   }
 }

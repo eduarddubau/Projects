@@ -24,8 +24,8 @@ async function createWorkspace(page: Page, name: string) {
 }
 
 async function deleteCurrentWorkspace(page: Page, name: string) {
-  await page.locator('.ws-trigger').click();
-  await page.getByRole('menuitem', { name: 'Workspace settings' }).click();
+  await page.locator('.ws-card.is-current').click();
+  await page.locator('.ws-nav a', { hasText: 'Settings' }).click();
   await expect(page).toHaveURL(/\/w\/[0-9a-f-]{36}\/settings$/);
 
   await page.getByRole('button', { name: 'Delete workspace' }).click();
@@ -80,10 +80,9 @@ test.describe('Workspace trash', () => {
     await expect(page.getByText(`"${name}" restored.`)).toBeVisible();
     await expect(page.locator('.ws-card', { hasText: name })).toHaveCount(0);
 
-    // Back in the switcher without a reload, which is the point of upserting it.
-    await expect(page.locator('.ws-trigger')).toBeVisible();
-    await page.locator('.ws-trigger').click();
-    await expect(page.locator('.ws-item-name', { hasText: name })).toBeVisible();
+    // Back in the list without a reload, which is the point of upserting it.
+    await page.getByRole('button', { name: 'All workspaces' }).click();
+    await expect(page.locator('.ws-card', { hasText: name })).toBeVisible();
 
     await purge(page, [name]);
   });

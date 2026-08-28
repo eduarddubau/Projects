@@ -25,9 +25,12 @@ async function createWorkspace(page: Page, name: string) {
   await expect(page.locator('.ws-card.is-current')).toContainText(name);
 }
 
+/** Enters the current workspace from the list, then its settings from the sidebar. */
 async function openSettings(page: Page) {
-  await page.locator('.ws-trigger').click();
-  await page.getByRole('menuitem', { name: 'Workspace settings' }).click();
+  await page.locator('.ws-card.is-current').click();
+  await expect(page).toHaveURL(/\/w\/[0-9a-f-]{36}$/);
+
+  await page.locator('.ws-nav a', { hasText: 'Settings' }).click();
   await expect(page).toHaveURL(/\/w\/[0-9a-f-]{36}\/settings$/);
 }
 
@@ -71,7 +74,7 @@ test.describe('Workspace settings', () => {
 
   // The typed-name confirmation was relaxed to a plain warn confirm once deleting
   // became recoverable; see the trash spec for where the workspace goes.
-  test('deleting asks once, then removes it from the list and the switcher', async ({ page }) => {
+  test('deleting asks once, then removes it from the list', async ({ page }) => {
     createdName = `E2E Delete ${Date.now()}`;
     const name = createdName;
     await login(page, OWNER);
@@ -87,16 +90,14 @@ test.describe('Workspace settings', () => {
 
     await expect(page).toHaveURL(/\/workspaces$/);
     await expect(page.locator('.ws-grid')).not.toContainText(name);
-    await expect(page.locator('.ws-trigger')).not.toContainText(name);
     createdName = null;
   });
 
   test('offers no settings entry for a personal workspace', async ({ page }) => {
     await login(page, OWNER);
 
-    await page.locator('.ws-trigger').click();
-    await expect(page.getByRole('menuitem', { name: 'Members' })).toBeVisible();
-    await expect(page.getByRole('menuitem', { name: 'Workspace settings' })).toBeHidden();
+    await expect(page.locator('.ws-nav a', { hasText: 'Members' })).toBeVisible();
+    await expect(page.locator('.ws-nav a', { hasText: 'Settings' })).toHaveCount(0);
   });
 
   test('explains itself when the page is opened directly anyway', async ({ page }) => {

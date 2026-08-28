@@ -1,10 +1,8 @@
-@if (isAuthenticated() && workspaces().length) {
+@if (workspaces().length) {
   <button
     mat-button
     class="ws-trigger"
     [matMenuTriggerFor]="wsMenu"
-    [matTooltip]="'workspaces.switcher.label' | transloco"
-    matTooltipPosition="below"
     [attr.aria-label]="'workspaces.switcher.label' | transloco"
   >
     <span class="ws-trigger-row">
@@ -38,22 +36,6 @@
 
     <mat-divider></mat-divider>
 
-    @if (currentWorkspace(); as w) {
-      <button mat-menu-item [routerLink]="['/w', w.id, 'members']">
-        <mat-icon>group</mat-icon>
-        <span>{{ 'workspaces.switcher.members' | transloco }}</span>
-      </button>
-
-      <!-- Hidden rather than disabled: a member and a personal workspace can
-           never reach these settings, and "tune" because the item two rows down
-           already owns the settings glyph. -->
-      @if (canManage()) {
-        <button mat-menu-item [routerLink]="['/w', w.id, 'settings']">
-          <mat-icon>tune</mat-icon>
-          <span>{{ 'workspaces.switcher.settings' | transloco }}</span>
-        </button>
-      }
-    }
     <button mat-menu-item routerLink="/workspaces" [queryParams]="{ new: 1 }">
       <mat-icon>add</mat-icon>
       <span>{{ 'workspaces.switcher.createNew' | transloco }}</span>

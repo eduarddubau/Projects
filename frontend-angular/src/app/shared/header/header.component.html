@@ -7,10 +7,6 @@
       <span class="brand-name">{{ appName }}</span>
     </a>
 
-    @if (!isAdmin()) {
-      <app-workspace-switcher />
-    }
-
     <!-- errorKey is a full translation path, so it bypasses the 'header' prefix. -->
     <span
       class="status-dot"
@@ -27,19 +23,6 @@
 
     <!-- Inline nav (desktop) -->
     <nav class="nav-inline">
-      @if (isAuthenticated() && !isAdmin()) {
-        @if (currentWorkspaceId(); as id) {
-          <!-- exact: /w/{id} prefixes every workspace route, so without it the home
-               link reads as active on members, settings and project detail too. -->
-          <a
-            class="nav-link"
-            [routerLink]="['/w', id]"
-            routerLinkActive="active-link"
-            [routerLinkActiveOptions]="{ exact: true }"
-            >{{ t('nav.home') }}</a
-          >
-        }
-      }
       @if (isAdmin()) {
         <a class="nav-link" routerLink="/admin" routerLinkActive="active-link">{{
           t('nav.admin')
@@ -104,48 +87,20 @@
   <mat-menu #mobileMenu="matMenu" xPosition="before">
     @if (isAuthenticated()) {
       @if (!isAdmin()) {
-        @for (w of workspaces(); track w.id) {
-          <button mat-menu-item (click)="selectWorkspace(w.id)">
-            <mat-icon>{{ w.id === currentWorkspaceId() ? 'check' : 'workspaces' }}</mat-icon>
-            <span>{{ w.isPersonal ? ('workspaces.personal' | transloco) : w.name }}</span>
-          </button>
-        }
-        @if (currentWorkspaceId(); as id) {
-          <button mat-menu-item [routerLink]="['/w', id, 'members']">
-            <mat-icon>group</mat-icon>
-            <span>{{ t('workspaces.switcher.members') }}</span>
-          </button>
-          @if (canManageWorkspace()) {
-            <button mat-menu-item [routerLink]="['/w', id, 'settings']">
-              <mat-icon>tune</mat-icon>
-              <span>{{ t('workspaces.switcher.settings') }}</span>
-            </button>
-          }
-        }
-        <button mat-menu-item routerLink="/workspaces" [queryParams]="{ new: 1 }">
-          <mat-icon>add</mat-icon>
-          <span>{{ t('workspaces.switcher.createNew') }}</span>
-        </button>
-        <button mat-menu-item routerLink="/workspaces">
-          <mat-icon>settings</mat-icon>
-          <span>{{ t('workspaces.switcher.manageWorkspaces') }}</span>
-        </button>
-        <mat-divider></mat-divider>
         <button mat-menu-item routerLink="/dashboard">
           <mat-icon>space_dashboard</mat-icon>
           <span>{{ t('menu.home') }}</span>
         </button>
+        <button mat-menu-item routerLink="/workspaces">
+          <mat-icon>workspaces</mat-icon>
+          <span>{{ 'workspaces.switcher.manageWorkspaces' | transloco }}</span>
+        </button>
+        <mat-divider></mat-divider>
       }
       <button mat-menu-item routerLink="/profile">
         <mat-icon>person</mat-icon>
         <span>{{ t('menu.profile') }}</span>
       </button>
-      @if (currentWorkspaceId(); as id) {
-        <button mat-menu-item [routerLink]="['/w', id, 'projects', 'trash']">
-          <mat-icon>delete_outline</mat-icon>
-          <span>{{ t('menu.trash') }}</span>
-        </button>
-      }
       @if (isAdmin()) {
         <mat-divider></mat-divider>
         <button mat-menu-item routerLink="/admin">

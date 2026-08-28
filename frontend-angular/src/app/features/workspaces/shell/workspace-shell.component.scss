@@ -1,0 +1,50 @@
+.ws-shell {
+  min-height: calc(100vh - var(--app-header-height));
+  background: transparent;
+}
+
+.ws-sidenav {
+  width: 250px;
+  border-right: var(--app-hairline);
+  // Same color + noise as the body canvas so the drawer (a separate
+  // compositing layer in Chromium) can't render as a different gray.
+  background: var(--app-noise) var(--mat-sys-surface-container-low);
+  padding: 12px 10px;
+
+  &.mat-drawer-side {
+    transform: none;
+    will-change: auto;
+  }
+}
+
+.ws-nav {
+  padding-top: 6px;
+
+  a[mat-list-item] {
+    border-radius: 10px;
+    margin-bottom: 2px;
+  }
+
+  .active {
+    background-color: color-mix(in srgb, var(--mat-sys-primary) 11%, transparent);
+
+    --mat-list-list-item-label-text-color: var(--mat-sys-primary);
+    --mat-list-list-item-leading-icon-color: var(--mat-sys-primary);
+    --mat-list-list-item-label-text-weight: 600;
+  }
+}
+
+.ws-content {
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
+// Above the routed page's aurora, which is absolutely positioned and comes
+// later in the DOM, so it would otherwise wash over this button.
+.drawer-toggle {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  margin: 8px;
+}

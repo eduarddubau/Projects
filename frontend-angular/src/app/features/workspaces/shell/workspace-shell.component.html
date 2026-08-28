@@ -1,0 +1,64 @@
+<mat-sidenav-container class="ws-shell" *transloco="let t; prefix: 'workspaces.nav'">
+  <mat-sidenav
+    #drawer
+    class="ws-sidenav"
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="!isHandset()"
+  >
+    <app-workspace-switcher />
+
+    <mat-nav-list class="ws-nav">
+      <!-- exact: /w/{id} prefixes every route in this tree, so without it home
+           reads as active on members, settings and project detail too. -->
+      <a
+        mat-list-item
+        [routerLink]="['/w', workspaceId()]"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeIfHandset(drawer)"
+      >
+        <mat-icon matListItemIcon>home</mat-icon>
+        <span matListItemTitle>{{ t('home') }}</span>
+      </a>
+      <a
+        mat-list-item
+        [routerLink]="['/w', workspaceId(), 'members']"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)"
+      >
+        <mat-icon matListItemIcon>group</mat-icon>
+        <span matListItemTitle>{{ t('members') }}</span>
+      </a>
+      @if (canManage()) {
+        <a
+          mat-list-item
+          [routerLink]="['/w', workspaceId(), 'settings']"
+          routerLinkActive="active"
+          (click)="closeIfHandset(drawer)"
+        >
+          <mat-icon matListItemIcon>tune</mat-icon>
+          <span matListItemTitle>{{ t('settings') }}</span>
+        </a>
+      }
+      <a
+        mat-list-item
+        [routerLink]="['/w', workspaceId(), 'projects', 'trash']"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)"
+      >
+        <mat-icon matListItemIcon>delete_outline</mat-icon>
+        <span matListItemTitle>{{ t('trash') }}</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="ws-content">
+    @if (isHandset()) {
+      <button mat-button class="drawer-toggle" (click)="drawer.toggle()">
+        <mat-icon>menu</mat-icon>
+        {{ t('menu') }}
+      </button>
+    }
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

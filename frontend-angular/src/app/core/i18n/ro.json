@@ -53,7 +53,6 @@
   },
   "header": {
     "nav": {
-      "home": "Acasă",
       "admin": "Administrare"
     },
     "health": {
@@ -73,7 +72,6 @@
     "menu": {
       "home": "Acasă",
       "profile": "Profilul meu",
-      "trash": "Coș de gunoi",
       "adminPanel": "Panou de administrare",
       "signOut": "Deconectare",
       "login": "Autentificare",
@@ -473,9 +471,14 @@
       "label": "Schimbă spațiul de lucru",
       "personalTag": "Personal",
       "createNew": "Crează un spațiu de lucru nou",
-      "manageWorkspaces": "Gestionează spațiile de lucru",
+      "manageWorkspaces": "Gestionează spațiile de lucru"
+    },
+    "nav": {
+      "home": "Acasă",
       "members": "Membri",
-      "settings": "Setările spațiului de lucru"
+      "settings": "Setări",
+      "trash": "Coș de gunoi",
+      "menu": "Meniu spațiu de lucru"
     },
     "roles": {
       "Owner": "Proprietar",
@@ -484,6 +487,8 @@
     "list": {
       "title": "Spații de lucru",
       "subtitle": "Comută între spațiile tale de lucru sau creează unul nou.",
+      "loading": "Se încarcă spațiile de lucru...",
+      "loadFailed": "Spațiile de lucru nu au putut fi încărcate. Încearcă din nou.",
       "newWorkspace": "Spațiu de lucru nou",
       "empty": "Nu ai încă niciun spațiu de lucru.",
       "memberCount": "Membri: {{count}}",

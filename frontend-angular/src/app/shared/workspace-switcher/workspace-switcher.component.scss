@@ -1,14 +1,38 @@
+// Seated at the top of the workspace sidebar: fills its width, name on the
+// left, chevron pinned right.
+.ws-trigger {
+  width: 100%;
+  padding: 0 10px;
+  border-radius: 10px;
+  --mdc-text-button-container-height: 44px;
+}
+
 .ws-trigger-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
 }
 
 .ws-name {
-  max-width: 12rem;
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ws-icon {
+  color: var(--mat-sys-primary);
+}
+
+.ws-arrow {
+  margin: 0;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.6;
 }
 
 .ws-row {

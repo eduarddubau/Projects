@@ -41,6 +41,10 @@ export const routes: Routes = [
     // reversed, a signed-out user would fire a 401 before being sent to /login.
     path: 'w/:workspaceId',
     canActivate: [authGuard, standardUserGuard, workspaceGuard],
+    loadComponent: () =>
+      import('./features/workspaces/shell/workspace-shell.component').then(
+        (m) => m.WorkspaceShellComponent,
+      ),
     children: [
       {
         // The workspace home: greeting, the workspace's numbers, and its projects.

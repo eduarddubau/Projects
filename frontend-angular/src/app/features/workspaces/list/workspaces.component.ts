@@ -10,8 +10,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { filter, switchMap } from 'rxjs/operators';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { WorkspaceService } from '@core/services/workspace.service';
@@ -25,7 +27,14 @@ import {
 @Component({
   selector: 'app-workspaces',
   templateUrl: './workspaces.component.html',
-  imports: [MatButtonModule, MatIconModule, RouterLink, AuroraComponent, TranslocoDirective],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    RouterLink,
+    AuroraComponent,
+    TranslocoDirective,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorkspacesComponent {
@@ -40,25 +49,45 @@ export class WorkspacesComponent {
 
   workspaces = this.context.workspaces;
   currentWorkspaceId = this.context.currentWorkspaceId;
+  isLoading = signal(true);
+  hasError = signal(false);
   isSaving = signal(false);
 
   constructor() {
-    // Deep link from the switcher's "New workspace" item. afterNextRender keeps
-    // this browser-only — the dialog needs a DOM — but the subscription has to
-    // outlive the first render: navigating here while already on this page
-    // reuses the component, so a one-shot snapshot read would never fire again.
-    // The param is cleared with replaceUrl so a refresh can't reopen the dialog.
-    afterNextRender(() => {
-      this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-        if (!params.has('new')) return;
-        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
-        this.openCreateDialog();
+    // The page is reachable without passing through /w, so it loads the list
+    // itself; ensureLoaded's cache makes the call free when something already did.
+    this.context
+      .ensureLoaded()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          const target = this.context.resolve(null);
+          if (target && !this.context.currentWorkspaceId()) this.context.setCurrent(target);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.hasError.set(true);
+          this.isLoading.set(false);
+        },
       });
-    });
-  }
 
-  select(id: string): void {
-    this.context.setCurrent(id);
+    // Deep link from the switcher's "New workspace" item. afterNextRender keeps
+    // this browser-only — the dialog needs a DOM. The param is cleared with
+    // replaceUrl so a refresh can't reopen the dialog.
+    afterNextRender(() => {
+      this.route.queryParamMap
+        .pipe(
+          filter((params) => params.has('new')),
+          // The load above may still be in flight, and its response replaces the
+          // whole list — creating before it lands would drop the new workspace.
+          switchMap(() => this.context.ensureLoaded()),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(() => {
+          this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+          this.openCreateDialog();
+        });
+    });
   }
 
   openCreateDialog(): void {

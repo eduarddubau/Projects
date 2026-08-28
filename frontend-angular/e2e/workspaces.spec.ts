@@ -61,23 +61,23 @@ test.describe('Workspaces', () => {
     await expect(page).toHaveURL(/\/workspaces$/);
   });
 
-  // Regression: navigating here from the switcher while already on this page
-  // reuses the component, so the original constructor-time snapshot read never
-  // fired again and the dialog silently refused to open.
-  test('the new-workspace item still works when already on the list', async ({ page }) => {
-    await page.goto('/workspaces');
+  // The list is reachable without passing through a workspace, so it loads its
+  // own workspaces and honours ?new=1 on a cold arrival, not only on a hand-off
+  // from the switcher.
+  test('a direct link to the list loads it and still opens the dialog', async ({ page }) => {
+    await page.goto('/workspaces?new=1');
+
     await expect(page.locator('.ws-card').first()).toBeVisible();
-
-    await page.locator('.ws-trigger').click();
-    await page.getByRole('menuitem', { name: 'New workspace' }).click();
-
     await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page).toHaveURL(/\/workspaces$/);
   });
 
-  test('creating a workspace adds it to the list and the switcher', async ({ page }) => {
+  test('creating a workspace adds it to the list and selects it', async ({ page }) => {
     createdName = `E2E ${Date.now()}`;
 
     await page.goto('/workspaces');
+    // count() does not retry, and the page fetches its own list.
+    await expect(page.locator('.ws-card').first()).toBeVisible();
     const before = await page.locator('.ws-card').count();
 
     await page.getByRole('button', { name: 'New workspace' }).click();
@@ -87,9 +87,8 @@ test.describe('Workspaces', () => {
     await expect(page.locator('.ws-card')).toHaveCount(before + 1);
     await expect(page.locator('.ws-grid')).toContainText(createdName);
 
-    // Created workspaces become current, and the header reflects it without a
-    // reload because both read the same signal store.
+    // Created workspaces become current without a reload: the POST result is
+    // upserted into the same signal store the list renders from.
     await expect(page.locator('.ws-card.is-current')).toContainText(createdName);
-    await expect(page.locator('.ws-trigger')).toContainText(createdName);
   });
 });

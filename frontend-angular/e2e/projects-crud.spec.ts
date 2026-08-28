@@ -8,7 +8,7 @@ test.describe('Projects CRUD', () => {
     await page.getByRole('button', { name: 'Sign In' }).click();
     await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 
-    await page.locator('.nav-inline a', { hasText: 'Home' }).click();
+    await page.locator('.ws-nav a', { hasText: 'Home' }).click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
   });
 

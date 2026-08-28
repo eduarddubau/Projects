@@ -168,6 +168,12 @@ a {
   font-weight: 600;
 }
 
+// The switcher trigger fills the sidebar, and MDC's label is the child that has
+// to stretch for it — a component style can't reach inside the button.
+.ws-trigger .mdc-button__label {
+  width: 100%;
+}
+
 .mat-mdc-menu-panel {
   min-width: 250px !important;
   border-radius: 14px !important;
@@ -534,8 +540,9 @@ table.mat-mdc-table {
   color: var(--mat-sys-on-surface);
   font: inherit;
   text-align: start;
+  text-decoration: none;
 
-  // The list's cards are buttons; the trash's are plain containers.
+  // The list's cards are links into the workspace; the trash's are plain containers.
   &.is-selectable {
     cursor: pointer;
 

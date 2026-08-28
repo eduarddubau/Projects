@@ -36,8 +36,8 @@ async function createWorkspaceAndOpenMembers(page: Page, name: string) {
   await page.getByRole('button', { name: 'Create' }).click();
   await expect(page.locator('.ws-card.is-current')).toContainText(name);
 
-  await page.locator('.ws-trigger').click();
-  await page.getByRole('menuitem', { name: 'Members' }).click();
+  await page.locator('.ws-card.is-current').click();
+  await page.locator('.ws-nav a', { hasText: 'Members' }).click();
   await expect(page.locator('.page-subtitle')).toHaveText(name);
 }
 
@@ -109,16 +109,17 @@ test.describe('Invitations', () => {
     await login(page, INVITEE);
     await page.locator('.ws-trigger').click();
     await page.getByRole('menuitem', { name: createdName }).click();
-    await page.locator('.ws-trigger').click();
-    await page.getByRole('menuitem', { name: 'Members' }).click();
+    await expect(page.locator('.ws-trigger')).toContainText(createdName);
+    await page.locator('.ws-nav a', { hasText: 'Members' }).click();
 
     await page.getByRole('button', { name: 'Leave workspace' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
 
     await expect(page).toHaveURL(/\/workspaces$/);
     await expect(page.locator('.ws-grid')).not.toContainText(createdName);
-    // The store repaired its own invariant, so the header still names a real one.
-    await expect(page.locator('.ws-trigger')).not.toContainText(createdName);
+    // The store repaired its own invariant: the selection moved to a workspace
+    // that still exists rather than being left dangling.
+    await expect(page.locator('.ws-card.is-current')).toHaveCount(1);
   });
 
   test('a used-up invitation link explains itself instead of failing silently', async ({

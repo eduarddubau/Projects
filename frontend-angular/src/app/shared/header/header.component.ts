@@ -1,5 +1,5 @@
 import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -19,9 +19,6 @@ import { HealthStatus } from '@core/models/health-status';
 import { APP_NAME } from '@core/tokens/app.tokens';
 import { LanguageSwitcherComponent } from '@shared/language-switcher/language-switcher.component';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { WorkspaceSwitcherComponent } from '@shared/workspace-switcher/workspace-switcher.component';
-import { WorkspaceContextService } from '@core/services/workspace-context.service';
-import { withWorkspaceId } from '@core/utils/workspace-url';
 
 @Component({
   selector: 'app-header',
@@ -36,7 +33,6 @@ import { withWorkspaceId } from '@core/utils/workspace-url';
     TranslocoDirective,
     TranslocoPipe,
     LanguageSwitcherComponent,
-    WorkspaceSwitcherComponent,
   ],
   templateUrl: './header.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,8 +43,6 @@ export class HeaderComponent {
   private healthService = inject(HealthService);
   private themeService = inject(ThemeService);
   private paletteService = inject(PaletteService);
-  private workspaceContext = inject(WorkspaceContextService);
-  private router = inject(Router);
 
   appName = APP_NAME;
 
@@ -75,21 +69,6 @@ export class HeaderComponent {
   theme = this.themeService.theme;
   palette = this.paletteService.palette;
   schemes = PALETTES.map((id) => ({ id, preview: PALETTE_PREVIEWS[id] }));
-
-  // The mobile menu lists workspaces itself rather than embedding the switcher:
-  // that component's trigger is a mat-button, and Material only wires keyboard
-  // navigation for submenus opened from a mat-menu-item.
-  workspaces = this.workspaceContext.workspaces;
-  currentWorkspaceId = this.workspaceContext.currentWorkspaceId;
-  canManageWorkspace = this.workspaceContext.canManageCurrent;
-
-  selectWorkspace(id: string): void {
-    this.workspaceContext.setCurrent(id);
-
-    // As in the switcher's select().
-    const tree = withWorkspaceId(this.router, this.router.url, id);
-    if (tree) this.router.navigateByUrl(tree);
-  }
 
   setPalette(palette: Palette): void {
     this.paletteService.set(palette);

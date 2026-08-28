@@ -23,19 +23,19 @@ function memberRows(page: Page) {
   return page.getByRole('table', { name: 'Workspace members' }).locator('tbody tr');
 }
 
-/** Switches to Acme Team, then follows the switcher's Members item into it. */
+/** Switches to Acme Team, then follows the sidebar's Members link into it. */
 async function openAcmeMembers(page: Page) {
   await page.locator('.ws-trigger').click();
   await page.getByRole('menuitem', { name: 'Acme Team' }).click();
+  await expect(page.locator('.ws-trigger')).toContainText('Acme Team');
 
-  await page.locator('.ws-trigger').click();
-  await page.getByRole('menuitem', { name: 'Members' }).click();
+  await page.locator('.ws-nav a', { hasText: 'Members' }).click();
 
   await expect(page).toHaveURL(/\/w\/[0-9a-f-]{36}\/members$/);
 }
 
 test.describe('Workspace members', () => {
-  test('the switcher reaches the members page, which lists the workspace members', async ({
+  test('the sidebar reaches the members page, which lists the workspace members', async ({
     page,
   }) => {
     await login(page, 'dev1@example.com');
