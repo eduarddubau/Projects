@@ -197,12 +197,18 @@ public class TasksControllerTests
     public async Task GetWorkspaceDeletedTasks_ReturnsOkWithTheTrash()
     {
         var workspaceId = Guid.NewGuid();
-        var tasks = new[] { new WorkspaceTaskResponseDto { Id = Guid.NewGuid(), Title = "Gone" } };
+        var tasks = new[]
+        {
+            new WorkspaceTaskResponseDto { Id = Guid.NewGuid(), Title = "Gone" },
+        };
         _taskService
             .Setup(s => s.GetWorkspaceDeletedTasksAsync(workspaceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tasks);
 
-        var result = await _controller.GetWorkspaceDeletedTasks(workspaceId, CancellationToken.None);
+        var result = await _controller.GetWorkspaceDeletedTasks(
+            workspaceId,
+            CancellationToken.None
+        );
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(tasks, okResult.Value);
