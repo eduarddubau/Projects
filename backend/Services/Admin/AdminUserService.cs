@@ -36,8 +36,6 @@ public class AdminUserService : IAdminUserService
     {
         return await _context
             .Users.IgnoreQueryFilters()
-            .Include(u => u.Creator)
-            .Include(u => u.Updater)
             .OrderByDescending(u => u.CreatedAt)
             .MapToDto()
             .ToListAsync(ct);
@@ -143,8 +141,6 @@ public class AdminUserService : IAdminUserService
     {
         return await _context
             .Users.IgnoreQueryFilters()
-            .Include(u => u.Creator)
-            .Include(u => u.Updater)
             .Where(u => u.IsDeleted && !u.IsAnonymized)
             .OrderByDescending(u => u.DeletedAt)
             .MapToDto()

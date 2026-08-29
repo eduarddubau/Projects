@@ -17,7 +17,7 @@ public sealed class DbSeederTests : IDisposable
     private readonly Mock<RoleManager<IdentityRole<Guid>>> _roleManager;
     private readonly AppDbContext _context;
     private readonly ILogger _logger = new Mock<ILogger>().Object;
-    private readonly ProjectRetentionOptions _retention = new() { TrashWindowDays = 30 };
+    private readonly RetentionOptions _retention = new() { TrashWindowDays = 30 };
     private readonly IWorkspaceService _workspaceService;
 
     public DbSeederTests()

@@ -22,7 +22,7 @@ public class ProjectService : IProjectService
         AppDbContext context,
         ICurrentUserService currentUser,
         IWorkspaceAccessService access,
-        IOptions<ProjectRetentionOptions> retentionOptions
+        IOptions<RetentionOptions> retentionOptions
     )
     {
         _context = context;
@@ -43,9 +43,7 @@ public class ProjectService : IProjectService
         await _access.RequireMemberAsync(workspaceId, ct);
 
         return await _context
-            .Projects.Include(p => p.Creator)
-            .Include(p => p.Updater)
-            .Where(p => p.WorkspaceId == workspaceId)
+            .Projects.Where(p => p.WorkspaceId == workspaceId)
             .OrderByDescending(p => p.CreatedAt)
             .MapToDto()
             .ToListAsync(ct);
@@ -63,8 +61,6 @@ public class ProjectService : IProjectService
 
         return await _context
             .Projects.IgnoreQueryFilters()
-            .Include(p => p.Creator)
-            .Include(p => p.Updater)
             .Where(p => p.WorkspaceId == workspaceId && p.IsDeleted && p.DeletedAt >= cutoff)
             .OrderByDescending(p => p.DeletedAt)
             .MapToDto()

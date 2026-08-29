@@ -24,8 +24,6 @@ public class AdminWorkspaceService : IAdminWorkspaceService
     {
         return await _context
             .Workspaces.IgnoreQueryFilters()
-            .Include(w => w.Creator)
-            .Include(w => w.Updater)
             .Where(w => w.IsDeleted)
             .OrderByDescending(w => w.DeletedAt)
             .MapToAdminDto()

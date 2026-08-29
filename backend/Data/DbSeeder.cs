@@ -16,7 +16,7 @@ public static partial class DbSeeder
         RoleManager<IdentityRole<Guid>> roleManager,
         AppDbContext context,
         ILogger logger,
-        ProjectRetentionOptions retentionOptions,
+        RetentionOptions retentionOptions,
         AdminSeedOptions adminOptions,
         ILookupNormalizer normalizer,
         IWorkspaceService workspaceService,
@@ -125,7 +125,7 @@ public static partial class DbSeeder
     private static async Task SeedDevelopmentContentAsync(
         AppDbContext context,
         ILogger logger,
-        ProjectRetentionOptions retentionOptions,
+        RetentionOptions retentionOptions,
         List<User> devUsers
     )
     {

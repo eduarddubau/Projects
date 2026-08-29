@@ -349,6 +349,12 @@ compose has no `env_file:`, and the api service forwards exactly six variables
 read by Compose for interpolation and never reaches the container, silently. To tune the rest, edit
 `appsettings.Development.json` or add the variable to `compose.yaml`.
 
+> **Renamed 2026-08-29:** the `ProjectRetention` section is now `Retention`, because the same
+> window governs the task trash as well. `IConfiguration.Bind()` ignores a section it cannot
+> find, so anything still setting `ProjectRetention__TrashWindowDays` would silently fall back
+> to the built-in 30 days. Rather than let that pass, **startup refuses to boot** while the old
+> section is present, naming the replacement. Rename the key wherever it is set.
+
 Defaults below are `appsettings.json`. The **Development** column is what the Quick start stack
 actually runs with, since `appsettings.Development.json` overrides three of them:
 
@@ -362,7 +368,7 @@ actually runs with, since `appsettings.Development.json` overrides three of them
 | `AuthProtection:SessionPermitPerWindow`                | The looser budget for refresh, logout and `/me`, so session upkeep can't spend the login allowance   | `60`       | **`400`**           |
 | `AuthProtection:MaxFailedAttempts` / `:LockoutMinutes` | Per-account lockout, per OWASP                                                                       | `5` / `15` |                     |
 | `AuthProtection:TrustedProxyNetworks`                  | Proxy CIDRs whose `X-Forwarded-*` may be believed. **Empty switches forwarded headers off entirely** | `[]`       | **`10.99.0.10/32`** |
-| `ProjectRetention:TrashWindowDays`                     | How long a trashed project waits before it can be purged                                             | `30`       |                     |
+| `Retention:TrashWindowDays`                            | How long anything soft-deleted stays restorable — projects and tasks alike                           | `30`       |                     |
 | `AllowedOrigins`                                       | CORS origins. **Required outside Development** — the API throws on startup without it                | —          | any origin          |
 
 The dev budgets are raised because the e2e suite logs in on nearly every test from one container

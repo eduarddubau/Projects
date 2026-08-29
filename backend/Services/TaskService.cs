@@ -20,12 +20,10 @@ public class TaskService : ITaskService
     private readonly ICurrentUserService _currentUser;
     private readonly int _trashWindowDays;
 
-    // One trash window for the whole app; the options type is named for the first thing
-    // that needed it.
     public TaskService(
         AppDbContext context,
         ICurrentUserService currentUser,
-        IOptions<ProjectRetentionOptions> retentionOptions
+        IOptions<RetentionOptions> retentionOptions
     )
     {
         _context = context;
@@ -51,9 +49,6 @@ public class TaskService : ITaskService
 
         return await _context
             .Tasks.Where(t => t.ProjectId == projectId)
-            .Include(t => t.Assignee)
-            .Include(t => t.Creator)
-            .Include(t => t.Updater)
             // Not OrderBy(t => t.Status): the enum persists as a string, so Postgres sorts it
             // alphabetically (Done, InProgress, Todo) while the in-memory provider sorts by
             // enum value. Keep it inline — EF cannot translate a call to a helper.

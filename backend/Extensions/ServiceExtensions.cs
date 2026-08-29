@@ -99,9 +99,20 @@ public static class ServiceExtensions
         // Test-only fixture seeding; the controller that uses it is gated to Development.
         services.AddScoped<ITestSeedService, TestSeedService>();
 
+        // Bind() is a no-op on a section that does not exist, so a deployment still setting
+        // the pre-rename ProjectRetention key would silently fall back to the built-in 30
+        // days. Refuse to start instead of quietly retaining things four times too long.
+        if (config.GetSection(RetentionOptions.LegacySectionName).Exists())
+        {
+            throw new InvalidOperationException(
+                $"Configuration section '{RetentionOptions.LegacySectionName}' was renamed to "
+                    + $"'{RetentionOptions.SectionName}'. Rename the key — it is ignored where it is."
+            );
+        }
+
         services
-            .AddOptions<ProjectRetentionOptions>()
-            .Bind(config.GetSection(ProjectRetentionOptions.SectionName));
+            .AddOptions<RetentionOptions>()
+            .Bind(config.GetSection(RetentionOptions.SectionName));
 
         services
             .AddOptions<AdminSeedOptions>()

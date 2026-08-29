@@ -35,7 +35,7 @@ public sealed class AdminProjectServiceTests : IDisposable
 
         _service = new AdminProjectService(
             _context,
-            Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays })
+            Options.Create(new RetentionOptions { TrashWindowDays = TrashWindowDays })
         );
 
         _personal = AddWorkspace("Personal", isPersonal: true, (_userId, WorkspaceRole.Owner));

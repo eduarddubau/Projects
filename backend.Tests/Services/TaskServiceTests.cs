@@ -39,7 +39,7 @@ public sealed class TaskServiceTests : IDisposable
         _service = new TaskService(
             _context,
             _currentUser.Object,
-            Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays })
+            Options.Create(new RetentionOptions { TrashWindowDays = TrashWindowDays })
         );
 
         _shared = AddWorkspace(

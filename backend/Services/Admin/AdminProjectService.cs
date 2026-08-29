@@ -14,10 +14,7 @@ public class AdminProjectService : IAdminProjectService
     private readonly AppDbContext _context;
     private readonly int _trashWindowDays;
 
-    public AdminProjectService(
-        AppDbContext context,
-        IOptions<ProjectRetentionOptions> retentionOptions
-    )
+    public AdminProjectService(AppDbContext context, IOptions<RetentionOptions> retentionOptions)
     {
         _context = context;
         _trashWindowDays = retentionOptions.Value.TrashWindowDays;
@@ -52,8 +49,6 @@ public class AdminProjectService : IAdminProjectService
 
         var deleted = await _context
             .Projects.IgnoreQueryFilters()
-            .Include(p => p.Creator)
-            .Include(p => p.Updater)
             .Where(p => p.IsDeleted)
             .OrderByDescending(p => p.DeletedAt)
             .MapToDto()

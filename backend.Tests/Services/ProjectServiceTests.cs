@@ -40,7 +40,7 @@ public sealed class ProjectServiceTests : IDisposable
             _context,
             _currentUser.Object,
             new WorkspaceAccessService(_context, _currentUser.Object),
-            Options.Create(new ProjectRetentionOptions { TrashWindowDays = TrashWindowDays })
+            Options.Create(new RetentionOptions { TrashWindowDays = TrashWindowDays })
         );
 
         _personal = AddWorkspace("Personal", isPersonal: true, (_userId, WorkspaceRole.Owner));
