@@ -71,12 +71,7 @@ public class TaskService : ITaskService
     {
         var userId = _currentUser.UserGuid;
 
-        // Null, not empty: a workspace the caller cannot reach is a 404, not one with no tasks.
-        var isMember = await _context.WorkspaceMembers.AnyAsync(
-            m => m.WorkspaceId == workspaceId && m.UserId == userId,
-            ct
-        );
-        if (!isMember)
+        if (!await IsMemberAsync(workspaceId, ct))
             return null;
 
         // Carries the Projects query filter, so a trashed project's tasks drop out here
@@ -240,6 +235,34 @@ public class TaskService : ITaskService
             .ToListAsync(ct);
     }
 
+    public async Task<IEnumerable<WorkspaceTaskResponseDto>?> GetWorkspaceDeletedTasksAsync(
+        Guid workspaceId,
+        CancellationToken ct = default
+    )
+    {
+        if (!await IsMemberAsync(workspaceId, ct))
+            return null;
+
+        var cutoff = TrashCutoff;
+
+        // !t.Project.IsDeleted is spelled out because IgnoreQueryFilters() is query-wide: it
+        // switches the Projects filter off along with the Tasks one. Without it a trashed
+        // project's tasks would fill this list with rows RestoreTaskByIdAsync then refuses.
+        // GetProjectDeletedTasksAsync needs no such clause; it validates its one project first.
+        return await _context
+            .Tasks.IgnoreQueryFilters()
+            .Where(t =>
+                t.Project!.WorkspaceId == workspaceId
+                && !t.Project.IsDeleted
+                && t.IsDeleted
+                && t.DeletedAt >= cutoff
+            )
+            .OrderByDescending(t => t.DeletedAt)
+            .ThenBy(t => t.Id)
+            .MapToWorkspaceDto()
+            .ToListAsync(ct);
+    }
+
     public async Task<TaskResponseDto?> RestoreTaskByIdAsync(
         Guid id,
         CancellationToken ct = default
@@ -273,6 +296,23 @@ public class TaskService : ITaskService
         }
 
         return await LoadDtoAsync(task, ct);
+    }
+
+    /// <summary>
+    /// Whether the caller can see this workspace at all. Both workspace-wide reads answer
+    /// null rather than an empty list when this is false, so a workspace the caller cannot
+    /// reach is a 404 and never "you have nothing here".
+    /// </summary>
+    private Task<bool> IsMemberAsync(Guid workspaceId, CancellationToken ct)
+    {
+        // Hoisted out of the expression tree: capturing `this` there is what makes EF
+        // recompile the query per instance.
+        var userId = _currentUser.UserGuid;
+
+        return _context.WorkspaceMembers.AnyAsync(
+            m => m.WorkspaceId == workspaceId && m.UserId == userId,
+            ct
+        );
     }
 
     private DateTime TrashCutoff => DateTime.UtcNow.AddDays(-_trashWindowDays);

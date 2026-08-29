@@ -141,6 +141,7 @@ public sealed class SoftDeletedNameTests : IDisposable
         Assert.Equal("Ghost User", MemberDto().UserDisplayName);
         Assert.Equal("Ghost User", InvitationDto().InvitedByDisplayName);
         Assert.Equal("Ghost User", TaskDto().AssigneeDisplayName);
+        Assert.Equal("Ghost User", WorkspaceTaskDto().AssigneeDisplayName);
     }
 
     private void SetEveryoneDeleted(bool deleted)
@@ -220,6 +221,18 @@ public sealed class SoftDeletedNameTests : IDisposable
         Assert.Equal(string.Empty, task.UpdatedByDisplayName);
     }
 
+    // Not covered by TheTaskTrashDoesNotNameThem: that one goes through MapToDto, and the
+    // workspace trash is a second projection with its own copy of every name expression.
+    [Fact]
+    public void TheWorkspaceTaskTrashDoesNotNameThem()
+    {
+        var task = WorkspaceTaskDto();
+
+        Assert.Null(task.AssigneeDisplayName);
+        Assert.Equal(string.Empty, task.CreatedByDisplayName);
+        Assert.Equal(string.Empty, task.UpdatedByDisplayName);
+    }
+
     private DTOs.Project.ProjectResponseDto ProjectDto() =>
         _context.Projects.IgnoreQueryFilters().MapToDto().First();
 
@@ -244,6 +257,9 @@ public sealed class SoftDeletedNameTests : IDisposable
 
     private DTOs.Task.TaskResponseDto TaskDto() =>
         _context.Tasks.IgnoreQueryFilters().MapToDto().First();
+
+    private DTOs.Task.WorkspaceTaskResponseDto WorkspaceTaskDto() =>
+        _context.Tasks.IgnoreQueryFilters().MapToWorkspaceDto().First();
 
     public void Dispose() => _context.Dispose();
 }

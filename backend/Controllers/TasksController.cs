@@ -128,6 +128,22 @@ public class TasksController : ControllerBase
         return Ok(trash);
     }
 
+    [HttpGet("/api/workspaces/{workspaceId:guid}/tasks/trash")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<WorkspaceTaskResponseDto>>> GetWorkspaceDeletedTasks(
+        Guid workspaceId,
+        CancellationToken ct
+    )
+    {
+        var trash = await _taskService.GetWorkspaceDeletedTasksAsync(workspaceId, ct);
+
+        if (trash is null)
+            return NotFound();
+
+        return Ok(trash);
+    }
+
     [HttpPost("{id:guid}/restore")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

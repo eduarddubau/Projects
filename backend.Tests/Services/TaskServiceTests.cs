@@ -408,6 +408,86 @@ public sealed class TaskServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task GetWorkspaceDeletedTasksAsync_GathersTrashFromEveryProjectInTheWorkspace()
+    {
+        var second = AddProject("Second", _shared);
+        AddTask("Live");
+        AddTask("FromFirst", isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-2));
+        AddTask("FromSecond", project: second, isDeleted: true, deletedAt: DateTime.UtcNow);
+
+        var result = await _service.GetWorkspaceDeletedTasksAsync(_shared.Id, Ct);
+
+        Assert.NotNull(result);
+        // Newest first, and each row says which project it came from — the whole reason the
+        // workspace trash projects to WorkspaceTaskResponseDto rather than TaskResponseDto.
+        Assert.Equal(["FromSecond", "FromFirst"], result.Select(t => t.Title));
+        Assert.Equal(["Second", "Reachable"], result.Select(t => t.ProjectName));
+    }
+
+    // The IgnoreQueryFilters trap, pinned: that call is query-wide, so dropping the explicit
+    // !t.Project.IsDeleted turns the Projects filter off too and this list fills with rows
+    // RestoreTaskByIdAsync refuses. Delete the clause and this test must go red.
+    [Fact]
+    public async Task GetWorkspaceDeletedTasksAsync_LeavesOutTasksOfATrashedProject()
+    {
+        var doomed = AddProject("Doomed", _shared);
+        AddTask("Survivor", isDeleted: true, deletedAt: DateTime.UtcNow);
+        AddTask("Buried", project: doomed, isDeleted: true, deletedAt: DateTime.UtcNow);
+
+        doomed.IsDeleted = true;
+        doomed.DeletedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(Ct);
+
+        var result = await _service.GetWorkspaceDeletedTasksAsync(_shared.Id, Ct);
+
+        Assert.NotNull(result);
+        Assert.Equal(["Survivor"], result.Select(t => t.Title));
+    }
+
+    [Fact]
+    public async Task GetWorkspaceDeletedTasksAsync_LeavesOutLiveTasksAndOnesPastTheWindow()
+    {
+        AddTask("Live");
+        AddTask("Recent", isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
+        AddTask(
+            "Expired",
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
+        );
+
+        var result = await _service.GetWorkspaceDeletedTasksAsync(_shared.Id, Ct);
+
+        Assert.NotNull(result);
+        Assert.Equal(["Recent"], result.Select(t => t.Title));
+    }
+
+    [Fact]
+    public async Task GetWorkspaceDeletedTasksAsync_ForAWorkspaceTheCallerIsNotIn_ReturnsNull()
+    {
+        AddTask("Theirs", project: _foreignProject, isDeleted: true, deletedAt: DateTime.UtcNow);
+
+        Assert.Null(await _service.GetWorkspaceDeletedTasksAsync(_foreign.Id, Ct));
+    }
+
+    // A member, not an owner: the workspace task trash is member-visible on purpose, because
+    // deleting a task is member-open and recovery has to reach whoever did the deleting.
+    [Fact]
+    public async Task GetWorkspaceDeletedTasksAsync_AnswersAPlainMember()
+    {
+        AddTask("Mine", isDeleted: true, deletedAt: DateTime.UtcNow);
+
+        var result = await _service.GetWorkspaceDeletedTasksAsync(_shared.Id, Ct);
+
+        Assert.Equal(
+            WorkspaceRole.Member,
+            _context.WorkspaceMembers.Single(m =>
+                m.WorkspaceId == _shared.Id && m.UserId == _userId
+            ).Role
+        );
+        Assert.Equal(["Mine"], result!.Select(t => t.Title));
+    }
+
+    [Fact]
     public async Task RestoreTaskByIdAsync_BringsTheTaskBackToItsBoard()
     {
         var task = AddTask("Back", isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));

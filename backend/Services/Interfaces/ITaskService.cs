@@ -29,6 +29,10 @@ public interface ITaskService
         Guid projectId,
         CancellationToken ct = default
     );
+    Task<IEnumerable<WorkspaceTaskResponseDto>?> GetWorkspaceDeletedTasksAsync(
+        Guid workspaceId,
+        CancellationToken ct = default
+    );
     Task<TaskResponseDto?> RestoreTaskByIdAsync(Guid id, CancellationToken ct = default);
     Task<TaskResponseDto?> MoveTaskAsync(
         Guid id,

@@ -194,6 +194,41 @@ public class TasksControllerTests
     }
 
     [Fact]
+    public async Task GetWorkspaceDeletedTasks_ReturnsOkWithTheTrash()
+    {
+        var workspaceId = Guid.NewGuid();
+        var tasks = new[] { new WorkspaceTaskResponseDto { Id = Guid.NewGuid(), Title = "Gone" } };
+        _taskService
+            .Setup(s => s.GetWorkspaceDeletedTasksAsync(workspaceId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tasks);
+
+        var result = await _controller.GetWorkspaceDeletedTasks(workspaceId, CancellationToken.None);
+
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(tasks, okResult.Value);
+    }
+
+    // The null the service returns for a non-member has to become a 404 here. Without this,
+    // deleting the guard ships a 200 with an empty body to someone outside the workspace,
+    // which reads as "this workspace has thrown nothing away".
+    [Fact]
+    public async Task GetWorkspaceDeletedTasks_ReturnsNotFoundWhenTheWorkspaceIsUnreachable()
+    {
+        _taskService
+            .Setup(s =>
+                s.GetWorkspaceDeletedTasksAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())
+            )
+            .ReturnsAsync((IEnumerable<WorkspaceTaskResponseDto>?)null);
+
+        var result = await _controller.GetWorkspaceDeletedTasks(
+            Guid.NewGuid(),
+            CancellationToken.None
+        );
+
+        Assert.IsType<NotFoundResult>(result.Result);
+    }
+
+    [Fact]
     public async Task RestoreTaskById_ReturnsOkWithTheRestoredTask()
     {
         var task = SampleTask();
