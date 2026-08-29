@@ -54,3 +54,12 @@
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
+
+// The view toggle and the trash are one group so space-between cannot strand the trash in
+// the middle of the bar, which is where it sat when it was a bare icon.
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}

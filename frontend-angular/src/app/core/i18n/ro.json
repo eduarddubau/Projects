@@ -286,8 +286,6 @@
       "selectPage": "Selectează pagina"
     },
     "trash": {
-      "title": "Coș de gunoi",
-      "subtitle": "Proiectele șterse pot fi restaurate de aici până la expirarea perioadei de retenție.",
       "searchLabel": "Caută proiecte șterse",
       "searchPlaceholder": "Caută după nume...",
       "loading": "Se încarcă coșul de gunoi...",
@@ -654,10 +652,6 @@
       "createdBy": "Creată de {{name}} la {{date}}",
       "deletedBy": "Ștearsă de {{name}} la {{date}}"
     },
-    "confirmDelete": {
-      "title": "Ștergi sarcina?",
-      "message": "Aceasta va șterge „{{title}}”. O poți restaura din Șterse recent."
-    },
     "errors": {
       "assigneeNotMember": "Această persoană nu este membră a acestui spațiu de lucru."
     },
@@ -718,7 +712,23 @@
       "deletedOn": "ștearsă la {{date}}",
       "restoreTask": "Restaurează {{title}}",
       "restored": "Sarcină restaurată.",
-      "restoreFailed": "Sarcina nu a putut fi restaurată."
+      "restoreFailed": "Sarcina nu a putut fi restaurată.",
+      "project": "Proiect",
+      "searchLabel": "Caută sarcini șterse",
+      "searchPlaceholder": "Caută după titlu sau proiect...",
+      "tableAria": "Sarcini șterse",
+      "noSearchResults": "Nicio sarcină ștearsă nu corespunde căutării.",
+      "workspaceEmpty": "Nu s-a șters nimic recent în acest spațiu de lucru.",
+      "inTrash": "Această sarcină este în coșul de gunoi. Restaurarea o pune înapoi pe tablă."
+    }
+  },
+  "trash": {
+    "title": "Coș de gunoi",
+    "subtitle": "Proiecte și sarcini șterse, recuperabile până la expirarea perioadei de păstrare.",
+    "tabsAria": "Secțiuni din coșul de gunoi",
+    "tabs": {
+      "tasks": "Sarcini",
+      "projects": "Proiecte"
     }
   },
   "workspaceHome": {

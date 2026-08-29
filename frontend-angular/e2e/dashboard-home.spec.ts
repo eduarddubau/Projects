@@ -29,7 +29,7 @@ test.describe('Workspace home', () => {
 
     // From elsewhere in the app, the brand logo returns home.
     await page.locator('.ws-nav a', { hasText: 'Trash' }).click();
-    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/trash$/);
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/trash\/tasks$/);
     await page.locator('a.brand').click();
     await page.waitForURL(workspaceHome);
   });

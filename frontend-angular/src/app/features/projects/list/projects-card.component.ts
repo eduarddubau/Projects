@@ -30,6 +30,7 @@ import {
   ProjectFormResult,
 } from '../project-form-dialog/project-form-dialog.component';
 import { TableState } from '@shared/table/table-state';
+import { ClickableRowDirective } from '@shared/clickable-row/clickable-row.directive';
 
 /**
  * The workspace's projects, as a card. Takes its workspace from the caller rather than
@@ -39,6 +40,7 @@ import { TableState } from '@shared/table/table-state';
   selector: 'app-projects-card',
   templateUrl: './projects-card.component.html',
   imports: [
+    ClickableRowDirective,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,

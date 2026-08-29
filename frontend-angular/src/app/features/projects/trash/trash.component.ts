@@ -14,14 +14,14 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectService } from '@core/services/project.service';
 import { TableState } from '@shared/table/table-state';
-import { AuroraComponent } from '@shared/aurora/aurora.component';
-import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
+import { ClickableRowDirective } from '@shared/clickable-row/clickable-row.directive';
 import { Project } from '@core/models/project';
 
 @Component({
   selector: 'app-trash',
   templateUrl: './trash.component.html',
   imports: [
+    ClickableRowDirective,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -30,8 +30,6 @@ import { Project } from '@core/models/project';
     MatProgressSpinnerModule,
     MatIconModule,
     DatePipe,
-    AuroraComponent,
-    WorkspaceScopeComponent,
     TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,

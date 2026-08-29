@@ -286,8 +286,6 @@
       "selectPage": "Select page"
     },
     "trash": {
-      "title": "Trash",
-      "subtitle": "Deleted projects can be restored from here until their retention window runs out.",
       "searchLabel": "Search deleted projects",
       "searchPlaceholder": "Search by name...",
       "loading": "Loading trash...",
@@ -654,10 +652,6 @@
       "createdBy": "Created by {{name}} on {{date}}",
       "deletedBy": "Deleted by {{name}} on {{date}}"
     },
-    "confirmDelete": {
-      "title": "Delete task?",
-      "message": "This will delete \"{{title}}\". You can restore it from Recently deleted."
-    },
     "errors": {
       "assigneeNotMember": "That person is not a member of this workspace."
     },
@@ -718,7 +712,23 @@
       "deletedOn": "deleted {{date}}",
       "restoreTask": "Restore {{title}}",
       "restored": "Task restored.",
-      "restoreFailed": "Couldn't restore the task."
+      "restoreFailed": "Couldn't restore the task.",
+      "project": "Project",
+      "searchLabel": "Search deleted tasks",
+      "searchPlaceholder": "Search by title or project...",
+      "tableAria": "Deleted tasks",
+      "noSearchResults": "No deleted tasks match your search.",
+      "workspaceEmpty": "Nothing has been deleted in this workspace recently.",
+      "inTrash": "This task is in the trash. Restoring puts it back on its board."
+    }
+  },
+  "trash": {
+    "title": "Trash",
+    "subtitle": "Deleted projects and tasks, recoverable until their retention window runs out.",
+    "tabsAria": "Trash sections",
+    "tabs": {
+      "tasks": "Tasks",
+      "projects": "Projects"
     }
   },
   "workspaceHome": {

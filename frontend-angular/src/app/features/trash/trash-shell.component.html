@@ -1,0 +1,37 @@
+<app-aurora></app-aurora>
+
+<div class="page-container" *transloco="let t; prefix: 'trash'">
+  <div class="page-header-stack">
+    <app-workspace-scope />
+    <h1 class="page-title">{{ t('title') }}</h1>
+    <p class="page-subtitle">{{ t('subtitle') }}</p>
+  </div>
+
+  <nav mat-tab-nav-bar [tabPanel]="panel" [attr.aria-label]="t('tabsAria')" class="trash-tabs">
+    <a
+      mat-tab-link
+      routerLink="tasks"
+      routerLinkActive
+      #tasksLink="routerLinkActive"
+      [active]="tasksLink.isActive"
+    >
+      {{ t('tabs.tasks') }}
+    </a>
+
+    @if (isOwner()) {
+      <a
+        mat-tab-link
+        routerLink="projects"
+        routerLinkActive
+        #projectsLink="routerLinkActive"
+        [active]="projectsLink.isActive"
+      >
+        {{ t('tabs.projects') }}
+      </a>
+    }
+  </nav>
+
+  <mat-tab-nav-panel #panel>
+    <router-outlet />
+  </mat-tab-nav-panel>
+</div>

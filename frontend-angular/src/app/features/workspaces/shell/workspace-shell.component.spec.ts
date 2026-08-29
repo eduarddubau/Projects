@@ -78,12 +78,18 @@ describe('WorkspaceShellComponent', () => {
     ]);
   });
 
-  // Trash goes with them: restoring a project is owner-only, so a member was being
-  // shown a page on which every button refused.
-  it('offers settings and trash only to an owner', () => {
+  // Settings only. Trash stayed behind when the task trash moved in: a member deletes tasks
+  // and must be able to get them back, and the page's Projects tab is guarded on its own.
+  it('offers settings only to an owner, and trash to everyone', () => {
     setup(workspace('w1', { myRole: 'Member' }));
 
-    expect(navHrefs()).toEqual(['/w/w1', '/w/w1/projects', '/w/w1/tasks', '/w/w1/members']);
+    expect(navHrefs()).toEqual([
+      '/w/w1',
+      '/w/w1/projects',
+      '/w/w1/tasks',
+      '/w/w1/members',
+      '/w/w1/trash',
+    ]);
   });
 
   // A personal workspace has no settings to manage, but its trash is still yours.

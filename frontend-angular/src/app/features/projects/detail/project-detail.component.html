@@ -22,7 +22,9 @@
       <a
         class="back-link"
         [routerLink]="
-          p.isDeleted ? ['/w', workspaceId(), 'trash'] : ['/w', workspaceId(), 'projects']
+          p.isDeleted
+            ? ['/w', workspaceId(), 'trash', 'projects']
+            : ['/w', workspaceId(), 'projects']
         "
         [attr.aria-label]="
           p.isDeleted ? t('projects.detail.backToTrash') : t('projects.detail.backToProjects')
@@ -105,31 +107,30 @@
       <app-project-trashed-panel [project]="p" [canRestore]="isOwner()" (restore)="restore(p)" />
     } @else {
       <div class="view-bar">
-        <mat-button-toggle-group
-          [value]="view()"
-          (change)="setView($event.value)"
-          [attr.aria-label]="t('tasks.view.switcher')"
-        >
-          <mat-button-toggle value="board">
-            <mat-icon>view_kanban</mat-icon>
-            {{ t('tasks.view.board') }}
-          </mat-button-toggle>
-          <mat-button-toggle value="list">
-            <mat-icon>view_list</mat-icon>
-            {{ t('tasks.view.list') }}
-          </mat-button-toggle>
-        </mat-button-toggle-group>
+        <div class="view-controls">
+          <mat-button-toggle-group
+            [value]="view()"
+            (change)="setView($event.value)"
+            [attr.aria-label]="t('tasks.view.switcher')"
+          >
+            <mat-button-toggle value="board">
+              <mat-icon>view_kanban</mat-icon>
+              {{ t('tasks.view.board') }}
+            </mat-button-toggle>
+            <mat-button-toggle value="list">
+              <mat-icon>view_list</mat-icon>
+              {{ t('tasks.view.list') }}
+            </mat-button-toggle>
+          </mat-button-toggle-group>
 
-        <!-- With the board's controls, not "Project actions": what it holds is the board's. -->
-        <button
-          mat-icon-button
-          class="task-trash-button"
-          (click)="openTaskTrash()"
-          [matTooltip]="t('tasks.trash.title')"
-          [attr.aria-label]="t('tasks.trash.title')"
-        >
-          <mat-icon>restore_from_trash</mat-icon>
-        </button>
+          <!-- With the board's controls, not "Project actions": what it holds is the board's.
+               Labelled rather than a bare icon — as an unnamed glyph floating mid-bar, the
+               whole recovery feature read as missing. -->
+          <button mat-button class="task-trash-button" (click)="openTaskTrash()">
+            <mat-icon>restore_from_trash</mat-icon>
+            {{ t('tasks.trash.title') }}
+          </button>
+        </div>
 
         <button mat-flat-button (click)="newTask()">
           <mat-icon>add</mat-icon>

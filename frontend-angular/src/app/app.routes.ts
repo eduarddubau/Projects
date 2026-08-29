@@ -74,9 +74,28 @@ export const routes: Routes = [
         // the sidebar unsolvable — no routerLinkActive setting could light Projects on a
         // project's page while leaving it dark here.
         path: 'trash',
-        canActivate: [workspaceOwnerGuard],
         loadComponent: () =>
-          import('./features/projects/trash/trash.component').then((m) => m.TrashComponent),
+          import('./features/trash/trash-shell.component').then((m) => m.TrashShellComponent),
+        children: [
+          // Tasks, because it is the tab both roles have — a role-dependent redirect would be
+          // a second copy of the rule below, free to drift from it.
+          { path: '', pathMatch: 'full', redirectTo: 'tasks' },
+          {
+            path: 'tasks',
+            loadComponent: () =>
+              import('./features/tasks/trash/task-trash.component').then(
+                (m) => m.TaskTrashComponent,
+              ),
+          },
+          {
+            // The guard moved here from the page: a member now reaches /trash legitimately for
+            // the task tab, and only projects are owner-only.
+            path: 'projects',
+            canActivate: [workspaceOwnerGuard],
+            loadComponent: () =>
+              import('./features/projects/trash/trash.component').then((m) => m.TrashComponent),
+          },
+        ],
       },
       {
         path: 'projects/:id',

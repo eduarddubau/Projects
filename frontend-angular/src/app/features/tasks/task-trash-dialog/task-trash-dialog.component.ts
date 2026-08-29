@@ -3,10 +3,10 @@ import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { DatePipe } from '@angular/common';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { TaskService } from '@core/services/task.service';
+import { TaskDeletionService } from '@core/services/task-deletion.service';
 import { LanguageService } from '@core/services/language.service';
 import { Task } from '@core/models/task';
 
@@ -37,8 +37,7 @@ export interface TaskTrashDialogData {
 export class TaskTrashDialogComponent {
   private data = inject<TaskTrashDialogData>(MAT_DIALOG_DATA);
   private taskService = inject(TaskService);
-  private snackBar = inject(MatSnackBar);
-  private transloco = inject(TranslocoService);
+  private taskDeletion = inject(TaskDeletionService);
   private language = inject(LanguageService);
 
   dateLocale = this.language.dateLocale;
@@ -57,25 +56,9 @@ export class TaskTrashDialogComponent {
     if (this.restoring()) return;
     this.restoring.set(true);
 
-    this.taskService.restoreTask(task.id).subscribe({
-      next: () => {
-        this.restoredAny.set(true);
-        this.deleted.update((list) => list.filter((t) => t.id !== task.id));
-        this.restoring.set(false);
-        this.notify('tasks.trash.restored');
-      },
-      error: () => {
-        this.restoring.set(false);
-        this.notify('tasks.trash.restoreFailed', 5000);
-      },
+    this.taskDeletion.restoreWithFeedback(task, this.deleted).subscribe((restored) => {
+      if (restored) this.restoredAny.set(true);
+      this.restoring.set(false);
     });
-  }
-
-  private notify(key: string, duration = 3000): void {
-    this.snackBar.open(
-      this.transloco.translate(key),
-      this.transloco.translate('common.actions.close'),
-      { duration },
-    );
   }
 }

@@ -15,7 +15,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
@@ -59,7 +58,6 @@ export type TaskView = 'board' | 'list';
     MatIconModule,
     MatProgressSpinnerModule,
     MatMenuModule,
-    MatTooltipModule,
     DatePipe,
     AuroraComponent,
     WorkspaceScopeComponent,

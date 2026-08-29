@@ -12,7 +12,9 @@
 
     <div class="toolbar-actions">
       @if (isOwner()) {
-        <button mat-stroked-button [routerLink]="['/w', workspaceId(), 'trash']">
+        <!-- Straight to the projects tab: from here "Trash" means deleted projects, not the
+             task trash the shell opens on by default. -->
+        <button mat-stroked-button [routerLink]="['/w', workspaceId(), 'trash', 'projects']">
           <mat-icon>delete_outline</mat-icon>
           {{ t('projects.list.trash') }}
         </button>
@@ -79,6 +81,7 @@
         mat-row
         *matRowDef="let row; columns: displayedColumns"
         class="clickable-row"
+        appClickableRow
         (click)="openDetail(row)"
       ></tr>
     </table>

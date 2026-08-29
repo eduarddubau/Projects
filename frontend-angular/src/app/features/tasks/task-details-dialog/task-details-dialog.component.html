@@ -1,0 +1,65 @@
+<ng-container *transloco="let t">
+  <h2 mat-dialog-title>{{ task.title }}</h2>
+
+  <mat-dialog-content>
+    <div class="deleted-banner" role="status">
+      <mat-icon>delete_outline</mat-icon>
+      <p>{{ t('tasks.trash.inTrash') }}</p>
+    </div>
+
+    <!-- Title is not repeated: the dialog heading above is the title field. -->
+    <dl class="task-fields">
+      <div>
+        <dt>{{ t('tasks.trash.project') }}</dt>
+        <dd>{{ task.projectName }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('tasks.form.description') }}</dt>
+        <dd>{{ task.description || '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('tasks.form.status') }}</dt>
+        <dd>{{ t('tasks.status.' + task.status) }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('tasks.form.assignee') }}</dt>
+        <dd>{{ task.assigneeDisplayName || t('tasks.unassigned') }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('tasks.form.startDate') }}</dt>
+        <dd>
+          {{ task.startDate ? (task.startDate | date: 'mediumDate' : '' : dateLocale()) : '—' }}
+        </dd>
+      </div>
+      <div>
+        <dt>{{ t('tasks.form.dueDate') }}</dt>
+        <dd>{{ task.dueDate ? (task.dueDate | date: 'mediumDate' : '' : dateLocale()) : '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('projects.table.createdBy') }}</dt>
+        <dd>{{ task.createdByDisplayName || '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('projects.table.createdAt') }}</dt>
+        <dd>{{ task.createdAt | date: 'medium' : '' : dateLocale() }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('projects.detail.deletedByField') }}</dt>
+        <dd>{{ task.updatedByDisplayName || '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ t('projects.table.deletedAt') }}</dt>
+        <dd>{{ task.deletedAt ? (task.deletedAt | date: 'medium' : '' : dateLocale()) : '—' }}</dd>
+      </div>
+    </dl>
+  </mat-dialog-content>
+
+  <!-- Restore is the only action a trashed task offers, the way a trashed project is. -->
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">{{ t('common.actions.close') }}</button>
+    <button mat-flat-button [mat-dialog-close]="true">
+      <mat-icon>restore</mat-icon>
+      {{ t('common.actions.restore') }}
+    </button>
+  </mat-dialog-actions>
+</ng-container>

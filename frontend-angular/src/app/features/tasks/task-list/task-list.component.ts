@@ -31,9 +31,10 @@ import { LanguageService } from '@core/services/language.service';
 import { TodayService } from '@core/services/today.service';
 import { TaskRow, taskRows, taskRowsById } from '@core/utils/task-row';
 import { TaskService } from '@core/services/task.service';
+import { TaskDeletionService } from '@core/services/task-deletion.service';
 import { isOverdue } from '@core/utils/iso-date';
 import { TableState } from '@shared/table/table-state';
-import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
+import { ClickableRowDirective } from '@shared/clickable-row/clickable-row.directive';
 import { TaskFormDialogComponent } from '../task-form-dialog/task-form-dialog.component';
 
 @Component({
@@ -41,6 +42,7 @@ import { TaskFormDialogComponent } from '../task-form-dialog/task-form-dialog.co
   templateUrl: './task-list.component.html',
   styleUrl: './task-list.component.scss',
   imports: [
+    ClickableRowDirective,
     DatePipe,
     MatTableModule,
     MatSortModule,
@@ -55,6 +57,7 @@ import { TaskFormDialogComponent } from '../task-form-dialog/task-form-dialog.co
 })
 export class TaskListComponent {
   private taskService = inject(TaskService);
+  private taskDeletion = inject(TaskDeletionService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
   private cdr = inject(ChangeDetectorRef);
@@ -170,7 +173,7 @@ export class TaskListComponent {
         if (!result) return;
 
         if (result.action === 'delete') {
-          this.confirmDelete(task);
+          this.deleteTask(task);
           return;
         }
 
@@ -189,31 +192,12 @@ export class TaskListComponent {
       });
   }
 
-  confirmDelete(task: Task): void {
-    this.dialog
-      .open(ConfirmDialogComponent, {
-        width: '400px',
-        data: {
-          title: this.transloco.translate('tasks.confirmDelete.title'),
-          message: this.transloco.translate('tasks.confirmDelete.message', { title: task.title }),
-          confirmLabel: this.transloco.translate('common.actions.delete'),
-          warn: true,
-        },
-      })
-      .afterClosed()
+  /** No confirmation: it is reversible, and the snackbar carries the Undo. */
+  deleteTask(task: Task): void {
+    this.taskDeletion
+      .deleteWithUndo(task, this.tasks())
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((confirmed: boolean | undefined) => {
-        if (!confirmed) return;
-
-        this.taskService.deleteTask(task.id).subscribe({
-          next: () => {
-            this.tasks().update((list) => list.filter((t) => t.id !== task.id));
-            this.cdr.markForCheck();
-            this.notify('tasks.notifications.deleted');
-          },
-          error: () => this.notify('tasks.notifications.deleteFailed', 5000),
-        });
-      });
+      .subscribe(() => this.cdr.markForCheck());
   }
 
   onSort(sort: Sort): void {

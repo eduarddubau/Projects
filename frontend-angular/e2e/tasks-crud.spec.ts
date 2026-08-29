@@ -42,14 +42,9 @@ test.describe('Tasks', () => {
     await expect(page.getByText('Task updated.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updated })).toBeVisible();
 
-    // Deleting is inside the editor now, so it opens the form and asks from there.
+    // Deleting is inside the editor, and it no longer asks: the snackbar carries the Undo.
     await page.locator('tr', { hasText: updated }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
-    await page
-      .getByRole('dialog')
-      .filter({ hasText: 'Delete task?' })
-      .getByRole('button', { name: 'Delete' })
-      .click();
     await expect(page.getByText('Task deleted.')).toBeVisible();
     await expect(page.locator('tr', { hasText: updated })).toHaveCount(0);
   });
@@ -135,9 +130,9 @@ test.describe('Tasks', () => {
       page.locator('section', { hasText: 'Done' }).first().locator('article', { hasText: title }),
     ).toBeVisible();
 
+    // The card menu deletes outright now, like the editor does: the Undo is on the snackbar.
     await page.getByRole('button', { name: `Actions for ${title}` }).click();
     await page.getByRole('menuitem', { name: 'Delete task' }).click();
-    await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByText('Task deleted.')).toBeVisible();
   });
 

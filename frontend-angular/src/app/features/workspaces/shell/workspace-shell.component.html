@@ -60,17 +60,15 @@
           <span matListItemTitle>{{ t('settings') }}</span>
         </a>
       }
-      @if (isOwner()) {
-        <a
-          mat-list-item
-          [routerLink]="['/w', workspaceId(), 'trash']"
-          routerLinkActive="active"
-          (click)="closeIfHandset(drawer)"
-        >
-          <mat-icon matListItemIcon>delete_outline</mat-icon>
-          <span matListItemTitle>{{ t('trash') }}</span>
-        </a>
-      }
+      <a
+        mat-list-item
+        [routerLink]="['/w', workspaceId(), 'trash']"
+        routerLinkActive="active"
+        (click)="closeIfHandset(drawer)"
+      >
+        <mat-icon matListItemIcon>delete_outline</mat-icon>
+        <span matListItemTitle>{{ t('trash') }}</span>
+      </a>
     </mat-nav-list>
   </mat-sidenav>
 

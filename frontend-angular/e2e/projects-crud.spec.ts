@@ -74,19 +74,22 @@ test.describe('Projects CRUD', () => {
     await expect(page.locator('tr', { hasText: updatedName })).toBeVisible();
   });
 
-  // Restoring is owner-only, so the page is too. dev2 owns its personal workspace —
-  // where the test above uses Trash freely — but is a plain member of Acme Team.
-  test('hides Trash from a plain member, by link and by URL', async ({ page }) => {
+  // The trash stopped being owner-only when the task trash moved into it: a member deletes
+  // tasks and has to be able to get them back. Only the Projects tab is still owner-gated.
+  // dev2 owns its personal workspace but is a plain member of Acme Team.
+  test('gives a plain member the task trash but not the projects one', async ({ page }) => {
     await page.locator('.ws-trigger').click();
     await page.locator('.ws-item', { hasText: 'Acme Team' }).click();
     await expect(page.locator('.ws-trigger')).toContainText('Acme Team');
 
-    await expect(page.locator('.ws-nav a', { hasText: 'Trash' })).toHaveCount(0);
+    await page.locator('.ws-nav a', { hasText: 'Trash' }).click();
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]{36}\/trash\/tasks$/);
+    await expect(page.locator('.trash-tabs a', { hasText: 'Projects' })).toHaveCount(0);
 
-    // Typing the URL lands on the workspace home instead. The pattern is anchored so
-    // it cannot pass against the /trash URL the goto starts from.
+    // Hiding the tab is presentation, not authorization, so the URL is refused too. The
+    // pattern is anchored so it cannot pass against the /trash URL the goto starts from.
     const workspace = /\/w\/[0-9a-f-]{36}/.exec(page.url())![0];
-    await page.goto(`${workspace}/trash`);
+    await page.goto(`${workspace}/trash/projects`);
     await expect(page).toHaveURL(new RegExp(`${workspace}$`));
   });
 });

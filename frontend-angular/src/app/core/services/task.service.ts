@@ -83,6 +83,18 @@ export class TaskService {
     );
   }
 
+  // Every deleted task across the workspace's live projects, newest first. Rows carry their
+  // project name, which is the whole reason this is a different shape from the per-project trash.
+  workspaceDeletedTasks(workspaceId: Signal<string | null | undefined>) {
+    return httpResource<WorkspaceTask[]>(
+      () => {
+        const id = workspaceId();
+        return id ? `${this.apiUrl}/workspaces/${id}/tasks/trash` : undefined;
+      },
+      { defaultValue: [] },
+    );
+  }
+
   restoreTask(id: string): Observable<Task> {
     return this.http.post<Task>(`${this.apiUrl}/tasks/${id}/restore`, {});
   }
