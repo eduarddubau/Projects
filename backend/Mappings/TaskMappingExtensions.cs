@@ -71,10 +71,7 @@ public static class TaskMappingExtensions
         });
     }
 
-    // Every user navigation below tests IsDeleted itself rather than leaning on the User
-    // query filter: the task trash reads through IgnoreQueryFilters(), which is query-wide
-    // in EF and switches that filter off too. Without the test, a soft-deleted person's
-    // real name surfaces there while every other read path returns null for them.
+    // Each user navigation below tests IsDeleted itself — see UserMappingExtensions.GetDisplayName.
     public static IQueryable<TaskResponseDto> MapToDto(this IQueryable<TaskItem> query)
     {
         return query.Select(t => new TaskResponseDto

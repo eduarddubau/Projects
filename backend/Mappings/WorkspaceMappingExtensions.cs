@@ -5,6 +5,7 @@ namespace Backend.Mappings;
 
 public static class WorkspaceMappingExtensions
 {
+    // Each user navigation below tests IsDeleted itself — see UserMappingExtensions.GetDisplayName.
     public static IQueryable<WorkspaceResponseDto> MapToDto(
         this IQueryable<Workspace> query,
         Guid? userId
@@ -26,11 +27,15 @@ public static class WorkspaceMappingExtensions
             CreatedAt = w.CreatedAt,
             CreatedBy = w.CreatedBy,
             CreatedByDisplayName =
-                w.Creator == null ? string.Empty : w.Creator.FirstName + " " + w.Creator.LastName,
+                w.Creator == null || w.Creator.IsDeleted
+                    ? string.Empty
+                    : w.Creator.FirstName + " " + w.Creator.LastName,
             UpdatedAt = w.UpdatedAt,
             UpdatedBy = w.UpdatedBy,
             UpdatedByDisplayName =
-                w.Updater == null ? string.Empty : w.Updater.FirstName + " " + w.Updater.LastName,
+                w.Updater == null || w.Updater.IsDeleted
+                    ? string.Empty
+                    : w.Updater.FirstName + " " + w.Updater.LastName,
         });
     }
 
@@ -51,11 +56,15 @@ public static class WorkspaceMappingExtensions
             CreatedAt = w.CreatedAt,
             CreatedBy = w.CreatedBy,
             CreatedByDisplayName =
-                w.Creator == null ? string.Empty : w.Creator.FirstName + " " + w.Creator.LastName,
+                w.Creator == null || w.Creator.IsDeleted
+                    ? string.Empty
+                    : w.Creator.FirstName + " " + w.Creator.LastName,
             UpdatedAt = w.UpdatedAt,
             UpdatedBy = w.UpdatedBy,
             UpdatedByDisplayName =
-                w.Updater == null ? string.Empty : w.Updater.FirstName + " " + w.Updater.LastName,
+                w.Updater == null || w.Updater.IsDeleted
+                    ? string.Empty
+                    : w.Updater.FirstName + " " + w.Updater.LastName,
         });
     }
 
@@ -68,7 +77,9 @@ public static class WorkspaceMappingExtensions
             WorkspaceId = m.WorkspaceId,
             UserId = m.UserId,
             UserDisplayName =
-                m.User == null ? string.Empty : m.User.FirstName + " " + m.User.LastName,
+                m.User == null || m.User.IsDeleted
+                    ? string.Empty
+                    : m.User.FirstName + " " + m.User.LastName,
             Role = m.Role,
             JoinedAt = m.JoinedAt,
         });
@@ -85,7 +96,9 @@ public static class WorkspaceMappingExtensions
             CreatedAt = i.CreatedAt,
             ExpiresAt = i.ExpiresAt,
             InvitedByDisplayName =
-                i.Inviter == null ? string.Empty : i.Inviter.FirstName + " " + i.Inviter.LastName,
+                i.Inviter == null || i.Inviter.IsDeleted
+                    ? string.Empty
+                    : i.Inviter.FirstName + " " + i.Inviter.LastName,
         });
     }
 

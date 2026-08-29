@@ -6,13 +6,14 @@ namespace Backend.Mappings;
 public static class UserMappingExtensions
 {
     /// <summary>
-    /// Kept deliberately trivial so it stays equivalent to the inline form the IQueryable
-    /// projections below must use — EF can't translate a method call into SQL, so the rule
-    /// necessarily exists twice. There is no blank-name fallback because FirstName and
-    /// LastName are required, validated NotEmpty, and NOT NULL in the database.
+    /// Null for nobody, and for anyone soft-deleted. The IsDeleted test is not redundant with
+    /// the User query filter: reads that pass IgnoreQueryFilters() — every trash in the app —
+    /// switch that filter off query-wide, and would otherwise print a deleted person's real
+    /// name during the window between soft-delete and GDPR anonymisation. Every IQueryable
+    /// projection repeats this inline, because EF cannot translate a method call into SQL.
     /// </summary>
     public static string? GetDisplayName(this User? user) =>
-        user is null ? null : user.FirstName + " " + user.LastName;
+        user is null || user.IsDeleted ? null : user.FirstName + " " + user.LastName;
 
     public static UserResponseDto MapToDto(this User user) =>
         new()
@@ -46,11 +47,15 @@ public static class UserMappingExtensions
             CreatedAt = u.CreatedAt,
             CreatedBy = u.CreatedBy,
             CreatedByDisplayName =
-                u.Creator == null ? string.Empty : u.Creator.FirstName + " " + u.Creator.LastName,
+                u.Creator == null || u.Creator.IsDeleted
+                    ? string.Empty
+                    : u.Creator.FirstName + " " + u.Creator.LastName,
             UpdatedAt = u.UpdatedAt,
             UpdatedBy = u.UpdatedBy,
             UpdatedByDisplayName =
-                u.Updater == null ? string.Empty : u.Updater.FirstName + " " + u.Updater.LastName,
+                u.Updater == null || u.Updater.IsDeleted
+                    ? string.Empty
+                    : u.Updater.FirstName + " " + u.Updater.LastName,
         });
     }
 

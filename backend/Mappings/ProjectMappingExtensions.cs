@@ -23,6 +23,7 @@ public static class ProjectMappingExtensions
             UpdatedByDisplayName = project.Updater.GetDisplayName() ?? string.Empty,
         };
 
+    // Each user navigation below tests IsDeleted itself — see UserMappingExtensions.GetDisplayName.
     public static IQueryable<ProjectResponseDto> MapToDto(this IQueryable<Project> query)
     {
         return query.Select(p => new ProjectResponseDto
@@ -37,11 +38,15 @@ public static class ProjectMappingExtensions
             CreatedAt = p.CreatedAt,
             CreatedBy = p.CreatedBy,
             CreatedByDisplayName =
-                p.Creator == null ? string.Empty : p.Creator.FirstName + " " + p.Creator.LastName,
+                p.Creator == null || p.Creator.IsDeleted
+                    ? string.Empty
+                    : p.Creator.FirstName + " " + p.Creator.LastName,
             UpdatedAt = p.UpdatedAt,
             UpdatedBy = p.UpdatedBy,
             UpdatedByDisplayName =
-                p.Updater == null ? string.Empty : p.Updater.FirstName + " " + p.Updater.LastName,
+                p.Updater == null || p.Updater.IsDeleted
+                    ? string.Empty
+                    : p.Updater.FirstName + " " + p.Updater.LastName,
         });
     }
 }
