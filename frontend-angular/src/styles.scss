@@ -475,6 +475,12 @@ table.mat-mdc-table {
 
 .clickable-row {
   cursor: pointer;
+
+  // The rows take focus now (appClickableRow), so the focus has to be visible.
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary);
+    outline-offset: -2px;
+  }
 }
 
 // Destructive buttons (M3 has no "danger" role). --mat-button-*, not --mdc-*:
