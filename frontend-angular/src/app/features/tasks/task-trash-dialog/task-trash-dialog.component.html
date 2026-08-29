@@ -3,7 +3,9 @@
   <h2 mat-dialog-title>{{ t('tasks.trash.title') }}</h2>
 
   <mat-dialog-content>
-    <p class="trash-hint">{{ t('tasks.trash.hint') }}</p>
+    @if (trashWindow(); as w) {
+      <p class="trash-hint">{{ t('tasks.trash.hint.' + w.plural, { days: w.days }) }}</p>
+    }
 
     @if (deleted.isLoading()) {
       <div class="state-container">
@@ -37,6 +39,7 @@
                   }}
                 }
               </span>
+              <app-trash-expiry [deletedAt]="task.deletedAt" />
             </div>
 
             <button

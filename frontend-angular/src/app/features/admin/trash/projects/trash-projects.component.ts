@@ -22,9 +22,11 @@ import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
+import { AppConfigService } from '@core/services/app-config.service';
 import { ProjectService } from '@core/services/project.service';
 import { Project } from '@core/models/project';
 import { TableState } from '@shared/table/table-state';
+import { TrashExpiryComponent } from '@shared/trash-expiry/trash-expiry.component';
 import { TableSelection } from '@shared/table/table-selection';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { confirmPhraseFor } from '@shared/confirm-dialog/confirm-phrase';
@@ -47,6 +49,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
     MatProgressSpinnerModule,
     MatIconModule,
     MatButtonModule,
+    TrashExpiryComponent,
     DatePipe,
     TranslocoDirective,
   ],
@@ -81,10 +84,12 @@ export class TrashProjectsComponent {
 
   selection = new TableSelection(this.table.matching, this.table.pageRows);
 
+  trashWindow = inject(AppConfigService).trashWindow;
+
   ageFilter = signal<AgeFilter>('all');
   displayedColumns = ['select', 'index', 'name', 'createdBy', 'deletedAt', 'actions'];
 
-  /** Purge is refused server-side inside the retention window, so offer it only when every pick qualifies. */
+  /** The server flags a row purgeable once it is past the window; a mixed selection has no one action. */
   canPurgeSelected = computed(() => {
     const selected = this.selection.selected();
     return selected.length > 0 && selected.every((p) => p.isPurgeable);

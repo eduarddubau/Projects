@@ -19,6 +19,7 @@ import { LanguageService } from '@core/services/language.service';
 import { WorkspaceTask } from '@core/models/task';
 import { TableState } from '@shared/table/table-state';
 import { ClickableRowDirective } from '@shared/clickable-row/clickable-row.directive';
+import { TrashExpiryComponent } from '@shared/trash-expiry/trash-expiry.component';
 import { TaskDetailsDialogComponent } from '../task-details-dialog/task-details-dialog.component';
 
 /**
@@ -33,6 +34,7 @@ import { TaskDetailsDialogComponent } from '../task-details-dialog/task-details-
   templateUrl: './task-trash.component.html',
   imports: [
     ClickableRowDirective,
+    TrashExpiryComponent,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -79,7 +81,7 @@ export class TaskTrashComponent {
     },
   });
 
-  displayedColumns = ['index', 'title', 'projectName', 'status', 'deletedAt'];
+  displayedColumns = ['index', 'title', 'projectName', 'status', 'deletedAt', 'expires'];
 
   openDetail(task: WorkspaceTask): void {
     this.dialog

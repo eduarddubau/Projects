@@ -21,7 +21,7 @@ public static partial class MigrationExtensions
             var context = services.GetRequiredService<AppDbContext>();
             var userManager = services.GetRequiredService<UserManager<User>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-            var retentionOptions = services.GetRequiredService<IOptions<RetentionOptions>>();
+            var trashWindow = services.GetRequiredService<TrashWindow>();
             var adminOptions = services.GetRequiredService<IOptions<AdminSeedOptions>>();
             var normalizer = services.GetRequiredService<ILookupNormalizer>();
             var workspaceService = services.GetRequiredService<IWorkspaceService>();
@@ -34,7 +34,7 @@ public static partial class MigrationExtensions
                 roleManager,
                 context,
                 logger,
-                retentionOptions.Value,
+                trashWindow,
                 adminOptions.Value,
                 normalizer,
                 workspaceService,

@@ -6,7 +6,6 @@ using Backend.Models;
 using Backend.Services;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Backend.Tests.Services;
@@ -39,7 +38,7 @@ public sealed class TaskServiceTests : IDisposable
         _service = new TaskService(
             _context,
             _currentUser.Object,
-            Options.Create(new RetentionOptions { TrashWindowDays = TrashWindowDays })
+            new TrashWindow { Days = TrashWindowDays }
         );
 
         _shared = AddWorkspace(
@@ -480,9 +479,9 @@ public sealed class TaskServiceTests : IDisposable
 
         Assert.Equal(
             WorkspaceRole.Member,
-            _context.WorkspaceMembers.Single(m =>
-                m.WorkspaceId == _shared.Id && m.UserId == _userId
-            ).Role
+            _context
+                .WorkspaceMembers.Single(m => m.WorkspaceId == _shared.Id && m.UserId == _userId)
+                .Role
         );
         Assert.Equal(["Mine"], result!.Select(t => t.Title));
     }

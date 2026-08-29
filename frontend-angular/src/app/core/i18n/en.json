@@ -265,7 +265,9 @@
       "inTrashMember": "A workspace owner can restore it.",
       "deletedBy": "Deleted by {{name}} on {{date}}",
       "workspaceField": "Workspace",
-      "deletedByField": "Deleted by"
+      "deletedByField": "Deleted by",
+      "restorableUntilField": "Restorable until",
+      "inTrashExpired": "Its recovery window has closed, so it can no longer be restored here. An admin can still bring it back from the platform trash."
     },
     "form": {
       "editTitle": "Edit Project",
@@ -310,7 +312,12 @@
     },
     "confirmDelete": {
       "title": "Delete Project",
-      "message": "Are you sure you want to delete \"{{name}}\"? You can restore it from the trash."
+      "message": "Are you sure you want to delete \"{{name}}\"?",
+      "restoreWindow": {
+        "one": "You can restore it from the trash for {{days}} day.",
+        "few": "You can restore it from the trash for {{days}} days.",
+        "other": "You can restore it from the trash for {{days}} days."
+      }
     },
     "serverErrors": {
       "duplicateName": "This workspace already has a project with this name.",
@@ -366,7 +373,11 @@
     },
     "trashProjects": {
       "title": "Deleted Projects",
-      "subtitle": "Deleted projects from every user. Anything past the retention window can be purged for good.",
+      "subtitle": {
+        "one": "Deleted projects from every user. Anything deleted more than {{days}} day ago can be purged for good.",
+        "few": "Deleted projects from every user. Anything deleted more than {{days}} days ago can be purged for good.",
+        "other": "Deleted projects from every user. Anything deleted more than {{days}} days ago can be purged for good."
+      },
       "searchPlaceholder": "Search by name...",
       "searchAria": "Search",
       "ageFilterAria": "Filter by age",
@@ -705,7 +716,11 @@
     },
     "trash": {
       "title": "Recently deleted",
-      "hint": "Tasks deleted here can be restored until their retention window runs out.",
+      "hint": {
+        "one": "Tasks deleted here can be restored for {{days}} day.",
+        "few": "Tasks deleted here can be restored for {{days}} days.",
+        "other": "Tasks deleted here can be restored for {{days}} days."
+      },
       "loading": "Loading deleted tasks…",
       "loadFailed": "Couldn't load deleted tasks.",
       "empty": "Nothing has been deleted here recently.",
@@ -724,11 +739,38 @@
   },
   "trash": {
     "title": "Trash",
-    "subtitle": "Deleted projects and tasks, recoverable until their retention window runs out.",
+    "subtitle": {
+      "one": "Deleted projects and tasks can be restored here for {{days}} day.",
+      "few": "Deleted projects and tasks can be restored here for {{days}} days.",
+      "other": "Deleted projects and tasks can be restored here for {{days}} days."
+    },
     "tabsAria": "Trash sections",
     "tabs": {
       "tasks": "Tasks",
       "projects": "Projects"
+    },
+    "expiresColumn": "Expires",
+    "expiry": {
+      "restorable": {
+        "expired": "Expired",
+        "due": "Last day to restore",
+        "tomorrow": "Expires tomorrow",
+        "inDays": {
+          "one": "Expires in {{days}} day",
+          "few": "Expires in {{days}} days",
+          "other": "Expires in {{days}} days"
+        }
+      },
+      "purgeable": {
+        "expired": "Purgeable now",
+        "due": "Purgeable today",
+        "tomorrow": "Purgeable tomorrow",
+        "inDays": {
+          "one": "Purgeable in {{days}} day",
+          "few": "Purgeable in {{days}} days",
+          "other": "Purgeable in {{days}} days"
+        }
+      }
     }
   },
   "workspaceHome": {

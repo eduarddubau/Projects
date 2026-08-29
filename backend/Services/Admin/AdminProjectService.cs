@@ -5,19 +5,18 @@ using Backend.Mappings;
 using Backend.Models;
 using Backend.Services.Admin.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace Backend.Services.Admin;
 
 public class AdminProjectService : IAdminProjectService
 {
     private readonly AppDbContext _context;
-    private readonly int _trashWindowDays;
+    private readonly TrashWindow _trashWindow;
 
-    public AdminProjectService(AppDbContext context, IOptions<RetentionOptions> retentionOptions)
+    public AdminProjectService(AppDbContext context, TrashWindow trashWindow)
     {
         _context = context;
-        _trashWindowDays = retentionOptions.Value.TrashWindowDays;
+        _trashWindow = trashWindow;
     }
 
     public async Task<int> RestoreProjectsAsync(
@@ -45,7 +44,7 @@ public class AdminProjectService : IAdminProjectService
         CancellationToken ct = default
     )
     {
-        var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
+        var cutoff = _trashWindow.Cutoff;
 
         var deleted = await _context
             .Projects.IgnoreQueryFilters()

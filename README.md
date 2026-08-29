@@ -47,8 +47,9 @@ one of those outcomes from a card menu, because a board only reachable by draggi
 people cannot use. A `?view=list` toggle swaps in a filterable, sortable table over the same data.
 
 Deleting is reversible until it isn't: projects, workspaces and users go to a **trash** they can be
-restored from, and an admin can purge past a retention window. Erasing a _user_ is a different
-operation from purging a project, and the app treats it as one.
+restored from, and an admin can purge past a retention window. Every trash states that window in
+days and counts each row down to its own expiry, rather than alluding to a policy the reader cannot
+see. Erasing a _user_ is a different operation from purging a project, and the app treats it as one.
 
 ## Quick start
 
@@ -349,11 +350,10 @@ compose has no `env_file:`, and the api service forwards exactly six variables
 read by Compose for interpolation and never reaches the container, silently. To tune the rest, edit
 `appsettings.Development.json` or add the variable to `compose.yaml`.
 
-> **Renamed 2026-08-29:** the `ProjectRetention` section is now `Retention`, because the same
-> window governs the task trash as well. `IConfiguration.Bind()` ignores a section it cannot
-> find, so anything still setting `ProjectRetention__TrashWindowDays` would silently fall back
-> to the built-in 30 days. Rather than let that pass, **startup refuses to boot** while the old
-> section is present, naming the replacement. Rename the key wherever it is set.
+> **The trash window has no default in code.** `TrashWindow` binds the `Retention` section and
+> nothing else sets the number, so setting it to zero or below **fails startup** rather than
+> quietly emptying every trash. The API publishes it at `GET /api/config`, which is how the UI can
+> say "kept for 30 days" and count each row down to its own expiry.
 
 Defaults below are `appsettings.json`. The **Development** column is what the Quick start stack
 actually runs with, since `appsettings.Development.json` overrides three of them:

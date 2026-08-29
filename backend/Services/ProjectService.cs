@@ -6,7 +6,6 @@ using Backend.Mappings;
 using Backend.Models;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
@@ -16,19 +15,19 @@ public class ProjectService : IProjectService
     private readonly AppDbContext _context;
     private readonly ICurrentUserService _currentUser;
     private readonly IWorkspaceAccessService _access;
-    private readonly int _trashWindowDays;
+    private readonly TrashWindow _trashWindow;
 
     public ProjectService(
         AppDbContext context,
         ICurrentUserService currentUser,
         IWorkspaceAccessService access,
-        IOptions<RetentionOptions> retentionOptions
+        TrashWindow trashWindow
     )
     {
         _context = context;
         _currentUser = currentUser;
         _access = access;
-        _trashWindowDays = retentionOptions.Value.TrashWindowDays;
+        _trashWindow = trashWindow;
     }
 
     // A non-member gets null, which the controller turns into 404.
@@ -57,7 +56,7 @@ public class ProjectService : IProjectService
     {
         await _access.RequireOwnerAsync(workspaceId, ct);
 
-        var cutoff = DateTime.UtcNow.AddDays(-_trashWindowDays);
+        var cutoff = _trashWindow.Cutoff;
 
         return await _context
             .Projects.IgnoreQueryFilters()
@@ -175,6 +174,12 @@ public class ProjectService : IProjectService
 
         if (project.IsDeleted)
         {
+            // The window is policy, not a display filter: a project the trash stopped listing
+            // must not stay restorable by anyone who kept its id. The admin trash restores
+            // past this, deliberately — it has no window at all.
+            if (project.DeletedAt < _trashWindow.Cutoff)
+                return null;
+
             project.IsDeleted = false;
             project.DeletedAt = null;
             await _context.SaveChangesAsync(ct);

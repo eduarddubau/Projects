@@ -10,6 +10,7 @@ import { API_URL } from '@core/tokens/app.tokens';
 import { ThemeService } from '@core/services/theme.service';
 import { Task } from '@core/models/task';
 import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
+import { provideAppConfigTesting } from '@shared/testing/app-config-testing';
 
 const apiUrl = 'http://api.test';
 const projectId = '11111111-1111-1111-1111-111111111111';
@@ -44,6 +45,7 @@ describe('TaskTrashDialogComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideTranslocoTesting(),
+        provideAppConfigTesting(),
         themeStub,
         { provide: API_URL, useValue: apiUrl },
         { provide: MAT_DIALOG_DATA, useValue: { projectId } },

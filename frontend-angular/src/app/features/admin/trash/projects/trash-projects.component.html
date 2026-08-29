@@ -1,9 +1,11 @@
 <div class="page-container" *transloco="let t">
   <div class="page-header-stack">
     <h1 class="page-title">{{ t('admin.trashProjects.title') }}</h1>
-    <p class="page-subtitle">
-      {{ t('admin.trashProjects.subtitle') }}
-    </p>
+    @if (trashWindow(); as w) {
+      <p class="page-subtitle">
+        {{ t('admin.trashProjects.subtitle.' + w.plural, { days: w.days }) }}
+      </p>
+    }
   </div>
 
   <div class="table-card">
@@ -127,6 +129,8 @@
                   <mat-icon>delete_forever</mat-icon>
                   {{ t('common.actions.purge') }}
                 </button>
+              } @else {
+                <app-trash-expiry [deletedAt]="row.deletedAt" variant="purgeable" />
               }
             </div>
           </td>

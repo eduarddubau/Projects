@@ -20,6 +20,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { TranslocoDirective, TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { serverErrorKey } from '@core/i18n/server-error-keys';
+import { AppConfigService } from '@core/services/app-config.service';
 import { ProjectService } from '@core/services/project.service';
 import { TaskService } from '@core/services/task.service';
 import { WorkspaceService } from '@core/services/workspace.service';
@@ -81,6 +82,7 @@ export class ProjectDetailComponent {
   private cdr = inject(ChangeDetectorRef);
   private destroyRef = inject(DestroyRef);
   private transloco = inject(TranslocoService);
+  private appConfig = inject(AppConfigService);
   private language = inject(LanguageService);
 
   dateLocale = this.language.dateLocale;
@@ -221,15 +223,27 @@ export class ProjectDetailComponent {
       });
   }
 
+  /** The window clause is dropped rather than guessed when the config has not arrived. */
+  private deleteMessage(name: string): string {
+    const message = this.transloco.translate('projects.confirmDelete.message', { name });
+    const window = this.appConfig.trashWindow();
+    if (!window) return message;
+
+    const clause = this.transloco.translate(
+      `projects.confirmDelete.restoreWindow.${window.plural}`,
+      { days: window.days },
+    );
+
+    return `${message} ${clause}`;
+  }
+
   confirmDelete(project: Project): void {
     this.dialog
       .open(ConfirmDialogComponent, {
         width: '400px',
         data: {
           title: this.transloco.translate('projects.confirmDelete.title'),
-          message: this.transloco.translate('projects.confirmDelete.message', {
-            name: project.name,
-          }),
+          message: this.deleteMessage(project.name),
           confirmLabel: this.transloco.translate('common.actions.delete'),
           warn: true,
         },

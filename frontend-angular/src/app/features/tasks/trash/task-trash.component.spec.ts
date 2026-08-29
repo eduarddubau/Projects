@@ -12,6 +12,7 @@ import { API_URL } from '@core/tokens/app.tokens';
 import { ThemeService } from '@core/services/theme.service';
 import { WorkspaceTask } from '@core/models/task';
 import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
+import { provideAppConfigTesting } from '@shared/testing/app-config-testing';
 
 const apiUrl = 'http://api.test';
 const workspaceId = '22222222-2222-2222-2222-222222222222';
@@ -56,6 +57,7 @@ describe('TaskTrashComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideTranslocoTesting(),
+        provideAppConfigTesting(),
         themeStub,
         { provide: API_URL, useValue: apiUrl },
         { provide: MatDialog, useValue: dialog },

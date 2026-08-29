@@ -6,6 +6,7 @@ using Backend.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Backend.Tests.Data;
@@ -17,7 +18,7 @@ public sealed class DbSeederTests : IDisposable
     private readonly Mock<RoleManager<IdentityRole<Guid>>> _roleManager;
     private readonly AppDbContext _context;
     private readonly ILogger _logger = new Mock<ILogger>().Object;
-    private readonly RetentionOptions _retention = new() { TrashWindowDays = 30 };
+    private readonly TrashWindow _trashWindow = new() { Days = 30 };
     private readonly IWorkspaceService _workspaceService;
 
     public DbSeederTests()
@@ -69,7 +70,7 @@ public sealed class DbSeederTests : IDisposable
             _roleManager.Object,
             _context,
             _logger,
-            _retention,
+            _trashWindow,
             admin,
             _normalizer,
             _workspaceService,

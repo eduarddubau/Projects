@@ -6,10 +6,16 @@
     <div>
       <p class="banner-title">{{ t('projects.detail.inTrash') }}</p>
       <p class="banner-body">
-        {{ canRestore() ? t('projects.detail.inTrashOwner') : t('projects.detail.inTrashMember') }}
+        @if (isExpired()) {
+          {{ t('projects.detail.inTrashExpired') }}
+        } @else {
+          {{
+            canRestore() ? t('projects.detail.inTrashOwner') : t('projects.detail.inTrashMember')
+          }}
+        }
       </p>
     </div>
-    @if (canRestore()) {
+    @if (canRestore() && !isExpired()) {
       <button mat-flat-button (click)="restore.emit()">
         <mat-icon>restore</mat-icon>
         {{ t('common.actions.restore') }}
@@ -43,5 +49,11 @@
       <dt>{{ t('projects.table.deletedAt') }}</dt>
       <dd>{{ p.deletedAt ? (p.deletedAt | date: 'medium' : '' : dateLocale()) : '—' }}</dd>
     </div>
+    @if (expiry(); as expiry) {
+      <div>
+        <dt>{{ t('projects.detail.restorableUntilField') }}</dt>
+        <dd>{{ expiry | date: 'mediumDate' : '' : dateLocale() }}</dd>
+      </div>
+    }
   </dl>
 </section>

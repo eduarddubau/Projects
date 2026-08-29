@@ -5,7 +5,6 @@ using Backend.Services;
 using Backend.Services.Admin;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Backend.Tests.Services.Admin;
@@ -33,10 +32,7 @@ public sealed class AdminProjectServiceTests : IDisposable
         _context = new AppDbContext(options, _currentUser.Object);
         _currentUser.Setup(c => c.UserGuid).Returns(_userId);
 
-        _service = new AdminProjectService(
-            _context,
-            Options.Create(new RetentionOptions { TrashWindowDays = TrashWindowDays })
-        );
+        _service = new AdminProjectService(_context, new TrashWindow { Days = TrashWindowDays });
 
         _personal = AddWorkspace("Personal", isPersonal: true, (_userId, WorkspaceRole.Owner));
         _othersWorkspace = AddWorkspace(

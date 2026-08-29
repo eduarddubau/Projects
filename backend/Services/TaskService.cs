@@ -6,7 +6,6 @@ using Backend.Mappings;
 using Backend.Models;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 
 namespace Backend.Services;
 
@@ -18,17 +17,17 @@ public class TaskService : ITaskService
 {
     private readonly AppDbContext _context;
     private readonly ICurrentUserService _currentUser;
-    private readonly int _trashWindowDays;
+    private readonly TrashWindow _trashWindow;
 
     public TaskService(
         AppDbContext context,
         ICurrentUserService currentUser,
-        IOptions<RetentionOptions> retentionOptions
+        TrashWindow trashWindow
     )
     {
         _context = context;
         _currentUser = currentUser;
-        _trashWindowDays = retentionOptions.Value.TrashWindowDays;
+        _trashWindow = trashWindow;
     }
 
     // Carries the Projects query filter, so tasks of a trashed project fall out of every
@@ -223,7 +222,7 @@ public class TaskService : ITaskService
         if (!await AccessibleProjects.AnyAsync(p => p.Id == projectId, ct))
             return null;
 
-        var cutoff = TrashCutoff;
+        var cutoff = _trashWindow.Cutoff;
 
         // No Include: MapToDto projects, and EF drops an Include on a projected query.
         return await _context
@@ -243,7 +242,7 @@ public class TaskService : ITaskService
         if (!await IsMemberAsync(workspaceId, ct))
             return null;
 
-        var cutoff = TrashCutoff;
+        var cutoff = _trashWindow.Cutoff;
 
         // !t.Project.IsDeleted is spelled out because IgnoreQueryFilters() is query-wide: it
         // switches the Projects filter off along with the Tasks one. Without it a trashed
@@ -286,7 +285,7 @@ public class TaskService : ITaskService
         {
             // The window is policy, not decoration: a task the trash no longer lists must not
             // stay restorable by anyone who kept its id.
-            if (task.DeletedAt < TrashCutoff)
+            if (task.DeletedAt < _trashWindow.Cutoff)
                 return null;
 
             task.IsDeleted = false;
@@ -314,8 +313,6 @@ public class TaskService : ITaskService
             ct
         );
     }
-
-    private DateTime TrashCutoff => DateTime.UtcNow.AddDays(-_trashWindowDays);
 
     /// <summary>
     /// Where a restored card lands. Its old position is usually still free — deleting

@@ -4,7 +4,9 @@
   <div class="page-header-stack">
     <app-workspace-scope />
     <h1 class="page-title">{{ t('title') }}</h1>
-    <p class="page-subtitle">{{ t('subtitle') }}</p>
+    @if (trashWindow(); as w) {
+      <p class="page-subtitle">{{ t('subtitle.' + w.plural, { days: w.days }) }}</p>
+    }
   </div>
 
   <nav mat-tab-nav-bar [tabPanel]="panel" [attr.aria-label]="t('tabsAria')" class="trash-tabs">

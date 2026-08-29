@@ -7,8 +7,10 @@ import { DatePipe } from '@angular/common';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TaskService } from '@core/services/task.service';
 import { TaskDeletionService } from '@core/services/task-deletion.service';
+import { AppConfigService } from '@core/services/app-config.service';
 import { LanguageService } from '@core/services/language.service';
 import { Task } from '@core/models/task';
+import { TrashExpiryComponent } from '@shared/trash-expiry/trash-expiry.component';
 
 export interface TaskTrashDialogData {
   projectId: string;
@@ -29,6 +31,7 @@ export interface TaskTrashDialogData {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TrashExpiryComponent,
     DatePipe,
     TranslocoDirective,
   ],
@@ -41,6 +44,7 @@ export class TaskTrashDialogComponent {
   private language = inject(LanguageService);
 
   dateLocale = this.language.dateLocale;
+  trashWindow = inject(AppConfigService).trashWindow;
 
   // The dialog opens on one project and never changes it; the signal is only the shape
   // the resource factory takes.

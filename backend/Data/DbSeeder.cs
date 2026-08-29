@@ -16,7 +16,7 @@ public static partial class DbSeeder
         RoleManager<IdentityRole<Guid>> roleManager,
         AppDbContext context,
         ILogger logger,
-        RetentionOptions retentionOptions,
+        TrashWindow trashWindow,
         AdminSeedOptions adminOptions,
         ILookupNormalizer normalizer,
         IWorkspaceService workspaceService,
@@ -37,7 +37,7 @@ public static partial class DbSeeder
         await SeedPersonalWorkspacesAsync(context, workspaceService, logger);
 
         if (isDevelopment)
-            await SeedDevelopmentContentAsync(context, logger, retentionOptions, devUsers);
+            await SeedDevelopmentContentAsync(context, logger, trashWindow, devUsers);
 
         LogSeedingCompleted(logger);
     }
@@ -125,7 +125,7 @@ public static partial class DbSeeder
     private static async Task SeedDevelopmentContentAsync(
         AppDbContext context,
         ILogger logger,
-        RetentionOptions retentionOptions,
+        TrashWindow trashWindow,
         List<User> devUsers
     )
     {
@@ -153,7 +153,7 @@ public static partial class DbSeeder
                 logger,
                 user,
                 index,
-                retentionOptions.TrashWindowDays,
+                trashWindow.Days,
                 personalWorkspaceId.Value
             );
         }

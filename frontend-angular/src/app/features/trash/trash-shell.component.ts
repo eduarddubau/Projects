@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { AppConfigService } from '@core/services/app-config.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
@@ -31,4 +32,5 @@ import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope
 })
 export class TrashShellComponent {
   isOwner = inject(WorkspaceContextService).isOwner;
+  trashWindow = inject(AppConfigService).trashWindow;
 }

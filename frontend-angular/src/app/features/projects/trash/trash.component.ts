@@ -15,6 +15,7 @@ import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { ProjectService } from '@core/services/project.service';
 import { TableState } from '@shared/table/table-state';
 import { ClickableRowDirective } from '@shared/clickable-row/clickable-row.directive';
+import { TrashExpiryComponent } from '@shared/trash-expiry/trash-expiry.component';
 import { Project } from '@core/models/project';
 
 @Component({
@@ -22,6 +23,7 @@ import { Project } from '@core/models/project';
   templateUrl: './trash.component.html',
   imports: [
     ClickableRowDirective,
+    TrashExpiryComponent,
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,
@@ -63,7 +65,7 @@ export class TrashComponent {
     },
   });
 
-  displayedColumns = ['index', 'name', 'description', 'deletedAt'];
+  displayedColumns = ['index', 'name', 'description', 'deletedAt', 'expires'];
 
   // Restoring lives on the project's own page now, so this table only has to get you there.
   openDetail(project: Project): void {

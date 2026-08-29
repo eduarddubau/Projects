@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -99,20 +100,14 @@ public static class ServiceExtensions
         // Test-only fixture seeding; the controller that uses it is gated to Development.
         services.AddScoped<ITestSeedService, TestSeedService>();
 
-        // Bind() is a no-op on a section that does not exist, so a deployment still setting
-        // the pre-rename ProjectRetention key would silently fall back to the built-in 30
-        // days. Refuse to start instead of quietly retaining things four times too long.
-        if (config.GetSection(RetentionOptions.LegacySectionName).Exists())
-        {
-            throw new InvalidOperationException(
-                $"Configuration section '{RetentionOptions.LegacySectionName}' was renamed to "
-                    + $"'{RetentionOptions.SectionName}'. Rename the key — it is ignored where it is."
-            );
-        }
-
+        // A missing, zero or negative window empties every trash on the first read, silently.
         services
-            .AddOptions<RetentionOptions>()
-            .Bind(config.GetSection(RetentionOptions.SectionName));
+            .AddOptions<TrashWindow>()
+            .Bind(config.GetSection(TrashWindow.SectionName))
+            .Validate(w => w.Days > 0, "TrashWindowDays must be at least 1 day.")
+            .ValidateOnStart();
+
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<TrashWindow>>().Value);
 
         services
             .AddOptions<AdminSeedOptions>()

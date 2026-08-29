@@ -6,7 +6,6 @@ using Backend.Models;
 using Backend.Services;
 using Backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Backend.Tests.Services;
@@ -40,7 +39,7 @@ public sealed class ProjectServiceTests : IDisposable
             _context,
             _currentUser.Object,
             new WorkspaceAccessService(_context, _currentUser.Object),
-            Options.Create(new RetentionOptions { TrashWindowDays = TrashWindowDays })
+            new TrashWindow { Days = TrashWindowDays }
         );
 
         _personal = AddWorkspace("Personal", isPersonal: true, (_userId, WorkspaceRole.Owner));
@@ -440,6 +439,26 @@ public sealed class ProjectServiceTests : IDisposable
             .FirstAsync(p => p.Id == project.Id, Ct);
         Assert.False(stored.IsDeleted);
         Assert.Null(stored.DeletedAt);
+    }
+
+    // Matches the task rule: what the trash no longer lists is no longer restorable here,
+    // and the admin trash is the only way back.
+    [Fact]
+    public async Task RestoreProjectByIdAsync_PastTheRetentionWindow_ReturnsNull()
+    {
+        var project = AddProject(
+            "Ancient",
+            _personal,
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow.AddDays(-(TrashWindowDays + 1))
+        );
+
+        Assert.Null(await _service.RestoreProjectByIdAsync(project.Id, Ct));
+
+        var stored = await _context
+            .Projects.IgnoreQueryFilters()
+            .FirstAsync(p => p.Id == project.Id, Ct);
+        Assert.True(stored.IsDeleted);
     }
 
     [Fact]
