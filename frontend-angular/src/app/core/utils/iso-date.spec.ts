@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { fromIsoDate, dueBucket, isOverdue, toIsoDate, todayIso } from './iso-date';
 
 describe('iso-date', () => {
@@ -32,26 +33,52 @@ describe('iso-date', () => {
     expect(fromIsoDate('')).toBeNull();
   });
 
+  // Now the only clock-reading function in the module, and what TodayService is built on.
+  // It lost its last exercise when isOverdue stopped defaulting to it.
+  describe('todayIso', () => {
+    it('reads the local calendar day, not the UTC one', () => {
+      // 23:30 local on the 28th is already the 29th in UTC for anyone east of it; toISOString
+      // would say so, which is the bug this module exists to avoid.
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 7, 28, 23, 30, 0));
+
+      expect(todayIso()).toBe('2026-08-28');
+
+      vi.useRealTimers();
+    });
+
+    it('pads a single-digit month and day', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(2026, 0, 5, 12, 0, 0));
+
+      expect(todayIso()).toBe('2026-01-05');
+
+      vi.useRealTimers();
+    });
+  });
+
   describe('isOverdue', () => {
-    const yesterday = toIsoDate(new Date(Date.now() - 86_400_000))!;
-    const tomorrow = toIsoDate(new Date(Date.now() + 86_400_000))!;
+    // A fixed day, not the clock: the function takes one so its callers can, and so can this.
+    const today = '2026-08-28';
+    const yesterday = '2026-08-27';
+    const tomorrow = '2026-08-29';
 
     it('flags a past due date on an unfinished task', () => {
-      expect(isOverdue(yesterday, 'Todo')).toBe(true);
-      expect(isOverdue(yesterday, 'InProgress')).toBe(true);
+      expect(isOverdue(yesterday, 'Todo', today)).toBe(true);
+      expect(isOverdue(yesterday, 'InProgress', today)).toBe(true);
     });
 
     it('never flags a completed task', () => {
-      expect(isOverdue(yesterday, 'Done')).toBe(false);
+      expect(isOverdue(yesterday, 'Done', today)).toBe(false);
     });
 
     it('does not flag today or the future', () => {
-      expect(isOverdue(todayIso(), 'Todo')).toBe(false);
-      expect(isOverdue(tomorrow, 'Todo')).toBe(false);
+      expect(isOverdue(today, 'Todo', today)).toBe(false);
+      expect(isOverdue(tomorrow, 'Todo', today)).toBe(false);
     });
 
     it('does not flag a task with no due date', () => {
-      expect(isOverdue(undefined, 'Todo')).toBe(false);
+      expect(isOverdue(undefined, 'Todo', today)).toBe(false);
     });
   });
   describe('dueBucket', () => {

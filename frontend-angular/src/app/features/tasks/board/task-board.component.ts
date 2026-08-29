@@ -22,8 +22,9 @@ import { serverErrorKey } from '@core/i18n/server-error-keys';
 import { Task, TaskStatus, TASK_STATUSES, applyMove, sortTasks } from '@core/models/task';
 import { WorkspaceMember } from '@core/models/workspace';
 import { LanguageService } from '@core/services/language.service';
+import { TodayService } from '@core/services/today.service';
+import { TaskRow, taskRows, taskRowsById } from '@core/utils/task-row';
 import { TaskService } from '@core/services/task.service';
-import { fromIsoDate, isOverdue } from '@core/utils/iso-date';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { TaskFormDialogComponent } from '../task-form-dialog/task-form-dialog.component';
 
@@ -50,6 +51,7 @@ export class TaskBoardComponent {
   private destroyRef = inject(DestroyRef);
   private transloco = inject(TranslocoService);
   private languageService = inject(LanguageService);
+  private todayService = inject(TodayService);
 
   /** Owned by the project page, so switching views neither refetches nor loses an edit. */
   tasks = input.required<HttpResourceRef<Task[]>>();
@@ -58,8 +60,18 @@ export class TaskBoardComponent {
   readonly statuses = TASK_STATUSES;
   dateLocale = computed(() => (this.languageService.lang() === 'ro' ? 'ro' : 'en-US'));
 
-  isOverdue = isOverdue;
-  asDate = fromIsoDate;
+  // Feeds rowsById below, so the cards re-derive when the day turns under an open board.
+  today = this.todayService.today;
+
+  private rowsById = computed(() =>
+    taskRowsById(this.tasks().hasValue() ? this.tasks().value() : [], this.today()),
+  );
+
+  // The map is built from the same tasks the template iterates, so the fallback should be
+  // unreachable — derive it properly rather than rendering a blank date if it ever is not.
+  rowFor(task: Task): TaskRow {
+    return this.rowsById().get(task.id) ?? taskRows([task], this.today())[0];
+  }
 
   private all = computed(() => (this.tasks().hasValue() ? this.tasks().value() : []));
 

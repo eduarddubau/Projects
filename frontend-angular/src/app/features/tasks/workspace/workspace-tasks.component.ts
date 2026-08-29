@@ -7,8 +7,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { TaskFilter, TaskService } from '@core/services/task.service';
+import { TodayService } from '@core/services/today.service';
 import { WorkspaceTask } from '@core/models/task';
-import { DUE_BUCKETS, DueBucket, dueBucket, todayIso } from '@core/utils/iso-date';
+import { DUE_BUCKETS, DueBucket, dueBucket } from '@core/utils/iso-date';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { TaskRowsComponent } from '@shared/task-rows/task-rows.component';
 import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
@@ -47,6 +48,7 @@ export class WorkspaceTasksComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private taskService = inject(TaskService);
+  private todayService = inject(TodayService);
 
   // From the map, not the snapshot: switching workspace or filter navigates between two
   // instances of this same route, and Angular reuses the component.
@@ -63,7 +65,9 @@ export class WorkspaceTasksComponent {
   // Bands the server's order rather than re-sorting it: the response already arrives
   // soonest-due first with the undated last, so each band keeps that order for free.
   groups = computed<TaskGroup[]>(() => {
-    const today = todayIso();
+    // From the service, not the clock: the bands have to re-band when the day turns
+    // under a page somebody left open.
+    const today = this.todayService.today();
     const banded = new Map<DueBucket, WorkspaceTask[]>();
 
     for (const task of this.tasks.value()) {

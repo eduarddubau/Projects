@@ -96,11 +96,12 @@
         <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ t('tasks.table.dueDate') }}</th>
         <td mat-cell *matCellDef="let task">
           @if (task.dueDate) {
-            <span class="due" [class.due-overdue]="isOverdue(task.dueDate, task.status)">
-              @if (isOverdue(task.dueDate, task.status)) {
+            @let row = rowFor(task);
+            <span class="due" [class.due-overdue]="row.overdue">
+              @if (row.overdue) {
                 <mat-icon [attr.aria-label]="t('tasks.list.overdue')">event_busy</mat-icon>
               }
-              {{ asDate(task.dueDate) | date: 'mediumDate' : undefined : dateLocale() }}
+              {{ row.due | date: 'mediumDate' : undefined : dateLocale() }}
             </span>
           } @else {
             <span class="muted">—</span>

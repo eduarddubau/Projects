@@ -7,6 +7,8 @@ import {
   inject,
   input,
   signal,
+  effect,
+  untracked,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { HttpResourceRef } from '@angular/common/http';
@@ -26,8 +28,10 @@ import { Task, TASK_STATUSES, sortTasks } from '@core/models/task';
 import { WorkspaceMember } from '@core/models/workspace';
 import { AuthService } from '@core/services/auth.service';
 import { LanguageService } from '@core/services/language.service';
+import { TodayService } from '@core/services/today.service';
+import { TaskRow, taskRows, taskRowsById } from '@core/utils/task-row';
 import { TaskService } from '@core/services/task.service';
-import { fromIsoDate, isOverdue } from '@core/utils/iso-date';
+import { isOverdue } from '@core/utils/iso-date';
 import { TableState } from '@shared/table/table-state';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { TaskFormDialogComponent } from '../task-form-dialog/task-form-dialog.component';
@@ -58,6 +62,7 @@ export class TaskListComponent {
   private transloco = inject(TranslocoService);
   private auth = inject(AuthService);
   private languageService = inject(LanguageService);
+  private todayService = inject(TodayService);
 
   /** Owned by the project page so both views share one fetch. */
   tasks = input.required<HttpResourceRef<Task[]>>();
@@ -95,8 +100,31 @@ export class TaskListComponent {
     },
   });
 
-  isOverdue = isOverdue;
-  asDate = fromIsoDate;
+  // Passed to isOverdue rather than letting it read the clock: that call built a Date and
+  // a padded string every binding, and a page left open overnight kept yesterday's answer.
+  today = this.todayService.today;
+
+  // Keyed by id because mat-table's cell context hands back the task, not an index.
+  private rowsById = computed(() =>
+    taskRowsById(this.tasks().hasValue() ? this.tasks().value() : [], this.today()),
+  );
+
+  // The map is built from the same tasks the template iterates, so the fallback should be
+  // unreachable — derive it properly rather than rendering a blank date if it ever is not.
+  rowFor(task: Task): TaskRow {
+    return this.rowsById().get(task.id) ?? taskRows([task], this.today())[0];
+  }
+
+  // The overdue chip filters against a snapshot, so the day turning has to re-apply it —
+  // but only then. setFilter resets the paginator to page 1, so re-applying unconditionally
+  // would throw every reader back to the top of the list at midnight for no visible reason.
+  // untracked, or this would also re-run for every chip toggle the handlers already cover.
+  private readonly reapplyWhenTheDayTurns = effect(() => {
+    this.today();
+    untracked(() => {
+      if (this.overdueOnly()) this.applyFilters();
+    });
+  });
 
   toggleMine(): void {
     this.mineOnly.update((on) => !on);
@@ -112,6 +140,9 @@ export class TaskListComponent {
     const mine = this.mineOnly();
     const overdue = this.overdueOnly();
     const userId = this.auth.currentUser()?.id;
+    // Snapshot, like everything else here. Reading the signal inside the predicate instead
+    // would make the refresh depend on TableState invoking it, which nothing guarantees.
+    const today = this.today();
 
     if (!mine && !overdue) {
       this.table.setFilter(null);
@@ -120,7 +151,8 @@ export class TaskListComponent {
 
     this.table.setFilter(
       (task) =>
-        (!mine || task.assigneeId === userId) && (!overdue || isOverdue(task.dueDate, task.status)),
+        (!mine || task.assigneeId === userId) &&
+        (!overdue || isOverdue(task.dueDate, task.status, today)),
     );
   }
 

@@ -24,9 +24,15 @@ export function todayIso(): string {
   return toIsoDate(new Date())!;
 }
 
-/** Lexicographic comparison is date comparison for this format, so no Date math. */
-export function isOverdue(dueDate: string | undefined, status: TaskStatus): boolean {
-  return !!dueDate && status !== 'Done' && dueDate < todayIso();
+/**
+ * Lexicographic comparison is date comparison for this format, so no Date math.
+ *
+ * `today` is required, not defaulted: a default would let a caller reach the clock by
+ * omission and silently reintroduce the bug this exists to prevent — a page left open past
+ * midnight keeping yesterday's answer. Pass TodayService.today().
+ */
+export function isOverdue(dueDate: string | undefined, status: TaskStatus, today: string): boolean {
+  return !!dueDate && status !== 'Done' && dueDate < today;
 }
 
 /** The groups a task list is banded into, in the order they are shown. */
@@ -34,8 +40,8 @@ export const DUE_BUCKETS = ['overdue', 'today', 'thisWeek', 'later', 'none'] as 
 
 export type DueBucket = (typeof DUE_BUCKETS)[number];
 
-/** Which band a due date falls in. Lexicographic comparison is date comparison here. */
-export function dueBucket(dueDate: string | undefined, today = todayIso()): DueBucket {
+/** Which band a due date falls in. `today` is required for the reason isOverdue's is. */
+export function dueBucket(dueDate: string | undefined, today: string): DueBucket {
   if (!dueDate) return 'none';
   if (dueDate < today) return 'overdue';
   if (dueDate === today) return 'today';

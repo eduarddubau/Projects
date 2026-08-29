@@ -17,6 +17,7 @@ import { DashboardService } from '@core/services/dashboard.service';
 import { ProjectService } from '@core/services/project.service';
 import { TaskFilter, TaskService } from '@core/services/task.service';
 import { LanguageService } from '@core/services/language.service';
+import { TodayService } from '@core/services/today.service';
 import { AuthService } from '@core/services/auth.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { CurrentWeather } from '@core/models/weather';
@@ -55,6 +56,7 @@ export class WorkspaceHomeComponent {
   private projectService = inject(ProjectService);
   private taskService = inject(TaskService);
   private languageService = inject(LanguageService);
+  private todayService = inject(TodayService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
   private route = inject(ActivatedRoute);
@@ -97,9 +99,12 @@ export class WorkspaceHomeComponent {
 
   weather = signal<CurrentWeather | null>(null);
 
-  // Local part of day; drives the greeting and the fallback tagline. No signal
-  // deps, so it resolves once per page load.
+  // Local part of day; drives the greeting and the fallback tagline. Depends on the day so
+  // it re-reads at midnight — without that the greeting still said "evening" while the task
+  // bands below it had already moved to the new day. It does not re-read at noon or six:
+  // that would need an hourly tick, and a greeting is not worth one.
   private partOfDay = computed(() => {
+    this.todayService.today();
     const hour = new Date().getHours();
     if (hour < 12) return 'morning';
     if (hour < 18) return 'afternoon';

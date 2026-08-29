@@ -1,5 +1,6 @@
 <ul class="task-rows" *transloco="let t; prefix: 'tasks.workspace'">
-  @for (task of tasks(); track task.id) {
+  @for (row of rows(); track row.task.id) {
+    @let task = row.task;
     <li class="task-row">
       <a class="task-link" [routerLink]="['/w', workspaceId(), 'projects', task.projectId]">
         <span class="task-title">{{ task.title }}</span>
@@ -11,11 +12,9 @@
 
       <span class="task-meta">
         @if (task.dueDate) {
-          <span class="due" [class.due-overdue]="isOverdue(task.dueDate, task.status)">
-            <mat-icon aria-hidden="true">{{
-              isOverdue(task.dueDate, task.status) ? 'event_busy' : 'event'
-            }}</mat-icon>
-            {{ asDate(task.dueDate) | date: 'MMM d' : undefined : dateLocale() }}
+          <span class="due" [class.due-overdue]="row.overdue">
+            <mat-icon aria-hidden="true">{{ row.overdue ? 'event_busy' : 'event' }}</mat-icon>
+            {{ row.due | date: 'MMM d' : undefined : dateLocale() }}
           </span>
         }
 

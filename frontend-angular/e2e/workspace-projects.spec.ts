@@ -10,6 +10,68 @@ async function login(page: Page, email: string): Promise<void> {
   await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 }
 
+/** What DbSeeder gives the shared project, so a spec that edits it can put it back. */
+const SEEDED_REDESIGN = {
+  name: 'Acme Website Redesign',
+  description: 'Shared workspace project, created by the owner.',
+};
+
+/**
+ * Puts the seeded project back, using the page's own token the way profile.spec does.
+ *
+ * The rule this file was breaking: **a spec that mutates shared seed data must restore in a
+ * hook, never in the test body.** Editing the description left it reading
+ * `Edited by dev2 at <epoch>` permanently, cumulative across runs — and every assertion used
+ * `hasText`, which matches by substring, so nothing ever failed over it. The exact-name
+ * lookup in workspace-tasks.spec is what finally surfaced it.
+ *
+ * Throws rather than returning quietly on anything unexpected: a restore hook that gives up
+ * in silence recreates exactly the drift it exists to prevent, and the next spec to notice
+ * would again be one that happens to compare by equality.
+ */
+async function restoreSeededProject(page: Page): Promise<void> {
+  const token = await page.evaluate(() => localStorage.getItem('pj-authToken'));
+  if (!token) return; // The test never signed in, so it cannot have edited anything.
+
+  const headers = { Authorization: `Bearer ${token}` };
+
+  const workspaces = (await getJson(page, '/api/workspaces', headers)) as {
+    id: string;
+    name: string;
+  }[];
+  const acme = workspaces.find((w) => w.name === 'Acme Team');
+  if (!acme) throw new Error('Acme Team is missing — the seed is already broken.');
+
+  const projects = (await getJson(page, `/api/workspaces/${acme.id}/projects`, headers)) as {
+    id: string;
+    name: string;
+    description?: string;
+  }[];
+
+  // Exact match, not startsWith: a prefix could catch a differently-named project and
+  // rename *it* to the seeded name, leaving two rows that the exact lookups downstream
+  // cannot tell apart.
+  const clean = projects.find((p) => p.name === SEEDED_REDESIGN.name);
+  if (clean && clean.description === SEEDED_REDESIGN.description) return;
+
+  const drifted = clean ?? projects.find((p) => p.name.startsWith(SEEDED_REDESIGN.name));
+  if (!drifted) throw new Error(`No project resembling "${SEEDED_REDESIGN.name}" to restore.`);
+
+  const put = await page.request.put(`/api/projects/${drifted.id}`, {
+    headers,
+    data: SEEDED_REDESIGN,
+  });
+  if (!put.ok()) {
+    throw new Error(`Restoring the seeded project failed with ${put.status()}.`);
+  }
+}
+
+async function getJson(page: Page, url: string, headers: Record<string, string>): Promise<unknown> {
+  const response = await page.request.get(url, { headers });
+  if (!response.ok()) throw new Error(`GET ${url} failed with ${response.status()}.`);
+  return response.json();
+}
+
 /** Returns the workspace id the list is showing, so callers can pin it. */
 async function openAcmeProjects(page: Page): Promise<string> {
   await page.locator('.ws-trigger').click();
@@ -30,6 +92,20 @@ async function openAcmeProjects(page: Page): Promise<string> {
 }
 
 test.describe('Workspace-scoped projects', () => {
+  // Only the one test below edits the seeded project, and the suite runs on two workers
+  // because the dev server buckles — so the other four skip the round-trips entirely. The
+  // flag is set before the edit, so a mid-test failure still restores.
+  let editedTheSeededProject = false;
+
+  test.beforeEach(() => {
+    editedTheSeededProject = false;
+  });
+
+  // A hook, not the test body: it has to run even when the body fails partway.
+  test.afterEach(async ({ page }) => {
+    if (editedTheSeededProject) await restoreSeededProject(page);
+  });
+
   test('a member sees the shared projects and the URL names the workspace', async ({ page }) => {
     await login(page, 'dev2@example.com');
     const workspaceId = await openAcmeProjects(page);
@@ -73,6 +149,7 @@ test.describe('Workspace-scoped projects', () => {
     await page.getByRole('button', { name: 'Project actions' }).click();
     await page.getByRole('menuitem', { name: 'Edit' }).click();
     const dialog = page.getByRole('dialog');
+    editedTheSeededProject = true;
     await dialog.getByLabel('Description').fill(`Edited by dev2 at ${Date.now()}`);
     await dialog.getByRole('button', { name: 'Save' }).click();
 

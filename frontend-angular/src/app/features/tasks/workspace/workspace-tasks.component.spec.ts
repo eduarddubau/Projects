@@ -9,6 +9,7 @@ import { vi } from 'vitest';
 import { WorkspaceTasksComponent } from './workspace-tasks.component';
 import { API_URL } from '@core/tokens/app.tokens';
 import { ThemeService } from '@core/services/theme.service';
+import { TodayService } from '@core/services/today.service';
 import { WorkspaceTask } from '@core/models/task';
 import { todayIso } from '@core/utils/iso-date';
 import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
@@ -20,6 +21,10 @@ const tasksUrl = `${apiUrl}/workspaces/${workspaceId}/tasks`;
 // The rows date-format through LanguageService, which pulls in the real ThemeService —
 // and that touches window.matchMedia, which jsdom lacks.
 const themeStub = { provide: ThemeService, useValue: { theme: signal('light') } };
+
+// A day the test drives, so the consumer's midnight behaviour is observable rather than
+// something only TodayService's own spec knows about.
+let today: ReturnType<typeof signal<string>>;
 
 function daysFromToday(days: number): string {
   const date = new Date();
@@ -49,6 +54,7 @@ describe('WorkspaceTasksComponent', () => {
   let queryParams: BehaviorSubject<ReturnType<typeof convertToParamMap>>;
 
   async function setup(filter: string | null = null) {
+    today = signal(todayIso());
     queryParams = new BehaviorSubject(convertToParamMap(filter ? { filter } : {}));
     const routeStub = {
       paramMap: new BehaviorSubject(convertToParamMap({ workspaceId })),
@@ -67,6 +73,7 @@ describe('WorkspaceTasksComponent', () => {
         provideRouter([]),
         provideTranslocoTesting(),
         themeStub,
+        { provide: TodayService, useValue: { today } },
         { provide: API_URL, useValue: apiUrl },
         { provide: ActivatedRoute, useValue: routeStub },
       ],
@@ -167,5 +174,26 @@ describe('WorkspaceTasksComponent', () => {
 
     fixture.componentInstance.setFilter('mine');
     expect(navigate.mock.calls[1][1]?.queryParams).toEqual({ filter: null });
+  });
+
+  /**
+   * The bands are the reason TodayService exists, and until now nothing asserted that this
+   * component reads it — reverting every consumer back to todayIso() left the whole frontend
+   * suite green. This is the consumer-side half of that guard.
+   */
+  it('re-bands when the day rolls over under an open page', async () => {
+    await setup('all');
+    await flush([task('a', { dueDate: daysFromToday(1) })]);
+
+    // "This week" -> first word "This".
+    expect(groupTitles()).toEqual(['This']);
+
+    // Tomorrow becomes today; the same task has to change band with the list untouched.
+    today.set(daysFromToday(1));
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // "Due today" -> "Due".
+    expect(groupTitles()).toEqual(['Due']);
   });
 });

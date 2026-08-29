@@ -3,21 +3,23 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from '@core/tokens/app.tokens';
 import { Task, TaskPayload, TaskStatus, WorkspaceTask } from '@core/models/task';
-import { todayIso } from '@core/utils/iso-date';
+import { TodayService } from '@core/services/today.service';
 
 /** The one filter a workspace task list is under; the chips are single-select. */
 export type TaskFilter = 'mine' | 'all' | 'overdue' | 'unassigned';
 
-// A function, not a constant: "overdue" is relative to the caller's calendar day, and
-// the server's UTC one is a different day for part of every night in this timezone.
-function paramsFor(filter: TaskFilter): Record<string, string> {
+// Takes the day as a *signal*, not a value: "overdue" is relative to the caller's calendar
+// day — the server's UTC one is a different day for part of every night in this timezone —
+// and reading it only inside that branch keeps the day out of the other filters'
+// dependencies, so midnight refetches the overdue list and nothing else.
+function paramsFor(filter: TaskFilter, today: Signal<string>): Record<string, string> {
   switch (filter) {
     case 'mine':
       return { assignee: 'me' };
     case 'unassigned':
       return { assignee: 'unassigned' };
     case 'overdue':
-      return { dueBefore: todayIso() };
+      return { dueBefore: today() };
     default:
       return {};
   }
@@ -34,6 +36,7 @@ export interface TaskMove {
 export class TaskService {
   private http = inject(HttpClient);
   private apiUrl = inject(API_URL);
+  private today = inject(TodayService).today;
 
   // Read endpoints are resource factories: call them from a component's field
   // initializer so each resource lives and dies with that component.
@@ -55,8 +58,14 @@ export class TaskService {
     return httpResource<WorkspaceTask[]>(
       () => {
         const id = workspaceId();
+        // paramsFor reads the day signal, which makes the request a dependency of it: without
+        // that, a page left open on ?filter=overdue keeps yesterday's server-side cutoff
+        // while the client re-bands the rows around it.
         return id
-          ? { url: `${this.apiUrl}/workspaces/${id}/tasks`, params: paramsFor(filter()) }
+          ? {
+              url: `${this.apiUrl}/workspaces/${id}/tasks`,
+              params: paramsFor(filter(), this.today),
+            }
           : undefined;
       },
       { defaultValue: [] },
