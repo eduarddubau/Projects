@@ -7,6 +7,7 @@
 .home-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 18px;
 
   // Avatar links to the profile; subtle ring on focus.
@@ -30,7 +31,18 @@
   }
 
   .home-heading {
+    flex: 1 1 320px;
     min-width: 0;
+
+    // Greeting above the workspace's own name, so the page says who you are and where
+    // you are without either line competing for the title.
+    // Accent overline carrying the mood line, with the name after a separator.
+    .home-greeting {
+      margin: 0 0 2px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--mat-sys-primary);
+    }
 
     .page-title {
       margin: 0;
@@ -38,12 +50,16 @@
 
     .page-subtitle {
       margin: 4px 0 0;
+      // Descriptions run to 500 characters; two lines is all the header can spare.
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     // The name doubles as the profile link; reads as heading text until hovered.
     .name-link {
-      // The word space after the comma. See the template — markup whitespace is
-      // collapsed away here, so this is the only place it can come from.
+      // The word space after the comma; see the template for why it lives here.
       margin-inline-start: 0.28em;
       color: inherit;
       text-decoration: none;
@@ -58,16 +74,26 @@
   }
 }
 
-// Overview band: ambient weather on the left, then the key metrics. Whitespace
-// and short hairline dividers do the separating — no boxes.
+// Ambient weather rides with the heading rather than the metrics: it says something
+// about the day, not about the workspace.
+.home-weather {
+  margin-inline-start: auto;
+}
+
+// Overview band: counts separated by whitespace and short hairline dividers rather than
+// boxes. auto-fit because a personal workspace reports one metric fewer.
 .overview {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   align-items: center;
 
-  // Weather is the first cell; small left inset aligns it to the section edge.
-  app-weather-widget {
-    padding: 8px 28px 8px 6px;
+  // Stacked, the dividers would sit above tiles rather than between them.
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+
+    .kpi::before {
+      display: none;
+    }
   }
 }
 
@@ -81,7 +107,30 @@
   color: inherit;
   text-decoration: none;
 
-  // Short centred divider ahead of each metric (weather has none — it's first).
+  // The shared chip carries a top margin for the card it was built for; in a centred
+  // metric row that is what pushes it off the line.
+  .role-chip {
+    margin: 0 0 0 8px;
+    padding-block: 1px;
+    font-size: 0.68rem;
+    line-height: 1.5;
+  }
+
+  // Every metric opens the page behind it, so they need to read as reachable.
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent);
+
+    .kpi-meta {
+      color: var(--mat-sys-on-surface);
+    }
+  }
+
+  // Short centred divider between metrics; the first one has nothing to divide from.
+  &:first-child::before {
+    display: none;
+  }
+
   &::before {
     content: '';
     position: absolute;

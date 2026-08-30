@@ -804,3 +804,10 @@ html.theme-transition *::after {
     border-color: currentColor;
   }
 }
+
+// Tooltips that carry two facts break their own line; the overlay lives outside the
+// component, so the rule has to be global.
+.weather-tooltip .mat-mdc-tooltip-surface {
+  white-space: pre-line;
+  text-align: left;
+}

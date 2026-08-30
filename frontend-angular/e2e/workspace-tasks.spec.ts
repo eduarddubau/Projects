@@ -68,8 +68,15 @@ test.describe('Workspace tasks', () => {
     createdTaskId = null;
   });
 
-  test('opens on my own tasks, which do not include an unassigned one', async ({ page }) => {
-    await expect(page.locator('.filter-bar [aria-checked="true"]')).toContainText('Assigned to me');
+  test('opens on every open task, including one nobody has picked up', async ({ page }) => {
+    await expect(page.locator('.filter-bar [aria-checked="true"]')).toContainText('All');
+    await expect(page.locator('.task-row', { hasText: overdueTitle })).toBeVisible();
+  });
+
+  test('the mine filter drops what is not assigned to me', async ({ page }) => {
+    await page.getByRole('radio', { name: 'Assigned to me' }).click();
+
+    await expect(page).toHaveURL(/\?filter=mine$/);
     await expect(page.locator('.task-row', { hasText: overdueTitle })).toHaveCount(0);
   });
 

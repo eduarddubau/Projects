@@ -218,6 +218,8 @@
     }
   },
   "weather": {
+    "now": "Acum",
+    "range": "Maxim {{high}}°, minim {{low}}°",
     "conditions": {
       "clear": "Cer senin",
       "mostlyClear": "Predominant senin",
@@ -234,6 +236,35 @@
       "thunderstorm": "Furtună",
       "thunderstormHail": "Furtună cu grindină",
       "unknown": "Necunoscut"
+    },
+    "today": "Se simte ca {{feels}}°\nMaxim {{high}}°, minim {{low}}°",
+    "location": "{{city}}, {{country}}\nLocalizat prin adresa IP",
+    "humidity": "{{comfort}}\nPunct de rouă {{dew}}°",
+    "wind": "{{strength}} dinspre {{direction}}\nRafale până la {{gusts}} km/h",
+    "compass": {
+      "n": "nord",
+      "ne": "nord-est",
+      "e": "est",
+      "se": "sud-est",
+      "s": "sud",
+      "sw": "sud-vest",
+      "w": "vest",
+      "nw": "nord-vest"
+    },
+    "comfort": {
+      "dry": "Aer uscat",
+      "comfortable": "Confortabil",
+      "sticky": "Ușor umed",
+      "humid": "Umed",
+      "oppressive": "Apăsător"
+    },
+    "strength": {
+      "calm": "Calm",
+      "light": "Adiere",
+      "breeze": "Briză",
+      "windy": "Vânt puternic",
+      "gale": "Vijelie",
+      "storm": "Furtună"
     }
   },
   "projects": {
@@ -794,8 +825,21 @@
       }
     },
     "stats": {
-      "openTasks": "Sarcini deschise",
-      "assignedToMe": "Atribuite mie",
+      "members": {
+        "one": "Membru",
+        "few": "Membri",
+        "other": "Membri"
+      },
+      "openTasks": {
+        "one": "Sarcină deschisă",
+        "few": "Sarcini deschise",
+        "other": "Sarcini deschise"
+      },
+      "projects": {
+        "one": "Proiect",
+        "few": "Proiecte",
+        "other": "Proiecte"
+      },
       "loadFailed": "Cifrele acestui spațiu de lucru nu au putut fi încărcate."
     },
     "account": {
@@ -812,6 +856,9 @@
       "updated": "Actualizat",
       "empty": "Încă nu există proiecte în acest spațiu de lucru.",
       "loadFailed": "Proiectele nu au putut fi încărcate."
+    },
+    "workspace": {
+      "private": "Doar tu poți vedea acest spațiu de lucru."
     }
   }
 }

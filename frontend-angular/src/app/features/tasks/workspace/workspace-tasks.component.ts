@@ -14,8 +14,8 @@ import { AuroraComponent } from '@shared/aurora/aurora.component';
 import { TaskRowsComponent } from '@shared/task-rows/task-rows.component';
 import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 
-/** The chips, in the order they are shown. `mine` is the default and stays out of the URL. */
-const TASK_FILTERS: readonly TaskFilter[] = ['mine', 'all', 'overdue', 'unassigned'];
+/** The chips, in the order they are shown. `all` is the default and stays out of the URL. */
+const TASK_FILTERS: readonly TaskFilter[] = ['all', 'mine', 'overdue', 'unassigned'];
 
 interface TaskGroup {
   bucket: DueBucket;
@@ -89,12 +89,12 @@ export class WorkspaceTasksComponent {
     this.router.navigate([], {
       relativeTo: this.route,
       // The default stays out of the URL, as the project board's view toggle does.
-      queryParams: { filter: filter === 'mine' ? null : filter },
+      queryParams: { filter: filter === 'all' ? null : filter },
       replaceUrl: true,
     });
   }
 }
 
 function asFilter(value: string | null): TaskFilter {
-  return TASK_FILTERS.includes(value as TaskFilter) ? (value as TaskFilter) : 'mine';
+  return TASK_FILTERS.includes(value as TaskFilter) ? (value as TaskFilter) : 'all';
 }

@@ -16,29 +16,32 @@ test.describe('Workspace home', () => {
     await expect(page.locator('.kpi').first()).toBeVisible();
   });
 
-  test('shows the personalized greeting and the two task tiles', async ({ page }) => {
+  test('shows the personalized greeting and the three metric cards', async ({ page }) => {
     // The name in the greeting is itself the profile link. Asserting the link, not its
     // text, keeps this independent of the profile spec.
-    await expect(page.locator('.page-title .name-link')).toHaveAttribute('href', '/profile');
+    await expect(page.locator('.home-greeting .name-link')).toHaveAttribute('href', '/profile');
 
-    await expect(page.locator('.kpi', { hasText: 'Open tasks' })).toBeVisible();
-    await expect(page.locator('.kpi', { hasText: 'Assigned to me' })).toBeVisible();
-    await expect(page.locator('.kpi')).toHaveCount(2);
+    await expect(page.locator('.kpi', { hasText: 'Member' })).toBeVisible();
+    await expect(page.locator('.kpi', { hasText: 'Project' })).toBeVisible();
+    await expect(page.locator('.kpi', { hasText: 'Open task' })).toBeVisible();
+    await expect(page.locator('.kpi')).toHaveCount(3);
 
-    // Both tiles now count work, not containers: "In Trash" is an action rather than
-    // a metric, and a project count only repeats the table below it.
+    // Each card opens the page behind its number.
+    await expect(page.locator('a.kpi')).toHaveCount(3);
+
+    // "In Trash" stays out: it is an action, not a metric.
     await expect(page.locator('.kpi', { hasText: 'In Trash' })).toHaveCount(0);
-    await expect(page.locator('.kpi', { hasText: 'Active projects' })).toHaveCount(0);
   });
 
   // The switcher governs the whole page, so the page has to say which workspace it is
   // showing. Personal workspaces render the translated label, not their derived name.
   test('names the workspace everything on it belongs to', async ({ page }) => {
-    await expect(page.locator('.page-eyebrow')).toContainText('My Workspace');
+    await expect(page.locator('.page-title')).toContainText('My Workspace');
+    await expect(page.locator('.page-subtitle')).toContainText('Only you can see this workspace.');
   });
 
   test('links to the profile page', async ({ page }) => {
-    await page.locator('.page-title .name-link').click();
+    await page.locator('.home-greeting .name-link').click();
 
     await expect(page.getByRole('heading', { name: 'My Profile' })).toBeVisible();
   });

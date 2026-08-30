@@ -3,22 +3,32 @@
   align-items: center;
 }
 
-// Temp over location on the left, big animated icon in the middle, and a
-// feels-like / condition / indicators stack on the right. Both text columns
-// stretch to the icon height and space out, so feels-like lines up with the
-// temperature, the indicators with the location, and the condition sits at the
-// icon's midline.
+// Temperature over place on the left, the big animated icon in the middle, and the
+// days ahead over the indicators on the right. The numbers behind all of it live in
+// tooltips, so the widget stays a glance rather than a table.
 .weather {
   display: flex;
   align-items: stretch;
   gap: 14px;
 }
 
-.weather-readout,
-.weather-detail {
+.weather-readout {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+.weather-detail {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+
+.weather-now {
+  display: flex;
+  flex-direction: column;
+  cursor: default;
 }
 
 .weather-temp {
@@ -37,15 +47,9 @@
   filter: drop-shadow(0 0 1px rgba(2, 6, 23, 0.45)) drop-shadow(0 1px 2px rgba(2, 6, 23, 0.22));
 }
 
-.weather-condition {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--mat-sys-on-surface-variant);
-  white-space: nowrap;
-}
-
 .weather-location {
   display: inline-flex;
+  cursor: default;
   align-items: center;
   gap: 3px;
   font-size: 0.82rem;
@@ -60,6 +64,35 @@
   }
 }
 
+// The days ahead: a coloured weekday over its icon, three across.
+.weather-forecast {
+  display: inline-flex;
+  gap: 14px;
+}
+
+.forecast-day {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  cursor: default;
+}
+
+// Today over its temperature, each forecast day over its icon: one brow treatment.
+.weather-today,
+.forecast-weekday {
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--mat-sys-primary);
+}
+
+.forecast-icon {
+  // Same treatment as the main icon, which is what keeps the white cloud bodies legible.
+  filter: drop-shadow(0 0 1px rgba(2, 6, 23, 0.4));
+}
+
 .weather-stats {
   display: inline-flex;
   gap: 12px;
@@ -67,6 +100,7 @@
 
 .weather-stat {
   display: inline-flex;
+  cursor: default;
   align-items: center;
   gap: 3px;
   font-size: 0.82rem; // same size as the location line

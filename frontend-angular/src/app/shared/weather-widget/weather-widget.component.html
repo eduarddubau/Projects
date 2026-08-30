@@ -1,19 +1,110 @@
 @if (weather(); as w) {
   <div class="weather" *transloco="let t">
     <div class="weather-readout">
-      <span class="weather-temp">{{ w.temperature }}°</span>
-      <span class="weather-location">
+      <!-- One hover target: the day and the number it belongs to answer together. -->
+      <span
+        class="weather-now"
+        [matTooltip]="
+          t('weather.today', { feels: w.feelsLike, high: w.todayHigh, low: w.todayLow })
+        "
+        matTooltipClass="weather-tooltip"
+        [attr.aria-label]="
+          t('weather.now') +
+          ' ' +
+          w.temperature +
+          '° · ' +
+          t('weather.today', { feels: w.feelsLike, high: w.todayHigh, low: w.todayLow })
+        "
+      >
+        <span class="weather-today" aria-hidden="true">{{ t('weather.now') }}</span>
+        <span class="weather-temp">{{ w.temperature }}°</span>
+      </span>
+
+      <span
+        class="weather-location"
+        [matTooltip]="t('weather.location', { city: w.city, country: w.country })"
+        matTooltipClass="weather-tooltip"
+        [attr.aria-label]="t('weather.location', { city: w.city, country: w.country })"
+      >
         <mat-icon class="weather-loc-icon">location_on</mat-icon>{{ w.city }}
       </span>
     </div>
-    <img class="weather-icon" [src]="'weather/' + w.icon + '.svg'" alt="" width="64" height="64" />
+
+    <img
+      class="weather-icon"
+      [src]="'weather/' + w.icon + '.svg'"
+      [matTooltip]="t('weather.conditions.' + w.conditionKey)"
+      [alt]="t('weather.conditions.' + w.conditionKey)"
+      width="64"
+      height="64"
+    />
+
     <div class="weather-detail">
-      <span class="weather-condition">{{ t('weather.conditions.' + w.conditionKey) }}</span>
+      @if (w.forecast.length) {
+        <span class="weather-forecast">
+          @for (day of w.forecast; track day.date) {
+            <span
+              class="forecast-day"
+              [matTooltip]="t('weather.range', { high: day.high, low: day.low })"
+              [attr.aria-label]="
+                (weekdayOf(day.date) | date: 'EEEE' : '' : dateLocale()) +
+                ' · ' +
+                t('weather.conditions.' + day.conditionKey) +
+                ' · ' +
+                t('weather.range', { high: day.high, low: day.low })
+              "
+            >
+              <span class="forecast-weekday">
+                {{ weekdayOf(day.date) | date: 'EEE' : '' : dateLocale() }}
+              </span>
+              <img
+                class="forecast-icon"
+                [src]="'weather/' + day.icon + '.svg'"
+                alt=""
+                width="24"
+                height="24"
+              />
+            </span>
+          }
+        </span>
+      }
       <span class="weather-stats">
-        <span class="weather-stat">
+        <span
+          class="weather-stat"
+          [matTooltip]="
+            t('weather.humidity', {
+              dew: w.dewPoint,
+              comfort: t('weather.comfort.' + comfortOf(w.dewPoint)),
+            })
+          "
+          matTooltipClass="weather-tooltip"
+          [attr.aria-label]="
+            t('weather.humidity', {
+              dew: w.dewPoint,
+              comfort: t('weather.comfort.' + comfortOf(w.dewPoint)),
+            })
+          "
+        >
           <mat-icon class="weather-stat-icon">water_drop</mat-icon>{{ w.humidity }}%
         </span>
-        <span class="weather-stat">
+        <span
+          class="weather-stat"
+          [matTooltip]="
+            t('weather.wind', {
+              strength: t('weather.strength.' + strengthOf(w.windSpeed)),
+              direction: t('weather.compass.' + compassOf(w.windDirection)),
+              gusts: w.windGusts,
+            })
+          "
+          matTooltipClass="weather-tooltip"
+          [attr.aria-label]="
+            t('weather.wind', {
+              strength: t('weather.strength.' + strengthOf(w.windSpeed)),
+              direction: t('weather.compass.' + compassOf(w.windDirection)),
+              gusts: w.windGusts,
+            })
+          "
+        >
           <mat-icon class="weather-stat-icon">air</mat-icon>{{ w.windSpeed }} km/h
         </span>
       </span>

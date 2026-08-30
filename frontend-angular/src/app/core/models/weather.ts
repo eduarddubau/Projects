@@ -1,3 +1,15 @@
+/** One day ahead: a weekday and an icon on the strip, its numbers in the tooltip. */
+export interface DailyForecast {
+  /** yyyy-MM-dd in the location's own timezone. */
+  date: string;
+  /** Rounded °C. */
+  high: number;
+  low: number;
+  /** Names the icon for a screen reader. */
+  conditionKey: string;
+  icon: string;
+}
+
 export interface CurrentWeather {
   city: string;
   country: string;
@@ -5,14 +17,27 @@ export interface CurrentWeather {
   temperature: number;
   /** Relative humidity, %. */
   humidity: number;
+  /** Rounded °C. The number behind how the humidity actually feels. */
+  dewPoint: number;
   /** Rounded wind speed, km/h. */
   windSpeed: number;
+  /** Rounded gust speed, km/h. */
+  windGusts: number;
+  /** Where the wind comes from, degrees clockwise from north. */
+  windDirection: number;
+  /** Rounded °C, what the air is supposed to feel like. */
+  feelsLike: number;
   isDay: boolean;
   weatherCode: number;
   /** i18n suffix under `weather.conditions.*`. */
   conditionKey: string;
   /** Meteocons icon base name; resolved to `weather/<icon>.svg`. */
   icon: string;
+  /** Today's range, rounded °C; shown on hovering the temperature. */
+  todayHigh: number;
+  todayLow: number;
+  /** The next three days, today excluded. */
+  forecast: DailyForecast[];
 }
 
 interface CodeDescriptor {

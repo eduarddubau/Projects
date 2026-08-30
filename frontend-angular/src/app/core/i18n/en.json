@@ -218,6 +218,8 @@
     }
   },
   "weather": {
+    "now": "Now",
+    "range": "High {{high}}°, low {{low}}°",
     "conditions": {
       "clear": "Clear sky",
       "mostlyClear": "Mainly clear",
@@ -234,6 +236,35 @@
       "thunderstorm": "Thunderstorm",
       "thunderstormHail": "Thunderstorm with hail",
       "unknown": "Unknown"
+    },
+    "today": "Feels like {{feels}}°\nHigh {{high}}°, low {{low}}°",
+    "location": "{{city}}, {{country}}\nLocated via IP address",
+    "humidity": "{{comfort}}\nDew point {{dew}}°",
+    "wind": "{{strength}} from the {{direction}}\nGusts to {{gusts}} km/h",
+    "compass": {
+      "n": "north",
+      "ne": "north-east",
+      "e": "east",
+      "se": "south-east",
+      "s": "south",
+      "sw": "south-west",
+      "w": "west",
+      "nw": "north-west"
+    },
+    "comfort": {
+      "dry": "Dry air",
+      "comfortable": "Comfortable",
+      "sticky": "A little sticky",
+      "humid": "Humid",
+      "oppressive": "Oppressive"
+    },
+    "strength": {
+      "calm": "Calm",
+      "light": "Light air",
+      "breeze": "A breeze",
+      "windy": "Windy",
+      "gale": "Gale",
+      "storm": "Storm"
     }
   },
   "projects": {
@@ -794,8 +825,21 @@
       }
     },
     "stats": {
-      "openTasks": "Open tasks",
-      "assignedToMe": "Assigned to me",
+      "members": {
+        "one": "Member",
+        "few": "Members",
+        "other": "Members"
+      },
+      "openTasks": {
+        "one": "Open task",
+        "few": "Open tasks",
+        "other": "Open tasks"
+      },
+      "projects": {
+        "one": "Project",
+        "few": "Projects",
+        "other": "Projects"
+      },
       "loadFailed": "Couldn't load this workspace's numbers."
     },
     "account": {
@@ -812,6 +856,9 @@
       "updated": "Updated",
       "empty": "No projects in this workspace yet.",
       "loadFailed": "Couldn't load the projects."
+    },
+    "workspace": {
+      "private": "Only you can see this workspace."
     }
   }
 }

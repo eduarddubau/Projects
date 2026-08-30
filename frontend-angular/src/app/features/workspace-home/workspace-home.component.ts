@@ -10,8 +10,9 @@ import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs/operators';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { EMPTY } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { DashboardService } from '@core/services/dashboard.service';
 import { ProjectService } from '@core/services/project.service';
@@ -21,8 +22,8 @@ import { TodayService } from '@core/services/today.service';
 import { AuthService } from '@core/services/auth.service';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { CurrentWeather } from '@core/models/weather';
+import { pluralCategory } from '@core/utils/plural';
 import { AuroraComponent } from '@shared/aurora/aurora.component';
-import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope.component';
 import { WeatherWidgetComponent } from '@shared/weather-widget/weather-widget.component';
 import { TaskRowsComponent } from '@shared/task-rows/task-rows.component';
 
@@ -44,7 +45,6 @@ import { TaskRowsComponent } from '@shared/task-rows/task-rows.component';
     MatIconModule,
     MatProgressSpinnerModule,
     AuroraComponent,
-    WorkspaceScopeComponent,
     WeatherWidgetComponent,
     TaskRowsComponent,
     TranslocoDirective,
@@ -68,7 +68,51 @@ export class WorkspaceHomeComponent {
     initialValue: this.route.snapshot.paramMap.get('workspaceId'),
   });
 
+  // The workspace in the path, not the selected one: the two agree in practice, but the
+  // path is what the rest of this page reads.
+  workspace = computed(
+    () => this.workspaceContext.workspaces().find((w) => w.id === this.workspaceId()) ?? null,
+  );
+
   dashboard = this.dashboardService.workspaceDashboard(this.workspaceId);
+
+  constructor() {
+    // The workspace store loads once per session, so a member added or a name edited
+    // elsewhere would otherwise show stale here for as long as the tab lives.
+    // Swallowed: the store keeps whatever it already had, and the page reads that.
+    this.workspaceContext
+      .refresh()
+      .pipe(
+        catchError(() => EMPTY),
+        takeUntilDestroyed(),
+      )
+      .subscribe();
+  }
+
+  /**
+   * What the page loaded, falling back to what the store remembers.
+   *
+   * hasValue(), not value(): a resource in an error state throws when read, and this tile
+   * renders outside the error branch that guards the project grid below it.
+   */
+  projectCount = computed(() =>
+    this.projects.hasValue() ? this.projects.value().length : (this.workspace()?.projectCount ?? 0),
+  );
+
+  // Each metric's label agrees with its own number — Transloco has no ICU plurals here,
+  // so the count picks the key.
+  memberLabel = computed(() => this.countLabel('members', this.workspace()?.memberCount ?? 0));
+  projectLabel = computed(() => this.countLabel('projects', this.projectCount()));
+  openTaskLabel = computed(() =>
+    this.countLabel(
+      'openTasks',
+      this.dashboard.hasValue() ? this.dashboard.value().openTaskCount : 0,
+    ),
+  );
+
+  private countLabel(metric: string, count: number): string {
+    return `workspaceHome.stats.${metric}.${pluralCategory(count, this.languageService.dateLocale())}`;
+  }
 
   // Home is the personal digest, so this half is always "assigned to me"; the Tasks
   // page is where the filter is a control.

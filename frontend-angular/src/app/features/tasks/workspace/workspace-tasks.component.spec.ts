@@ -98,11 +98,11 @@ describe('WorkspaceTasksComponent', () => {
     );
   }
 
-  it('asks for the caller’s own tasks when the URL names no filter', async () => {
+  it('asks for every open task when the URL names no filter', async () => {
     await setup();
 
     const request = httpMock.expectOne((r) => r.url === tasksUrl);
-    expect(request.request.params.get('assignee')).toBe('me');
+    expect(request.request.params.get('assignee')).toBeNull();
     request.flush([]);
   });
 
@@ -125,11 +125,11 @@ describe('WorkspaceTasksComponent', () => {
     request.flush([]);
   });
 
-  it('falls back to my tasks for a filter the app does not have', async () => {
+  it('falls back to every task for a filter the app does not have', async () => {
     await setup('nonsense');
 
     const request = httpMock.expectOne((r) => r.url === tasksUrl);
-    expect(request.request.params.get('assignee')).toBe('me');
+    expect(request.request.params.get('assignee')).toBeNull();
     request.flush([]);
   });
 
@@ -155,7 +155,7 @@ describe('WorkspaceTasksComponent', () => {
   });
 
   it('says so when nothing matches the filter, in the filter’s own words', async () => {
-    await setup();
+    await setup('mine');
     await flush([]);
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
@@ -172,7 +172,7 @@ describe('WorkspaceTasksComponent', () => {
     fixture.componentInstance.setFilter('overdue');
     expect(navigate.mock.calls[0][1]?.queryParams).toEqual({ filter: 'overdue' });
 
-    fixture.componentInstance.setFilter('mine');
+    fixture.componentInstance.setFilter('all');
     expect(navigate.mock.calls[1][1]?.queryParams).toEqual({ filter: null });
   });
 

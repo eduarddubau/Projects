@@ -42,8 +42,12 @@ export class ProjectTrashedPanelComponent {
   });
 
   /**
-   * Instants, not days: the server refuses a restore from the deletion's time of day, so a
-   * day-level check would keep offering the button for hours after it started failing.
+   * Compared as instants, so opening the page after the deletion's time of day already
+   * withdraws Restore rather than waiting for midnight.
+   *
+   * It re-checks when the reader's day turns, not at the closing hour: a page left open
+   * across that hour still offers a Restore the server will refuse, which costs an error
+   * toast rather than anything worse.
    */
   isExpired = computed(() => {
     const deletedAt = this.project().deletedAt;

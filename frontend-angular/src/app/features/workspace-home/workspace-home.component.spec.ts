@@ -9,7 +9,9 @@ import { WorkspaceHomeComponent } from './workspace-home.component';
 import { API_URL } from '@core/tokens/app.tokens';
 import { AuthService } from '@core/services/auth.service';
 import { ThemeService } from '@core/services/theme.service';
+import { WorkspaceContextService } from '@core/services/workspace-context.service';
 import { WorkspaceDashboard } from '@core/models/workspace-dashboard';
+import { Workspace } from '@core/models/workspace';
 import { Project } from '@core/models/project';
 import { WorkspaceTask } from '@core/models/task';
 import { provideTranslocoTesting } from '@shared/testing/transloco-testing';
@@ -33,6 +35,24 @@ const routeStub = {
 };
 
 const sampleDashboard: WorkspaceDashboard = { openTaskCount: 12, myOpenTaskCount: 7 };
+
+// The header reads the workspace out of the context store, which the shell loads.
+const workspaces = signal<Workspace[]>([]);
+
+function workspace(overrides: Partial<Workspace> = {}): Workspace {
+  return {
+    id: workspaceId,
+    name: 'Acme Team',
+    description: 'Design and ship the marketing site.',
+    isPersonal: false,
+    myRole: 'Owner',
+    memberCount: 3,
+    projectCount: 2,
+    createdAt: '2026-06-01T09:00:00Z',
+    isDeleted: false,
+    ...overrides,
+  };
+}
 
 const rocket: Project = {
   workspaceId,
@@ -65,6 +85,7 @@ describe('WorkspaceHomeComponent', () => {
 
   beforeEach(async () => {
     localStorage.clear();
+    workspaces.set([workspace()]);
     await TestBed.configureTestingModule({
       imports: [WorkspaceHomeComponent],
       providers: [
@@ -75,6 +96,11 @@ describe('WorkspaceHomeComponent', () => {
         themeStub,
         { provide: API_URL, useValue: apiUrl },
         { provide: ActivatedRoute, useValue: routeStub },
+        {
+          provide: WorkspaceContextService,
+          // The page re-reads the store on entry; the stub is already current.
+          useValue: { workspaces, refresh: () => of(workspaces()) },
+        },
       ],
     }).compileComponents();
 
@@ -120,15 +146,81 @@ describe('WorkspaceHomeComponent', () => {
     await fixture.whenStable();
   });
 
-  it('renders the two workspace tiles', async () => {
+  it('names the workspace it is the home of, and what it is for', async () => {
+    await respond(sampleDashboard, []);
+
+    const heading = (fixture.nativeElement as HTMLElement).querySelector('h1');
+    expect(heading?.textContent?.trim()).toBe('Acme Team');
+    expect(text()).toContain('Design and ship the marketing site.');
+  });
+
+  it('counts members, projects and open work, and names my role', async () => {
     await respond(sampleDashboard, []);
 
     const tiles = (fixture.nativeElement as HTMLElement).querySelectorAll('.kpi');
-    expect(tiles).toHaveLength(2);
-    expect(text()).toContain('Open tasks');
-    expect(text()).toContain('12');
-    expect(text()).toContain('Assigned to me');
-    expect(text()).toContain('7');
+    expect(tiles).toHaveLength(3);
+    expect(tiles[0].textContent).toContain('3');
+    expect(tiles[0].textContent).toContain('Members');
+    expect(tiles[0].textContent).toContain('Owner');
+    expect(tiles[1].textContent).toContain('Projects');
+    expect(tiles[2].textContent).toContain('Open tasks');
+  });
+
+  // Every metric opens the page behind it. The task link carries no filter because the
+  // page now opens on "all", which is the number the tile shows.
+  // The count came from the workspace store before, which loads once a session: create a
+  // project and the tile disagreed with the grid directly below it.
+  it('counts the projects it actually loaded, not the ones the store remembers', async () => {
+    // The store is deliberately behind — it says two, the page fetched three.
+    await respond(sampleDashboard, [
+      rocket,
+      { ...rocket, id: 'p2', name: 'Second' },
+      { ...rocket, id: 'p3', name: 'Third' },
+    ]);
+
+    const tiles = (fixture.nativeElement as HTMLElement).querySelectorAll('.kpi');
+    expect(tiles[1].textContent).toContain('3');
+    expect(tiles[1].textContent).toContain('Projects');
+  });
+
+  it('opens the page behind each metric', async () => {
+    await respond(sampleDashboard, []);
+
+    const links = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLAnchorElement>('a.kpi'),
+    ).map((a) => a.getAttribute('href'));
+
+    expect(links).toEqual([
+      `/w/${workspaceId}/members`,
+      `/w/${workspaceId}/projects`,
+      `/w/${workspaceId}/tasks`,
+    ]);
+  });
+
+  // A count of one and an Owner chip describe a space nobody else can reach.
+  it('states the privacy of a personal workspace instead of counting to one', async () => {
+    workspaces.set([
+      workspace({
+        isPersonal: true,
+        name: "Dev's Workspace",
+        description: undefined,
+        memberCount: 1,
+      }),
+    ]);
+    await respond(sampleDashboard, []);
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent?.trim()).toBe(
+      'My Workspace',
+    );
+    expect(text()).toContain('Only you can see this workspace.');
+
+    // Still three cards: a workspace of one says so, in the singular, with the role.
+    const tiles = (fixture.nativeElement as HTMLElement).querySelectorAll('.kpi');
+    expect(tiles).toHaveLength(3);
+    expect(tiles[0].textContent).toContain('1');
+    expect(tiles[0].textContent).toContain('Member');
+    expect(tiles[0].textContent).not.toContain('Members');
+    expect(tiles[0].textContent).toContain('Owner');
   });
 
   it('lists my assigned tasks, each naming the project it is in', async () => {
@@ -168,11 +260,30 @@ describe('WorkspaceHomeComponent', () => {
     });
     await respond(sampleDashboard, []);
 
-    const title = (fixture.nativeElement as HTMLElement).querySelector('.page-title');
-    expect(title?.textContent).toContain('Dev');
+    // The greeting sits above the title now; the title belongs to the workspace.
+    const greeting = (fixture.nativeElement as HTMLElement).querySelector('.home-greeting');
+    expect(greeting?.textContent).toContain('Dev');
 
     const nameLink = (fixture.nativeElement as HTMLElement).querySelector('.name-link');
     expect(nameLink?.getAttribute('href')).toContain('/profile');
+  });
+
+  // Reading a resource in its error state throws, and this tile renders outside the error
+  // branch that guards the grid below — so a failed fetch would blank the whole page.
+  it('keeps the page up when the projects themselves fail to load', async () => {
+    httpMock.expectOne(dashboardUrl).flush(sampleDashboard);
+    httpMock.expectOne((r) => r.url === tasksUrl).flush([]);
+    httpMock.expectOne(projectsUrl).flush('boom', { status: 500, statusText: 'Server Error' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // The header and the other metrics survive, and the tile falls back to the store's count.
+    expect((fixture.nativeElement as HTMLElement).querySelector('h1')?.textContent).toContain(
+      'Acme Team',
+    );
+    const tiles = (fixture.nativeElement as HTMLElement).querySelectorAll('.kpi');
+    expect(tiles[1].textContent).toContain('2');
+    expect(text()).toContain("Couldn't load the projects.");
   });
 
   // The three reads are independent, so one failing must not take the others down.
@@ -181,6 +292,7 @@ describe('WorkspaceHomeComponent', () => {
 
     expect(text()).toContain("Couldn't load this workspace's numbers.");
     expect(text()).toContain('Rocket Plans');
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('.kpi')).toHaveLength(0);
+    // Members and projects read the workspace, not the dashboard, so they survive it.
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('.kpi')).toHaveLength(2);
   });
 });

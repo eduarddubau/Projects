@@ -10,46 +10,68 @@
       <span class="avatar-circle home-avatar" aria-hidden="true">{{ initials() }}</span>
     </a>
     <div class="home-heading">
-      <app-workspace-scope />
-      <!-- The comma rides with the greeting, and the gap before the name is CSS. Angular
-           collapses the whitespace between these two elements either way, so laying the
-           comma out in the markup renders "Good afternoon , dev1" or "afternoon,dev1"
-           depending on where the line breaks — never the one space it should be. -->
-      <h1 class="page-title">
+      <!-- The mood line reads the weather when there is any and the hour otherwise, so
+           this is never empty. The comma rides with the tagline and the gap before the
+           name is CSS: Angular collapses the markup whitespace between the two elements,
+           so a comma laid out here renders "sunshine , dev1" or "sunshine,dev1" depending
+           on where the line breaks — never the one space it should be. -->
+      <p class="home-greeting">
         @if (displayName(); as name) {
-          <span>{{ t(greetingKey()) }},</span>
+          <span>{{ t(taglineKey()) }},</span>
           <a routerLink="/profile" class="name-link">{{ name }}</a>
         } @else {
-          <span>{{ t(greetingKey()) }}</span>
+          <span>{{ t(taglineKey()) }}</span>
         }
-      </h1>
-      <p class="page-subtitle">{{ t(taglineKey()) }}</p>
+      </p>
+
+      @if (workspace(); as w) {
+        <h1 class="page-title">{{ w.isPersonal ? t('workspaces.personal') : w.name }}</h1>
+
+        @if (w.isPersonal) {
+          <p class="page-subtitle">{{ t('workspaceHome.workspace.private') }}</p>
+        } @else if (w.description) {
+          <p class="page-subtitle">{{ w.description }}</p>
+        }
+      }
     </div>
+
+    <app-weather-widget class="home-weather" (loaded)="onWeatherLoaded($event)" />
   </header>
 
   <!-- The tiles carry their own loading and error states: a failed count is no
        reason to withhold the projects below it. -->
   <section class="overview">
-    <app-weather-widget (loaded)="onWeatherLoaded($event)"></app-weather-widget>
+    @if (workspace(); as w) {
+      <!-- Personal workspaces count too: one member, owner, which is the clearest way to
+           show a space of one. -->
+      <a class="kpi" [routerLink]="['/w', workspaceId(), 'members']">
+        <span class="kpi-value">{{ w.memberCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">group</mat-icon>
+          {{ t(memberLabel()) }}
+          <span class="role-chip">{{ t('workspaces.roles.' + w.myRole) }}</span>
+        </span>
+      </a>
+
+      <a class="kpi" [routerLink]="['/w', workspaceId(), 'projects']">
+        <span class="kpi-value">{{ projectCount() }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">folder_open</mat-icon>
+          {{ t(projectLabel()) }}
+        </span>
+      </a>
+    }
 
     @if (dashboard.hasValue()) {
       @let d = dashboard.value();
 
-      <div class="kpi">
+      <a class="kpi" [routerLink]="['/w', workspaceId(), 'tasks']">
         <span class="kpi-value">{{ d.openTaskCount }}</span>
         <span class="kpi-meta">
           <mat-icon class="kpi-icon">check_circle_outline</mat-icon>
-          {{ t('workspaceHome.stats.openTasks') }}
+          {{ t(openTaskLabel()) }}
         </span>
-      </div>
-
-      <div class="kpi">
-        <span class="kpi-value">{{ d.myOpenTaskCount }}</span>
-        <span class="kpi-meta">
-          <mat-icon class="kpi-icon">task_alt</mat-icon>
-          {{ t('workspaceHome.stats.assignedToMe') }}
-        </span>
-      </div>
+      </a>
     } @else if (dashboard.error()) {
       <p class="kpi-state">
         <mat-icon color="warn">error_outline</mat-icon>
@@ -65,7 +87,13 @@
   <section class="home-section">
     <div class="section-head">
       <h2 class="section-title">{{ t('workspaceHome.myTasks.title') }}</h2>
-      <a class="section-link" [routerLink]="['/w', workspaceId(), 'tasks']">
+      <!-- Carries the filter: the page opens on every task, and this link expands the
+           digest above it, not the workspace's whole list. -->
+      <a
+        class="section-link"
+        [routerLink]="['/w', workspaceId(), 'tasks']"
+        [queryParams]="{ filter: 'mine' }"
+      >
         {{ t('workspaceHome.viewAll') }}
         <mat-icon aria-hidden="true">arrow_forward</mat-icon>
       </a>
