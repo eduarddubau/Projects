@@ -18,6 +18,9 @@ public sealed class AdminProjectServiceTests : IDisposable
     private readonly Guid _otherUserId = Guid.NewGuid();
     private const int TrashWindowDays = 30;
 
+    /// <summary>A deletion old enough to be purgeable, which is the only state purge accepts.</summary>
+    private static DateTime PastTheWindow => DateTime.UtcNow.AddDays(-(TrashWindowDays + 1));
+
     // Two workspaces with no member in common. Trash, restore and purge each act on
     // _othersWorkspace, which is what pins the admin reaching past membership.
     private readonly Workspace _personal;
@@ -95,7 +98,8 @@ public sealed class AdminProjectServiceTests : IDisposable
             "Deleted",
             _othersWorkspace,
             createdBy: _otherUserId,
-            isDeleted: true
+            isDeleted: true,
+            deletedAt: PastTheWindow
         );
 
         var result = await _service.RestoreProjectsAsync([project.Id], Ct);
@@ -166,7 +170,7 @@ public sealed class AdminProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetAllDeletedProjectsAsync_FlagsOnlyProjectsOlderThanRetentionWindowAsPurgeable()
+    public async Task GetAllDeletedProjectsAsync_FlagsOnlyProjectsOlderThanTheTrashWindowAsPurgeable()
     {
         AddProject(
             "RecentlyDeleted",
@@ -194,7 +198,8 @@ public sealed class AdminProjectServiceTests : IDisposable
             "Deleted",
             _othersWorkspace,
             createdBy: _otherUserId,
-            isDeleted: true
+            isDeleted: true,
+            deletedAt: PastTheWindow
         );
 
         var result = await _service.PurgeProjectsAsync([project.Id], Ct);
@@ -220,6 +225,27 @@ public sealed class AdminProjectServiceTests : IDisposable
         Assert.NotNull(stored);
     }
 
+    // Hiding the button is not the guard: the endpoint must refuse to erase what its owner
+    // can still restore.
+    [Fact]
+    public async Task PurgeProjectsAsync_InsideTheTrashWindow_SkipsItAndDoesNotDelete()
+    {
+        var project = AddProject(
+            "RecentlyDeleted",
+            _personal,
+            isDeleted: true,
+            deletedAt: DateTime.UtcNow.AddDays(-1)
+        );
+
+        var result = await _service.PurgeProjectsAsync([project.Id], Ct);
+
+        Assert.Equal(0, result);
+        var stored = await _context
+            .Projects.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == project.Id, Ct);
+        Assert.NotNull(stored);
+    }
+
     [Fact]
     public async Task PurgeProjectsAsync_WhenNotFound_ReturnsZero()
     {
@@ -231,8 +257,8 @@ public sealed class AdminProjectServiceTests : IDisposable
     [Fact]
     public async Task PurgeProjectsAsync_WithMultipleIds_PurgesOnlyTheDeletedOnesAndReturnsCount()
     {
-        var deleted1 = AddProject("Deleted1", _personal, isDeleted: true);
-        var deleted2 = AddProject("Deleted2", _personal, isDeleted: true);
+        var deleted1 = AddProject("Deleted1", _personal, isDeleted: true, deletedAt: PastTheWindow);
+        var deleted2 = AddProject("Deleted2", _personal, isDeleted: true, deletedAt: PastTheWindow);
         var active = AddProject("Active", _personal);
 
         var result = await _service.PurgeProjectsAsync([deleted1.Id, deleted2.Id, active.Id], Ct);
@@ -248,7 +274,7 @@ public sealed class AdminProjectServiceTests : IDisposable
     [Fact]
     public async Task PurgeProjectsAsync_AlsoPurgesTheProjectsTasks()
     {
-        var project = AddProject("Deleted", _personal, isDeleted: true);
+        var project = AddProject("Deleted", _personal, isDeleted: true, deletedAt: PastTheWindow);
         var live = AddTask("Live", project);
         var trashed = AddTask("Trashed", project, isDeleted: true);
         var survivor = AddTask("Elsewhere", AddProject("Kept", _personal));

@@ -104,7 +104,7 @@ public static class ServiceExtensions
         services
             .AddOptions<TrashWindow>()
             .Bind(config.GetSection(TrashWindow.SectionName))
-            .Validate(w => w.Days > 0, "TrashWindowDays must be at least 1 day.")
+            .Validate(w => w.Days > 0, "TrashWindow:Days must be at least 1 day.")
             .ValidateOnStart();
 
         services.AddSingleton(sp => sp.GetRequiredService<IOptions<TrashWindow>>().Value);

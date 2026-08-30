@@ -47,7 +47,7 @@ one of those outcomes from a card menu, because a board only reachable by draggi
 people cannot use. A `?view=list` toggle swaps in a filterable, sortable table over the same data.
 
 Deleting is reversible until it isn't: projects, workspaces and users go to a **trash** they can be
-restored from, and an admin can purge past a retention window. Every trash states that window in
+restored from, and an admin can purge past that window. Every trash states that window in
 days and counts each row down to its own expiry, rather than alluding to a policy the reader cannot
 see. Erasing a _user_ is a different operation from purging a project, and the app treats it as one.
 
@@ -161,7 +161,7 @@ harmless from your own machine, which is the only place any of the three answers
   not 403** — existence and access are deliberately indistinguishable.
 
 - **A deletion model that knows erasure from a purge.** Soft delete is a global query filter with a
-  trash area and a retention window. Projects can be hard-purged; **users cannot**, because audit
+  trash area and a trash window. Projects can be hard-purged; **users cannot**, because audit
   foreign keys (`created_by`/`updated_by`) reference them with `Restrict`. GDPR erasure is therefore
   implemented as **anonymization** — PII scrubbed, password hash dropped, row retained so the audit
   trail stays valid — and it refuses outright if the account is the sole owner of a shared workspace,
@@ -350,10 +350,10 @@ compose has no `env_file:`, and the api service forwards exactly six variables
 read by Compose for interpolation and never reaches the container, silently. To tune the rest, edit
 `appsettings.Development.json` or add the variable to `compose.yaml`.
 
-> **The trash window has no default in code.** `TrashWindow` binds the `Retention` section and
+> **The trash window has no default in code.** `TrashWindow` binds the `TrashWindow` section and
 > nothing else sets the number, so setting it to zero or below **fails startup** rather than
 > quietly emptying every trash. The API publishes it at `GET /api/config`, which is how the UI can
-> say "kept for 30 days" and count each row down to its own expiry.
+> say "restorable for 30 days" and count each row down to its own expiry.
 
 Defaults below are `appsettings.json`. The **Development** column is what the Quick start stack
 actually runs with, since `appsettings.Development.json` overrides three of them:
@@ -368,7 +368,7 @@ actually runs with, since `appsettings.Development.json` overrides three of them
 | `AuthProtection:SessionPermitPerWindow`                | The looser budget for refresh, logout and `/me`, so session upkeep can't spend the login allowance   | `60`       | **`400`**           |
 | `AuthProtection:MaxFailedAttempts` / `:LockoutMinutes` | Per-account lockout, per OWASP                                                                       | `5` / `15` |                     |
 | `AuthProtection:TrustedProxyNetworks`                  | Proxy CIDRs whose `X-Forwarded-*` may be believed. **Empty switches forwarded headers off entirely** | `[]`       | **`10.99.0.10/32`** |
-| `Retention:TrashWindowDays`                            | How long anything soft-deleted stays restorable — projects and tasks alike                           | `30`       |                     |
+| `TrashWindow:Days`                                     | How long anything soft-deleted stays restorable — projects and tasks alike                           | `30`       |                     |
 | `AllowedOrigins`                                       | CORS origins. **Required outside Development** — the API throws on startup without it                | —          | any origin          |
 
 The dev budgets are raised because the e2e suite logs in on nearly every test from one container

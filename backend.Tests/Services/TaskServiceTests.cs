@@ -369,7 +369,7 @@ public sealed class TaskServiceTests : IDisposable
     // the point: deleting stays member-open because it is recoverable by the same member.
 
     [Fact]
-    public async Task GetProjectDeletedTasksAsync_ReturnsDeletedTasksWithinRetentionWindow()
+    public async Task GetProjectDeletedTasksAsync_ReturnsDeletedTasksWithinTheTrashWindow()
     {
         AddTask("Live");
         AddTask("RecentlyDeleted", isDeleted: true, deletedAt: DateTime.UtcNow.AddDays(-1));
@@ -559,10 +559,10 @@ public sealed class TaskServiceTests : IDisposable
         Assert.True(stored.IsDeleted);
     }
 
-    // The retention window is policy, not a display filter: a row the trash stopped listing
+    // The trash window is policy, not a display filter: a row the trash stopped listing
     // must not stay restorable by anyone still holding its id.
     [Fact]
-    public async Task RestoreTaskByIdAsync_PastTheRetentionWindow_ReturnsNull()
+    public async Task RestoreTaskByIdAsync_PastTheTrashWindow_ReturnsNull()
     {
         var task = AddTask(
             "Ancient",

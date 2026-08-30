@@ -7,7 +7,7 @@ import { AppConfigService } from '@core/services/app-config.service';
 import { LanguageService } from '@core/services/language.service';
 import { TodayService } from '@core/services/today.service';
 import { Project } from '@core/models/project';
-import { daysUntilExpiry, expiryIso } from '@core/utils/trash-expiry';
+import { expiryInstant, expiryIso } from '@core/utils/trash-expiry';
 
 /**
  * What a trashed project shows where its board would be: why it is here, a way back, and
@@ -41,8 +41,18 @@ export class ProjectTrashedPanelComponent {
     return deletedAt && days ? expiryIso(deletedAt, days) : undefined;
   });
 
+  /**
+   * Instants, not days: the server refuses a restore from the deletion's time of day, so a
+   * day-level check would keep offering the button for hours after it started failing.
+   */
   isExpired = computed(() => {
-    const expiry = this.expiry();
-    return !!expiry && daysUntilExpiry(expiry, this.today()) < 0;
+    const deletedAt = this.project().deletedAt;
+    const days = this.trashWindowDays();
+
+    // Read for its dependency, not its value: Date.now() is not reactive, so without the
+    // day signal this answer is computed once and a page left open never withdraws Restore.
+    this.today();
+
+    return !!deletedAt && !!days && Date.now() >= expiryInstant(deletedAt, days);
   });
 }

@@ -146,6 +146,10 @@ export class ProjectDetailComponent {
     return this.workspaceContext.workspaces().filter((w) => w.id !== holder);
   });
 
+  constructor() {
+    this.appConfig.reloadIfFailed();
+  }
+
   setView(view: TaskView): void {
     // replaceUrl so Back leaves the project rather than walking your view changes.
     this.router.navigate([], {

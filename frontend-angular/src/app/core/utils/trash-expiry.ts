@@ -10,6 +10,17 @@ export function expiryIso(deletedAt: string, windowDays: number): string {
 }
 
 /**
+ * The instant a soft-deleted row stops being restorable.
+ *
+ * Exact days from the deletion, matching the server's own comparison, so a decision about
+ * whether an action is still allowed agrees with the answer the API will give. The day-level
+ * countdown below is for reading; this is for gating.
+ */
+export function expiryInstant(deletedAt: string, windowDays: number): number {
+  return new Date(deletedAt).getTime() + windowDays * MS_PER_DAY;
+}
+
+/**
  * Whole days from the reader's day to `expiry`, negative once it has passed.
  *
  * `today` is required for the reason isOverdue's is: a default would let a caller reach the

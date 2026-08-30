@@ -119,7 +119,7 @@ public sealed class AdminDashboardServiceTests : IDisposable
 
         AddProject("Mine", _mine, createdAt: DateTime.UtcNow.AddDays(-2));
         AddProject("Theirs", _theirs, createdBy: owner.Id, createdAt: DateTime.UtcNow.AddDays(-1));
-        // Admin trash has no retention window, so even old deletions count.
+        // The admin trash has no window, so even old deletions count.
         AddProject(
             "Old deleted",
             _theirs,

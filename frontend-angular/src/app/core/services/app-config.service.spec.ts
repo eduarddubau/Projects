@@ -64,6 +64,30 @@ describe('AppConfigService', () => {
     expect(service.trashWindow()).toBeUndefined();
   });
 
+  // A blip must not cost the session: the surfaces that quote the window ask again.
+  it('asks again after a failed fetch, and keeps what the retry returns', async () => {
+    const service = setup();
+    httpMock.expectOne(`${apiUrl}/config`).error(new ProgressEvent('failed'));
+    await TestBed.inject(ApplicationRef).whenStable();
+
+    service.reloadIfFailed();
+    TestBed.tick();
+    await respondWith(21);
+
+    expect(service.trashWindowDays()).toBe(21);
+  });
+
+  it('does not re-fetch a window it already has', async () => {
+    const service = setup();
+    await respondWith(30);
+
+    service.reloadIfFailed();
+    TestBed.tick();
+
+    expect(service.trashWindowDays()).toBe(30);
+    httpMock.verify();
+  });
+
   it('picks the plural category for the reader’s language', async () => {
     const service = setup();
     await respondWith(7);

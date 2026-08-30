@@ -31,6 +31,12 @@ import { WorkspaceScopeComponent } from '@shared/workspace-scope/workspace-scope
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrashShellComponent {
+  private appConfig = inject(AppConfigService);
+
   isOwner = inject(WorkspaceContextService).isOwner;
-  trashWindow = inject(AppConfigService).trashWindow;
+  trashWindow = this.appConfig.trashWindow;
+
+  constructor() {
+    this.appConfig.reloadIfFailed();
+  }
 }

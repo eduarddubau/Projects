@@ -35,4 +35,16 @@ export class AppConfigService {
     const days = this.trashWindowDays();
     return days ? { days, plural: pluralCategory(days, this.language.dateLocale()) } : undefined;
   });
+
+  /**
+   * Asks again, but only from the error state.
+   *
+   * The resource loads once per app load, so without this a single failed request costs the
+   * whole session — every sentence naming the window stays absent until a full reload. Called
+   * by the surfaces that quote it, which bounds the retries to navigation: no timers, no
+   * backoff, and a permanent failure just leaves the copy off.
+   */
+  reloadIfFailed(): void {
+    if (this.config.status() === 'error') this.config.reload();
+  }
 }

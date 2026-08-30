@@ -19,7 +19,7 @@ public class AdminDashboardService : IAdminDashboardService
     {
         var activeProjectCount = await _context.Projects.CountAsync(ct);
 
-        // Admin trash has no retention cutoff — deleted projects stay until purged.
+        // The admin trash has no window — deleted projects stay until purged.
         var deletedProjectCount = await _context
             .Projects.IgnoreQueryFilters()
             .CountAsync(p => p.IsDeleted, ct);

@@ -165,7 +165,7 @@ public sealed class ProjectServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetWorkspaceDeletedProjectsAsync_ReturnsDeletedProjectsWithinRetentionWindow()
+    public async Task GetWorkspaceDeletedProjectsAsync_ReturnsDeletedProjectsWithinTheTrashWindow()
     {
         AddProject("Active", _personal);
         AddProject(
@@ -444,7 +444,7 @@ public sealed class ProjectServiceTests : IDisposable
     // Matches the task rule: what the trash no longer lists is no longer restorable here,
     // and the admin trash is the only way back.
     [Fact]
-    public async Task RestoreProjectByIdAsync_PastTheRetentionWindow_ReturnsNull()
+    public async Task RestoreProjectByIdAsync_PastTheTrashWindow_ReturnsNull()
     {
         var project = AddProject(
             "Ancient",

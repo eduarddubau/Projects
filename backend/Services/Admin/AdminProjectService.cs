@@ -24,6 +24,8 @@ public class AdminProjectService : IAdminProjectService
         CancellationToken ct = default
     )
     {
+        // No window here on purpose: the admin trash is where something past the tenant's
+        // window can still come back.
         var projects = await _context
             .Projects.IgnoreQueryFilters()
             .Where(p => ids.Contains(p.Id) && p.IsDeleted)
@@ -58,9 +60,14 @@ public class AdminProjectService : IAdminProjectService
 
     public async Task<int> PurgeProjectsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
     {
+        var cutoff = _trashWindow.Cutoff;
+
+        // The window gates destruction, not just the button: hiding Purge in the UI leaves the
+        // endpoint able to erase a project its owner can still restore. Ineligible ids are
+        // skipped rather than refused, so the returned count says what actually went.
         var projects = await _context
             .Projects.IgnoreQueryFilters()
-            .Where(p => ids.Contains(p.Id) && p.IsDeleted)
+            .Where(p => ids.Contains(p.Id) && p.IsDeleted && p.DeletedAt < cutoff)
             .ToListAsync(ct);
 
         var projectIds = projects.Select(p => p.Id).ToList();

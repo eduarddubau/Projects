@@ -303,7 +303,7 @@ public static partial class DbSeeder
             },
         };
 
-        // Tiered ages relative to the retention window, so the admin purge filters
+        // Tiered ages relative to the trash window, so the admin purge filters
         // (>30/>60/>90 days) each have something to show: one project still within
         // the window, and three past it by increasing margins.
         var deletedAges = new[]
@@ -320,8 +320,8 @@ public static partial class DbSeeder
                 Name = $"{user.FirstName}'s Project Deleted {ageDays} Days Ago",
                 Description =
                     ageDays <= trashWindowDays
-                        ? "Soft-deleted recently; still within the trash retention window."
-                        : $"Soft-deleted {ageDays} days ago; past the {trashWindowDays}-day retention window.",
+                        ? "Soft-deleted recently; still within the trash window."
+                        : $"Soft-deleted {ageDays} days ago; past the {trashWindowDays}-day trash window.",
                 CreatedBy = user.Id,
                 WorkspaceId = workspaceId,
             })

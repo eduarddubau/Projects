@@ -84,10 +84,16 @@ export class TrashProjectsComponent {
 
   selection = new TableSelection(this.table.matching, this.table.pageRows);
 
-  trashWindow = inject(AppConfigService).trashWindow;
+  private appConfig = inject(AppConfigService);
+
+  trashWindow = this.appConfig.trashWindow;
 
   ageFilter = signal<AgeFilter>('all');
   displayedColumns = ['select', 'index', 'name', 'createdBy', 'deletedAt', 'actions'];
+
+  constructor() {
+    this.appConfig.reloadIfFailed();
+  }
 
   /** The server flags a row purgeable once it is past the window; a mixed selection has no one action. */
   canPurgeSelected = computed(() => {
@@ -180,7 +186,14 @@ export class TrashProjectsComponent {
         const ids = projects.map((p) => p.id);
         this.projectService.purgeProjects(ids).subscribe({
           next: ({ purgedCount }) => {
-            this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
+            // The server decides what it destroys — it skips an id still inside the window —
+            // so a short count reloads rather than pretending every row went.
+            if (purgedCount === ids.length) {
+              this.deleted.update((list) => list.filter((p) => !ids.includes(p.id)));
+            } else {
+              this.deleted.reload();
+            }
+
             this.selection.deselect(projects);
             this.notify(
               purgedCount === 1
