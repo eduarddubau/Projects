@@ -11,14 +11,14 @@
   <img src="https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white" alt=".NET 10">
   <img src="https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white" alt="Angular 22">
   <img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 18">
-  <img src="https://img.shields.io/badge/tests-600%20green-34d399" alt="600 tests">
+  <img src="https://img.shields.io/badge/tests-817-34d399" alt="817 tests">
   <img src="https://img.shields.io/badge/CI-4%20gates-38bdf8" alt="CI: 4 jobs">
   <img src="https://img.shields.io/badge/i18n-EN%20%C2%B7%20RO-a78bfa" alt="Languages: English, Romanian">
 </p>
 
 <p align="center">
   <img src="docs/workspace-home.webp" width="900"
-       alt="The workspace home in light theme with the default violet accent: a greeting for dev1, the local weather, counts of open tasks and tasks assigned to me, and the Acme Team workspace's two projects in a searchable table.">
+       alt="The workspace home in light theme with the default violet accent: a sidebar carrying the workspace switcher above Home, Projects, Tasks, Members, Settings and Trash; beside it a greeting for dev1, the local weather, a band reading 3 members, 2 projects and 6 open tasks, then dev1's own open tasks and the two most recently updated projects.">
 </p>
 
 > [!NOTE]
@@ -38,6 +38,12 @@ empty state asking them to create a container before they can create anything. P
 workspaces; tasks live in projects; a workspace shared with other people is the same entity with
 more members in it.
 
+Everything below the workspace is reached through it. A **sidebar** carries the workspace switcher
+at its top and that workspace's destinations under it — Home, Projects, Tasks, Members, Settings,
+Trash — so switching visibly repopulates what is beneath it. The home is a digest of _your_ work
+rather than a company scoreboard: your open tasks, soonest due first, and the projects that moved
+most recently. Nothing aggregates across workspaces, because the workspace is the tenant boundary.
+
 Owners **invite by email**, and the two cases are genuinely different: an address that already has
 an account joins immediately, an address that doesn't gets a redeemable token that is consumed the
 moment they register. Members contribute; only owners can remove a project or move one out.
@@ -46,10 +52,13 @@ Each project opens on a **kanban board** — drag between To do, In progress and
 one of those outcomes from a card menu, because a board only reachable by dragging is a board some
 people cannot use. A `?view=list` toggle swaps in a filterable, sortable table over the same data.
 
-Deleting is reversible until it isn't: projects, workspaces and users go to a **trash** they can be
-restored from, and an admin can purge past that window. Every trash states that window in
-days and counts each row down to its own expiry, rather than alluding to a policy the reader cannot
-see. Erasing a _user_ is a different operation from purging a project, and the app treats it as one.
+Deleting is reversible until it isn't: tasks, projects, workspaces and users all go to a **trash**
+they can be restored from, and an admin can purge past that window. Every trash states that window
+in days and counts each row down to its own expiry, rather than alluding to a policy the reader
+cannot see. Deleting a task also offers **Undo** on the snackbar for the eight seconds after —
+undo for the action that can be taken back, type-to-confirm for the one that can't, and never both
+in front of the same click. Erasing a _user_ is a different operation from purging a project, and
+the app treats it as one.
 
 ## Quick start
 
@@ -165,7 +174,30 @@ harmless from your own machine, which is the only place any of the three answers
   foreign keys (`created_by`/`updated_by`) reference them with `Restrict`. GDPR erasure is therefore
   implemented as **anonymization** — PII scrubbed, password hash dropped, row retained so the audit
   trail stays valid — and it refuses outright if the account is the sole owner of a shared workspace,
-  naming which ones.
+  naming which ones. The one thing erasure does destroy outright is the account's **private**
+  workspace, tasks and projects first: a personal workspace's name is derived from its owner's, so a
+  soft-deleted row would keep the very name the erasure existed to remove — and offer a Restore in
+  the admin trash that contradicts the promise the erasure just made.
+
+- **A number the reader is shown is a number the server enforces.** The trash window has no default
+  in code — `TrashWindow` binds one section, startup fails if it is missing or non-positive, and it
+  fails just as loudly if the _old_ key name is still set rather than falling back to a 30 nobody
+  chose. The API publishes it at `GET /api/config`, so the UI can say "restorable for 30 days" and
+  count each row down to its own expiry instead of alluding to a policy it cannot see — and past the
+  cutoff the same number refuses the restore, rather than a countdown running out on a row that
+  would have come back anyway. A displayed deadline nothing enforces is worse than none, which is
+  why the admin dashboard's workspace numbers carry no countdown at all: workspace purge, unlike
+  project purge, is not cutoff-gated.
+
+- **A query filter is not a privacy guarantee.** Every trash reads through `IgnoreQueryFilters()` to
+  see soft-deleted rows — and that switch is query-**wide** in EF, so it also turned off the filter
+  hiding soft-deleted _users_, printing a deleted person's real name during exactly the window
+  between soft delete and erasure. Every projection now tests `IsDeleted` on the user navigation
+  itself rather than trusting a filter that may not be on. The tests are the other half of the story:
+  two rounds of them were **worthless**, because the fixtures seeded through the synchronous
+  `SaveChanges()`, which skips the audit interceptor — the audit FKs stayed null, an earlier branch
+  answered, and deleting the guards left the suite green. Guards are mutation-checked here for that
+  reason.
 
 - **Ordering that stays the server's business.** A card's position is an integer renumbered per
   column, but a move is expressed as **the neighbours it landed between**, so the client never
@@ -174,6 +206,17 @@ harmless from your own machine, which is the only place any of the three answers
   applied optimistically, then reconciled with the row the server actually wrote — and rolled back
   by _refetching_, because a snapshot taken before the optimistic apply would also erase whatever
   else arrived while the request was in flight.
+
+- **Midnight is a state change, not a rendering detail.** _Overdue_ and _Due today_ are read from a
+  signal holding the reader's calendar day, re-armed a second past each local midnight, so a page
+  left open overnight re-bands itself instead of serving yesterday's answer until something
+  unrelated happens to recompute. The server render schedules no timer — a pending one would hold
+  the response open — and the rollover re-applies only the filter whose result actually depends on
+  the day, since anything wider would throw a reader on page 3 back to page 1 at 00:00:01. The API
+  half is the same argument: the workspace task query takes `dueBefore` as a **date the client
+  sends**, not an `overdue=true` flag, because a due date is a calendar day and in UTC+3 the
+  server's day is the previous one until 03:00 local — which used to drop genuinely late tasks from
+  the Overdue filter for three hours a night.
 
 - **Audit stamping that doesn't lie.** The `DbContext` stamps `UpdatedAt`/`UpdatedBy` on save — but
   rows that shift as a _consequence_ of someone else's edit are marked incidental and skipped.
@@ -196,7 +239,9 @@ harmless from your own machine, which is the only place any of the three answers
   without dragging, so each card carries a menu with move-to-column, move-up and move-down that call
   the same endpoint the drop handler does. The **menu** is what the e2e suite drives, deliberately:
   Playwright's drag against the CDK is flaky, and the accessible path is the one worth pinning —
-  both routes converge on the same `/move` call one layer down.
+  both routes converge on the same `/move` call one layer down. The same rule caught the tables: a
+  row's click was the only route into a trashed item, and it was mouse-only in all four of them, so
+  one directive gives every clickable row a tab stop, a button role, Enter/Space and a focus ring.
 
 - **Theming that goes all the way down.** Light and dark are Material 3 `light-dark()` token pairs,
   so a palette is a set of colours and nothing else — no dark-only literals stranded in components.
@@ -204,7 +249,7 @@ harmless from your own machine, which is the only place any of the three answers
   a reload never flashes. Switching animates as a circular reveal from the control you clicked (View
   Transitions API), and a reader who asks for reduced motion gets the instant swap.
 
-- **Translated to the edges.** English and Romanian, 520 keys each, including the server's error
+- **Translated to the edges.** English and Romanian, 668 keys each, including the server's error
   codes — a failed request is mapped back to a translation key rather than shown whatever prose the
   API happened to return. The language is resolved in an app initializer, so it is settled before
   the first render on the server as well as in the browser.
@@ -222,13 +267,22 @@ harmless from your own machine, which is the only place any of the three answers
   - `WorkspaceAccessService.cs` — the membership guard. Reads the **row**, not a projection:
     `FirstOrDefaultAsync` over a projected enum returns `default(WorkspaceRole)`, so a non-member
     would read as a Member.
-  - `TaskService.cs` — the neighbour-based move, per-column renumbering, and the incidental-change
-    marking that keeps a drag from re-attributing a whole column.
+  - `TaskService.cs` — the neighbour-based move, per-column renumbering, the incidental-change
+    marking that keeps a drag from re-attributing a whole column, and the two trash reads. The
+    workspace-wide one spells `!t.Project.IsDeleted` out inline, because the `IgnoreQueryFilters()`
+    it needs to see deleted tasks would otherwise fill the list with rows that restore refuses.
   - `InvitationService.cs` — invite, revoke, accept, and the no-token redemption that runs at
     registration and is forbidden from throwing, because a stale invitation must not fail a signup.
-  - `Admin/AdminUserService.cs` — anonymization, including the sole-owner refusal.
+  - `Admin/AdminUserService.cs` — anonymization, the sole-owner refusal, and the hard delete of the
+    erased account's private workspace.
+  - `Admin/AdminDashboardService.cs` — the aggregate counts and the lifecycle numbers the dashboard
+    splits into a "needs attention" queue and a quieter context strip.
 - **`Data/AppDbContext.cs`** — query filters, audit stamping, the partial unique indexes, and the
   Postgres error translation.
+- **`Mappings/`** — the DTO projections, each testing `IsDeleted` on a user navigation itself rather
+  than relying on a query filter the caller may have turned off.
+- **`Config/TrashWindow.cs`** + **`Controllers/ConfigController.cs`** — the one retention window,
+  bound with no code default and published anonymously, since a retention policy is not a secret.
 - **`Data/*QueryExtensions.cs`** — the composable access predicates (`InWorkspacesOf`,
   `InProjectsOf`, `Pending`), each carrying the note on why it is an `EXISTS`.
 - **`Extensions/ServiceExtensions.cs`** — Identity, JWT bearer, the rate-limit policies and the
@@ -246,30 +300,45 @@ harmless from your own machine, which is the only place any of the three answers
 
 <p align="center">
   <img src="docs/board.webp" width="900"
-       alt="The kanban board for Acme Website Redesign in light theme with the emerald accent: three columns — To do with four cards, In progress with two, Done with two — cards carrying a title with a due date and assignee where they are set, one of them overdue in red.">
+       alt="The kanban board for Acme Website Redesign in light theme with the emerald accent: the workspace sidebar on the left, a project header with a Board/List toggle and a Recently deleted link, then three columns — To do with four cards, In progress with two, Done with two — cards carrying a title with a due date and assignee where they are set, one of them overdue in red.">
 </p>
 
 Three columns, drag between them, and a per-card menu carrying the same moves for anyone not using a
-mouse. Cards show what a card has to: assignee, due date, and **overdue in red**. Trashing a project
-doesn't touch its tasks — they fall out of every query through the same membership subquery and come
-back intact on restore.
+mouse. Cards show what a card has to: assignee, due date, and **overdue in red**. The project's own
+"Recently deleted" sits in the view bar beside the Board/List toggle, one click from where a card was
+lost. Trashing a project doesn't touch its tasks — they fall out of every query through the same
+membership subquery and come back intact on restore.
 
 ### The list view
 
 <p align="center">
   <img src="docs/task-list.webp" width="900"
-       alt="The same project in list view, light theme with the indigo accent: a table of eight tasks with title, description, assignee, status chip and due date, below search, an Assigned to me filter and an Overdue filter, with pagination showing 1 to 8 of 8.">
+       alt="The same project in list view, light theme with the indigo accent: a table of eight tasks with title, description, assignee, status chip and due date, below search, an Assigned to me filter and an Overdue filter, with pagination showing 1 to 8 of 8. One row's due date is red for overdue.">
 </p>
 
 The same tasks, one `?view=list` away — search, _assigned to me_, _overdue_, and a paginator. The
 view lives in the URL rather than in stored preferences, which is what keeps it free of an SSR
 problem: there is no per-user state to resolve before the first render.
 
+### Recently deleted
+
+<p align="center">
+  <img src="docs/trash.webp" width="900"
+       alt="The Acme Team trash in light theme with the slate accent: a Tasks tab and a Projects tab under the heading, and three deleted tasks in a table with title, project, status, deleted date and an Expires column reading in 28 days, in 19 days, and in 3 days in red.">
+</p>
+
+One trash per workspace, with a tab per kind. **Tasks is the tab both roles have** — any member may
+delete a task, so any member must be able to restore one — while Projects is owner-only, and the
+guard sits on that child route rather than on the page, so a member reaching `/trash` gets the tab
+that belongs to them instead of a 403. The window is stated once in the subtitle and then per row:
+each line counts down to its own expiry and turns red as it runs out, which is only honest because
+the same number is the one the server enforces.
+
 ### Members and invitations
 
 <p align="center">
   <img src="docs/members.webp" width="900"
-       alt="The Members page for Acme Team in light theme with the rose accent: Dev User1 as Owner marked You, Dev User2 and Dev User3 as Members with editable role dropdowns and remove buttons, below a header carrying Invite people and Leave workspace.">
+       alt="The Members page for Acme Team in light theme with the rose accent: Dev User1 as Owner marked You, Dev User2 and Dev User3 as Members with editable role dropdowns and remove buttons, below a header carrying Invite people and Leave workspace, with the workspace sidebar alongside.">
 </p>
 
 Roles are editable in place, and the actions that aren't yours simply aren't there. A personal
@@ -280,29 +349,40 @@ workspace" is not a thing the model should permit.
 
 <p align="center">
   <img src="docs/theming.webp" width="900"
-       alt="The profile menu open over the workspace home in dark theme, showing the signed-in user and a row of five accent swatches — violet, indigo, emerald, rose and slate — above My Profile and Sign Out.">
+       alt="The profile menu open over the workspace home in dark theme with the rose accent, showing the signed-in user and a row of five accent swatches — violet, indigo, emerald, rose and slate, rose selected — above My Profile and Sign Out.">
 </p>
 
 Five accents, two themes, independently chosen and both remembered. Untouched, the theme follows the
 OS — including live, if the OS flips at sunset. The screenshots on this page run through all five
-accents — violet here and on the workspace home, then emerald, indigo, rose and slate. This one is
-the dark theme; the rest are light. Violet is the accent a new account gets.
+accents — violet on the workspace home, emerald on the board, indigo on the list, slate on the trash
+and rose on Members. The last two, the admin dashboard and this one, are the dark theme; the rest are
+light. Violet is the accent a new account gets.
 
 ### The admin area
 
 <p align="center">
-  <img src="docs/admin-users.webp" width="900"
-       alt="The admin users table in light theme with the slate accent: the four seeded accounts with email and creation date, a Delete action on each row and a disabled one on the signed-in admin, beside a sidebar holding Dashboard, Users and the three trash views.">
+  <img src="docs/admin-dashboard.webp" width="900"
+       alt="The admin dashboard in dark theme with the violet accent: a greeting for Admin beside the local weather, the heading Projects Administration with a DEVELOPMENT badge, a band reading 4 users, 1 shared workspace, 8 projects and 8 tasks, a Needs attention queue holding 9 projects past the window, recent signups, and a strip stating that projects are purgeable 30 days after deletion.">
 </p>
 
 An administrator administers, and holds no projects or workspaces of their own — enforced by an
-authorization policy rather than by convention. Destructive actions here are **type-to-confirm**:
-one row asks for its name, a batch asks for its size, because a batch has no single name to type and
-the count is the blast radius.
+authorization policy rather than by convention. The dashboard is the workspace home's skeleton with
+admin nouns in it, sharing one stylesheet and one greeting rather than a second copy of each, which
+is how the two drifted apart in the first place. Its band counts live rows; **"Needs attention"
+holds only the numbers with a verb behind them** — projects past the purge window, accounts awaiting
+erasure — and collapses to a single sentence when there is nothing to do. Locked-out accounts are
+counted in the strip below rather than promoted into the queue, because `/admin/users` has no unlock
+to send anyone to yet, and a card that promises a verb it cannot deliver is worse than a sentence.
+Lifetime totals that only ever grow were dropped outright: a metric that cannot change what the
+reader does next has not earned the screen.
+
+Behind it, `/admin/users` lists accounts and the three trashes hold what has been deleted.
+Destructive actions there are **type-to-confirm**: one row asks for its name, a batch asks for its
+size, because a batch has no single name to type and the count is the blast radius.
 
 ## Testing
 
-600 tests across three suites, all four CI jobs gating every push.
+817 tests across three suites, all four CI jobs gating every push.
 
 ```bash
 # Backend — xUnit v3, entirely EF InMemory, so no database needed
@@ -320,11 +400,11 @@ connections and runs `npm install` first, and `e2e_node_modules` is an empty nam
 over `/app/node_modules` on a fresh clone. `run --rm e2e npx playwright test` replaces that command,
 so npx would fetch a Playwright that doesn't match the browsers baked into the image.
 
-| Suite                   | Count   | Notes                                                                     |
-| ----------------------- | ------- | ------------------------------------------------------------------------- |
-| Backend (xUnit v3)      | **338** | Services, controllers, validators, middleware, plus the architecture test |
-| Frontend unit (Vitest)  | **197** | Services, guards, interceptors, and the signal-based table helpers        |
-| End-to-end (Playwright) | **65**  | 19 specs driving the real stack through nginx                             |
+| Suite                   | Count   | Notes                                                                          |
+| ----------------------- | ------- | ------------------------------------------------------------------------------ |
+| Backend (xUnit v3)      | **395** | Services, controllers, validators, mappings, middleware, the architecture test |
+| Frontend unit (Vitest)  | **340** | Services, guards, interceptors, components, and the signal-based table helpers |
+| End-to-end (Playwright) | **82**  | 22 specs driving the real stack through nginx                                  |
 
 CI runs four jobs: workflow lint (actionlint), backend, frontend, and e2e gated behind the two fast
 suites. Both language gates are set to fail on warnings — `-warnaserror` on the .NET build,
@@ -427,8 +507,9 @@ Migrations apply automatically on API startup, ahead of seeding.
 
 ## Status
 
-Actively developed. Workspaces, workspace-scoped access, tasks on a kanban board, the admin area,
-brute-force protection, the single-origin proxy and the full CI pipeline are all in place.
+Actively developed. Workspaces, workspace-scoped access, tasks on a kanban board, recovery for
+everything that can be deleted, the admin area, brute-force protection, the single-origin proxy and
+the full CI pipeline are all in place.
 
 What's deliberately not done yet, roughly in the order it's being attacked:
 
@@ -441,6 +522,11 @@ What's deliberately not done yet, roughly in the order it's being attacked:
 - **Rate limiting at the proxy.** The in-process limiter rejects only after a request reaches Kestrel,
   and its counters die with the process — a restart hands every attacker a fresh budget. A
   `limit_req` zone in nginx is complementary, and lands with the production config.
+- **A sweeper, so the retention window is a deletion policy and not only a recovery one.** The
+  window already filters every trash listing and refuses a restore past it, but nothing is destroyed
+  without an admin clicking Purge — so a row the reader believes is gone at 30 days is retained until
+  someone acts. That is a data-minimization problem before it is a storage one. The shape is a hosted
+  service purging past-window rows, tasks before projects, because the FK is `Restrict`.
 - **An audit log for admin actions.** Anonymizing a user and purging a project are irreversible, and
   the only trace today is a request log line that records the route but not the actor or the target.
 - **The account lifecycle** — email confirmation, password reset, self-service email change.
