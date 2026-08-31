@@ -52,9 +52,6 @@
     }
   },
   "header": {
-    "nav": {
-      "admin": "Admin"
-    },
     "health": {
       "online": "API is Online",
       "offline": "API is offline",
@@ -311,6 +308,7 @@
     },
     "table": {
       "name": "Name",
+      "email": "Email",
       "description": "Description",
       "createdBy": "Created By",
       "createdAt": "Created At",
@@ -365,18 +363,83 @@
       "workspaces": "Workspaces"
     },
     "dashboard": {
-      "title": "Admin Dashboard",
+      "title": "{{app}} Administration",
+      "subtitle": "Accounts and data lifecycle, across every workspace.",
+      "viewProfile": "View your profile",
       "loading": "Loading dashboard...",
       "loadFailed": "Failed to load dashboard data.",
-      "activeProjects": "Active Projects",
-      "activeUsers": "Active Users",
-      "deletedProjects": "Deleted Projects",
-      "deletedUsers": "Deleted Users",
-      "recentUsers": "Recent Users",
+      "stats": {
+        "users": {
+          "one": "User",
+          "few": "Users",
+          "other": "Users"
+        },
+        "workspaces": {
+          "one": "Shared workspace",
+          "few": "Shared workspaces",
+          "other": "Shared workspaces"
+        },
+        "projects": {
+          "one": "Project",
+          "few": "Projects",
+          "other": "Projects"
+        },
+        "tasks": {
+          "one": "Task",
+          "few": "Tasks",
+          "other": "Tasks"
+        },
+        "newUsers": {
+          "one": "Signups in the last {{days}} day: {{count}}",
+          "few": "Signups in the last {{days}} days: {{count}}",
+          "other": "Signups in the last {{days}} days: {{count}}"
+        }
+      },
+      "attention": {
+        "title": "Needs attention",
+        "clear": "Nothing needs a decision. Every trashed project is inside its window, and no account is waiting to be restored or erased.",
+        "purgeableProjects": {
+          "title": {
+            "one": "project past the window",
+            "few": "projects past the window",
+            "other": "projects past the window"
+          },
+          "body": "Their trash window has closed. Purge destroys them for good."
+        },
+        "deletedUsers": {
+          "title": {
+            "one": "account in the trash",
+            "few": "accounts in the trash",
+            "other": "accounts in the trash"
+          },
+          "body": "Restore them, or erase them for good."
+        }
+      },
+      "recentUsers": "Recent signups",
       "viewAll": "View all",
-      "name": "Name",
-      "email": "Email",
-      "createdAt": "Created At"
+      "noUsers": "Nobody has signed up yet.",
+      "context": {
+        "window": {
+          "one": "Projects are purgeable {{days}} day after deletion",
+          "few": "Projects are purgeable {{days}} days after deletion",
+          "other": "Projects are purgeable {{days}} days after deletion"
+        },
+        "deletedProjects": {
+          "one": "{{count}} project in the trash",
+          "few": "{{count}} projects in the trash",
+          "other": "{{count}} projects in the trash"
+        },
+        "deletedWorkspaces": {
+          "one": "{{count}} workspace in the trash",
+          "few": "{{count}} workspaces in the trash",
+          "other": "{{count}} workspaces in the trash"
+        },
+        "lockedOut": {
+          "one": "{{count}} account locked out",
+          "few": "{{count}} accounts locked out",
+          "other": "{{count}} accounts locked out"
+        }
+      }
     },
     "users": {
       "title": "Active Users",
@@ -805,25 +868,6 @@
     }
   },
   "workspaceHome": {
-    "greeting": {
-      "morning": "Good morning",
-      "afternoon": "Good afternoon",
-      "evening": "Good evening"
-    },
-    "taglines": {
-      "morning": "Seize the day",
-      "afternoon": "Keep the momentum going",
-      "evening": "Wind down, you've earned it",
-      "weather": {
-        "clear": "Soak up the sunshine",
-        "clearNight": "Clear skies tonight",
-        "cloudy": "Grey skies, clear focus",
-        "fog": "Ease through the haze",
-        "rain": "Cosy up, it's raining",
-        "snow": "Bundle up, it's snowing",
-        "storm": "A storm's rolling in"
-      }
-    },
     "stats": {
       "members": {
         "one": "Member",
@@ -859,6 +903,22 @@
     },
     "workspace": {
       "private": "Only you can see this workspace."
+    }
+  },
+  "greeting": {
+    "taglines": {
+      "morning": "Seize the day",
+      "afternoon": "Keep the momentum going",
+      "evening": "Wind down, you've earned it",
+      "weather": {
+        "clear": "Soak up the sunshine",
+        "clearNight": "Clear skies tonight",
+        "cloudy": "Grey skies, clear focus",
+        "fog": "Ease through the haze",
+        "rain": "Cosy up, it's raining",
+        "snow": "Bundle up, it's snowing",
+        "storm": "A storm's rolling in"
+      }
     }
   }
 }

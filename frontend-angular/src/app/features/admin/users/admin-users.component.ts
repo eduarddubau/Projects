@@ -18,6 +18,7 @@ import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { UserService } from '@core/services/user.service';
 import { AuthService } from '@core/services/auth.service';
 import { AdminUser } from '@core/models/admin-user';
+import { fullNameOf } from '@core/utils/person';
 import { TableState } from '@shared/table/table-state';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 
@@ -53,11 +54,11 @@ export class AdminUsersComponent {
 
   table = new TableState<AdminUser>({
     source: () => (this.users.hasValue() ? this.users.value().filter((u) => !u.isDeleted) : []),
-    searchText: (u) => `${u.firstName} ${u.lastName} ${u.email}`,
+    searchText: (u) => `${fullNameOf(u)} ${u.email}`,
     sortValue: (u, column) => {
       switch (column) {
         case 'name':
-          return `${u.firstName} ${u.lastName}`.toLowerCase();
+          return fullNameOf(u).toLowerCase();
         case 'email':
           return u.email.toLowerCase();
         case 'createdAt':
@@ -77,7 +78,7 @@ export class AdminUsersComponent {
   }
 
   confirmDelete(user: AdminUser): void {
-    const name = `${user.firstName} ${user.lastName}`;
+    const name = fullNameOf(user);
 
     this.dialog
       .open(ConfirmDialogComponent, {

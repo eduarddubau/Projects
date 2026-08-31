@@ -21,15 +21,6 @@
     >
     </span>
 
-    <!-- Inline nav (desktop) -->
-    <nav class="nav-inline">
-      @if (isAdmin()) {
-        <a class="nav-link" routerLink="/admin" routerLinkActive="active-link">{{
-          t('nav.admin')
-        }}</a>
-      }
-    </nav>
-
     <span class="spacer"></span>
 
     <button
@@ -72,42 +63,37 @@
       }
     </div>
 
-    <!-- Hamburger (mobile) -->
-    <button
-      mat-icon-button
-      class="nav-hamburger"
-      [matMenuTriggerFor]="mobileMenu"
-      [attr.aria-label]="t('openNav')"
-    >
-      <mat-icon>menu</mat-icon>
-    </button>
+    <!-- Hamburger (mobile). Everything it carries beyond Profile and Sign out is
+         workspace-scoped, which an admin has none of, so for them it would open a menu
+         holding nothing the avatar beside it does not already offer. -->
+    @if (!isAdmin()) {
+      <button
+        mat-icon-button
+        class="nav-hamburger"
+        [matMenuTriggerFor]="mobileMenu"
+        [attr.aria-label]="t('openNav')"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+    }
   </header>
 
   <!-- Mobile navigation menu -->
   <mat-menu #mobileMenu="matMenu" xPosition="before">
     @if (isAuthenticated()) {
-      @if (!isAdmin()) {
-        <button mat-menu-item routerLink="/dashboard">
-          <mat-icon>space_dashboard</mat-icon>
-          <span>{{ t('menu.home') }}</span>
-        </button>
-        <button mat-menu-item routerLink="/workspaces">
-          <mat-icon>workspaces</mat-icon>
-          <span>{{ 'workspaces.switcher.manageWorkspaces' | transloco }}</span>
-        </button>
-        <mat-divider></mat-divider>
-      }
+      <button mat-menu-item routerLink="/dashboard">
+        <mat-icon>space_dashboard</mat-icon>
+        <span>{{ t('menu.home') }}</span>
+      </button>
+      <button mat-menu-item routerLink="/workspaces">
+        <mat-icon>workspaces</mat-icon>
+        <span>{{ 'workspaces.switcher.manageWorkspaces' | transloco }}</span>
+      </button>
+      <mat-divider></mat-divider>
       <button mat-menu-item routerLink="/profile">
         <mat-icon>person</mat-icon>
         <span>{{ t('menu.profile') }}</span>
       </button>
-      @if (isAdmin()) {
-        <mat-divider></mat-divider>
-        <button mat-menu-item routerLink="/admin">
-          <mat-icon>admin_panel_settings</mat-icon>
-          <span>{{ t('menu.adminPanel') }}</span>
-        </button>
-      }
       <mat-divider></mat-divider>
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
@@ -153,6 +139,12 @@
       }
     </div>
     <mat-divider></mat-divider>
+    @if (isAdmin()) {
+      <button mat-menu-item routerLink="/admin" class="menu-item-primary">
+        <mat-icon>admin_panel_settings</mat-icon>
+        <span>{{ t('menu.adminPanel') }}</span>
+      </button>
+    }
     <button mat-menu-item routerLink="/profile" class="menu-item-primary">
       <mat-icon>person</mat-icon>
       <span>{{ t('menu.profile') }}</span>

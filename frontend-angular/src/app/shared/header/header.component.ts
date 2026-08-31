@@ -1,5 +1,5 @@
 import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -24,7 +24,6 @@ import { toSignal } from '@angular/core/rxjs-interop';
   selector: 'app-header',
   imports: [
     RouterLink,
-    RouterLinkActive,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -60,11 +59,7 @@ export class HeaderComponent {
     initialValue: { state: 'offline', errorKey: 'header.health.initializing' } as HealthStatus,
   });
 
-  initials = computed(() => {
-    const user = this.currentUser();
-    if (!user) return '';
-    return `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase();
-  });
+  initials = this.authService.initials;
 
   theme = this.themeService.theme;
   palette = this.paletteService.palette;

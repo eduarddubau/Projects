@@ -23,6 +23,7 @@ import { ProfileService } from '@core/services/profile.service';
 import { AuthService } from '@core/services/auth.service';
 import { LANGUAGES, Lang, LanguageService } from '@core/services/language.service';
 import { ThemeService, Theme } from '@core/services/theme.service';
+import { fullNameOf, initialsOf } from '@core/utils/person';
 import {
   PaletteService,
   PALETTES,
@@ -78,17 +79,10 @@ export class ProfileComponent {
 
   isAdmin = this.authService.isAdmin;
 
-  fullName = computed(() => {
-    if (!this.profile.hasValue()) return '';
-    const profile = this.profile.value();
-    return `${profile.firstName} ${profile.lastName}`.trim();
-  });
+  // hasValue(), not value(): a resource in an error state throws when read.
+  fullName = computed(() => (this.profile.hasValue() ? fullNameOf(this.profile.value()) : ''));
 
-  initials = computed(() => {
-    if (!this.profile.hasValue()) return '';
-    const profile = this.profile.value();
-    return `${profile.firstName?.[0] ?? ''}${profile.lastName?.[0] ?? ''}`.toUpperCase();
-  });
+  initials = computed(() => (this.profile.hasValue() ? initialsOf(this.profile.value()) : ''));
 
   form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.maxLength(50)]],

@@ -12,4 +12,14 @@ public static class WorkspaceQueryExtensions
         IQueryable<WorkspaceMember> members,
         Guid? userId
     ) => query.Where(p => members.Any(m => m.WorkspaceId == p.WorkspaceId && m.UserId == userId));
+
+    /// <summary>Projects whose workspace is in the given set.</summary>
+    // Pass the filtered Workspaces to drop projects stranded inside a soft-deleted one:
+    // deleting a workspace does not touch the projects in it, so they stay !IsDeleted and
+    // an unqualified Projects query still counts work nobody can open. EXISTS rather than
+    // the navigation, for the reason above.
+    public static IQueryable<Project> InWorkspaces(
+        this IQueryable<Project> query,
+        IQueryable<Workspace> workspaces
+    ) => query.Where(p => workspaces.Any(w => w.Id == p.WorkspaceId));
 }

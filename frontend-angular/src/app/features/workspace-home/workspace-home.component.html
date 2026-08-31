@@ -1,6 +1,6 @@
 <app-aurora></app-aurora>
 
-<div class="page-container home-container" *transloco="let t">
+<div class="page-container home-page" *transloco="let t">
   <header class="home-header">
     <a
       routerLink="/profile"
@@ -17,10 +17,10 @@
            on where the line breaks — never the one space it should be. -->
       <p class="home-greeting">
         @if (displayName(); as name) {
-          <span>{{ t(taglineKey()) }},</span>
+          <span>{{ t(greeting.taglineKey()) }},</span>
           <a routerLink="/profile" class="name-link">{{ name }}</a>
         } @else {
-          <span>{{ t(taglineKey()) }}</span>
+          <span>{{ t(greeting.taglineKey()) }}</span>
         }
       </p>
 
@@ -35,7 +35,7 @@
       }
     </div>
 
-    <app-weather-widget class="home-weather" (loaded)="onWeatherLoaded($event)" />
+    <app-weather-widget class="home-weather" (loaded)="greeting.onWeatherLoaded($event)" />
   </header>
 
   <!-- The tiles carry their own loading and error states: a failed count is no

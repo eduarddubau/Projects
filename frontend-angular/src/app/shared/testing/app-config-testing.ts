@@ -18,7 +18,7 @@ export function provideAppConfigTesting(days: number | null = 30) {
     useValue: {
       trashWindowDays: signal(days ?? undefined),
       trashWindow: signal(window),
-      // Three component constructors call this; a spy, so a spec can assert the ask.
+      // Called from component constructors; a spy, so a spec can assert the ask.
       reloadIfFailed: vi.fn(),
     },
   };

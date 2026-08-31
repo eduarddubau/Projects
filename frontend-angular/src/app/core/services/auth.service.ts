@@ -10,6 +10,7 @@ import { LoginCredentials } from '@core/models/login-credentials';
 import { RegisterCredentials } from '@core/models/register-credentials';
 import { User } from '@core/models/user';
 import { WorkspaceContextService } from '@core/services/workspace-context.service';
+import { initialsOf } from '@core/utils/person';
 import { StorageKeys } from '@core/utils/storage-keys';
 
 interface DecodedToken {
@@ -37,6 +38,7 @@ export class AuthService {
     const u = this.currentUser();
     return u?.nickname?.trim() || u?.firstName || '';
   });
+  initials = computed(() => initialsOf(this.currentUser()));
 
   // Shared in-flight refresh so concurrent 401s trigger only one refresh call.
   private refresh$: Observable<string> | null = null;

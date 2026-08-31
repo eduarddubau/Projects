@@ -15,6 +15,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { TranslocoPaginatorIntl } from '@core/i18n/transloco-paginator-intl';
 import { UserService } from '@core/services/user.service';
 import { AdminUser } from '@core/models/admin-user';
+import { fullNameOf } from '@core/utils/person';
 import { TableState } from '@shared/table/table-state';
 import { ConfirmDialogComponent } from '@shared/confirm-dialog/confirm-dialog.component';
 import { serverErrorKey, serverErrorParams } from '@core/i18n/server-error-keys';
@@ -48,11 +49,11 @@ export class TrashUsersComponent {
 
   table = new TableState<AdminUser>({
     source: () => (this.deleted.hasValue() ? this.deleted.value() : []),
-    searchText: (u) => `${u.firstName} ${u.lastName} ${u.email}`,
+    searchText: (u) => `${fullNameOf(u)} ${u.email}`,
     sortValue: (u, column) => {
       switch (column) {
         case 'name':
-          return `${u.firstName} ${u.lastName}`.toLowerCase();
+          return fullNameOf(u).toLowerCase();
         case 'email':
           return u.email.toLowerCase();
         case 'deletedAt':
@@ -69,7 +70,7 @@ export class TrashUsersComponent {
     this.userService.restoreUser(user.id).subscribe({
       next: () => {
         this.deleted.update((list) => list.filter((u) => u.id !== user.id));
-        this.notify('admin.trashUsers.restoredNamed', { name: fullName(user) });
+        this.notify('admin.trashUsers.restoredNamed', { name: fullNameOf(user) });
       },
       error: (err) => this.notifyError(err, 'admin.trashUsers.restoreFailed'),
     });
@@ -82,7 +83,7 @@ export class TrashUsersComponent {
         data: {
           title: this.transloco.translate('admin.trashUsers.eraseTitle'),
           message: this.transloco.translate('admin.trashUsers.eraseMessage', {
-            name: fullName(user),
+            name: fullNameOf(user),
             email: user.email,
           }),
           confirmLabel: this.transloco.translate('common.actions.erase'),
@@ -121,8 +122,4 @@ export class TrashUsersComponent {
       { duration: 10000 },
     );
   }
-}
-
-function fullName(user: AdminUser): string {
-  return `${user.firstName} ${user.lastName}`;
 }

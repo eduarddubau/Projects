@@ -22,10 +22,18 @@ public class AdminDashboardControllerTests
     {
         var dashboard = new AdminDashboardDto
         {
-            ActiveProjectCount = 4,
-            DeletedProjectCount = 2,
             ActiveUserCount = 3,
+            SharedWorkspaceCount = 5,
+            ActiveProjectCount = 4,
+            TaskCount = 9,
+            PurgeableProjectCount = 1,
             DeletedUserCount = 1,
+            LockedOutUserCount = 0,
+            DeletedProjectCount = 2,
+            DeletedWorkspaceCount = 1,
+            NewUserCount = 2,
+            NewUserWindowDays = 7,
+            Environment = "Testing",
             RecentUsers = [new UserResponseDto { Id = Guid.NewGuid(), Email = "ada@example.com" }],
         };
         _dashboardService

@@ -3,7 +3,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AppConfigService } from '@core/services/app-config.service';
 import { LanguageService } from '@core/services/language.service';
 import { TodayService } from '@core/services/today.service';
-import { pluralCategory } from '@core/utils/plural';
+import { pluralKey } from '@core/utils/plural';
 import { daysUntilExpiry, expiryIso } from '@core/utils/trash-expiry';
 
 /** How close to the end of the window a row starts reading as urgent. */
@@ -66,6 +66,6 @@ export class TrashExpiryComponent {
     if (days === 0) return `${base}.due`;
     if (days === 1) return `${base}.tomorrow`;
 
-    return `${base}.inDays.${pluralCategory(days, this.language.dateLocale())}`;
+    return pluralKey(`${base}.inDays`, days, this.language.dateLocale());
   });
 }

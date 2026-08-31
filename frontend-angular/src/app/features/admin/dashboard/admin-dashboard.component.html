@@ -1,97 +1,176 @@
-<div class="page-container dashboard-container" *transloco="let t; prefix: 'admin.dashboard'">
-  <div class="page-header">
-    <h1 class="page-title">{{ t('title') }}</h1>
-  </div>
+<div class="page-container home-page" *transloco="let t">
+  <header class="home-header">
+    <a
+      routerLink="/profile"
+      class="home-avatar-link"
+      [attr.aria-label]="t('admin.dashboard.viewProfile')"
+    >
+      <span class="avatar-circle home-avatar" aria-hidden="true">{{ initials() }}</span>
+    </a>
+
+    <div class="home-heading">
+      <!-- The comma rides with the tagline and the gap before the name is CSS: Angular
+           collapses the markup whitespace between the two elements. -->
+      <p class="home-greeting">
+        @if (displayName(); as name) {
+          <span>{{ t(greeting.taglineKey()) }},</span>
+          <a routerLink="/profile" class="name-link">{{ name }}</a>
+        } @else {
+          <span>{{ t(greeting.taglineKey()) }}</span>
+        }
+      </p>
+
+      <!-- The environment sits outside the <h1>: it labels the instance, not the page,
+           and inside it would land in the heading's accessible name. -->
+      <div class="title-row">
+        <h1 class="page-title">{{ t('admin.dashboard.title', { app: appName }) }}</h1>
+        @if (stats.hasValue()) {
+          <span class="role-chip env-chip">{{ stats.value().environment }}</span>
+        }
+      </div>
+      <p class="page-subtitle">{{ t('admin.dashboard.subtitle') }}</p>
+    </div>
+
+    <app-weather-widget class="home-weather" (loaded)="greeting.onWeatherLoaded($event)" />
+  </header>
 
   @if (stats.isLoading()) {
     <div class="state-container">
       <mat-spinner diameter="40"></mat-spinner>
-      <p>{{ t('loading') }}</p>
+      <p>{{ t('admin.dashboard.loading') }}</p>
     </div>
   } @else if (stats.error()) {
     <div class="state-container">
       <mat-icon color="warn">error_outline</mat-icon>
-      <p>{{ t('loadFailed') }}</p>
+      <p>{{ t('admin.dashboard.loadFailed') }}</p>
     </div>
   } @else if (stats.hasValue()) {
     @let s = stats.value();
-    <!-- Stats Cards -->
-    <div class="stats-grid">
-      <mat-card class="stat-card static">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon projects">folder</mat-icon>
-            <div class="stat-text">
-              <span class="stat-value">{{ s.activeProjectCount }}</span>
-              <span class="stat-label">{{ t('activeProjects') }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
 
-      <mat-card class="stat-card" routerLink="/admin/users">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon users">people</mat-icon>
-            <div class="stat-text">
-              <span class="stat-value">{{ s.activeUserCount }}</span>
-              <span class="stat-label">{{ t('activeUsers') }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+    <!-- Scale: live rows of each kind. Only Users has a page behind it, so the other
+         three do not pretend to be links. -->
+    <section class="overview">
+      <a class="kpi" routerLink="/admin/users">
+        <span class="kpi-value">{{ s.activeUserCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">group</mat-icon>
+          {{ t(countLabel('users', s.activeUserCount)) }}
+          @if (s.newUserCount > 0) {
+            <!-- Real text, visually hidden, not an aria-label: a bare <span> is role
+                 generic, which prohibits an accessible name, so browsers drop it. -->
+            @let newUsers = newUsersLabel(s);
+            <span class="role-chip" [matTooltip]="newUsers" aria-hidden="true"
+              >+{{ s.newUserCount }}</span
+            >
+            <span class="sr-only">{{ newUsers }}</span>
+          }
+        </span>
+      </a>
 
-      <mat-card class="stat-card" routerLink="/admin/trash/projects">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon deleted">delete</mat-icon>
-            <div class="stat-text">
-              <span class="stat-value">{{ s.deletedProjectCount }}</span>
-              <span class="stat-label">{{ t('deletedProjects') }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+      <div class="kpi">
+        <span class="kpi-value">{{ s.sharedWorkspaceCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">workspaces</mat-icon>
+          {{ t(countLabel('workspaces', s.sharedWorkspaceCount)) }}
+        </span>
+      </div>
 
-      <mat-card class="stat-card" routerLink="/admin/trash/users">
-        <mat-card-content>
-          <div class="stat-content">
-            <mat-icon class="stat-icon deleted">person_off</mat-icon>
-            <div class="stat-text">
-              <span class="stat-value">{{ s.deletedUserCount }}</span>
-              <span class="stat-label">{{ t('deletedUsers') }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
+      <div class="kpi">
+        <span class="kpi-value">{{ s.activeProjectCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">folder_open</mat-icon>
+          {{ t(countLabel('projects', s.activeProjectCount)) }}
+        </span>
+      </div>
 
-    <!-- Recent Users -->
-    <mat-card class="section-card">
-      <mat-card-header>
-        <mat-card-title>{{ t('recentUsers') }}</mat-card-title>
-        <div class="card-header-actions">
-          <a mat-button routerLink="/admin/users">{{ t('viewAll') }}</a>
+      <div class="kpi">
+        <span class="kpi-value">{{ s.taskCount }}</span>
+        <span class="kpi-meta">
+          <mat-icon class="kpi-icon">check_circle_outline</mat-icon>
+          {{ t(countLabel('tasks', s.taskCount)) }}
+        </span>
+      </div>
+    </section>
+
+    <!-- The numbers that carry a decision, and nothing else. -->
+    <section class="home-section">
+      <div class="section-head">
+        <h2 class="section-title">{{ t('admin.dashboard.attention.title') }}</h2>
+      </div>
+
+      @if (attention().length === 0) {
+        <p class="section-state">
+          <mat-icon class="clear-icon">check_circle</mat-icon>
+          {{ t('admin.dashboard.attention.clear') }}
+        </p>
+      } @else {
+        <div class="attention-grid">
+          @for (item of attention(); track item.key) {
+            <a class="attention-card" [routerLink]="item.link">
+              <span class="attention-value">{{ item.count }}</span>
+              <span class="attention-title">
+                <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+                {{ t(attentionTitle(item)) }}
+              </span>
+              <span class="attention-body">
+                {{ t('admin.dashboard.attention.' + item.key + '.body') }}
+              </span>
+            </a>
+          }
         </div>
-      </mat-card-header>
-      <mat-card-content>
-        <table mat-table [dataSource]="s.recentUsers" class="full-width-table">
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>{{ t('name') }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
-          </ng-container>
-          <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef>{{ t('email') }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.email }}</td>
-          </ng-container>
-          <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef>{{ t('createdAt') }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'yyyy-MM-dd' }}</td>
-          </ng-container>
-          <tr mat-header-row *matHeaderRowDef="recentUserColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: recentUserColumns"></tr>
-        </table>
-      </mat-card-content>
-    </mat-card>
+      }
+    </section>
+
+    <section class="home-section">
+      <div class="section-head">
+        <h2 class="section-title">{{ t('admin.dashboard.recentUsers') }}</h2>
+        <a class="section-link" routerLink="/admin/users">
+          {{ t('admin.dashboard.viewAll') }}
+          <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+        </a>
+      </div>
+
+      @if (s.recentUsers.length === 0) {
+        <p class="section-state">{{ t('admin.dashboard.noUsers') }}</p>
+      } @else {
+        <ul class="signup-list">
+          @for (user of s.recentUsers; track user.id) {
+            <li class="signup-row">
+              <span class="avatar-circle signup-avatar" aria-hidden="true">{{
+                signupInitials(user)
+              }}</span>
+              <span class="signup-identity">
+                <span class="signup-name">{{ fullName(user) }}</span>
+                <span class="signup-email">{{ user.email }}</span>
+              </span>
+              <span class="signup-joined">
+                {{ user.createdAt | date: 'mediumDate' : undefined : dateLocale() }}
+              </span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- The window sentence names projects: workspace purge is not cutoff-gated, so a
+         bare "Trash window: 30 days" beside a workspaces count promises a deadline
+         nothing enforces there.
+
+         Guarded, or a failed /config on a clean instance leaves an empty paragraph
+         holding the page's section gap open for nothing. -->
+    @if (trashWindow() || context().length) {
+      <p class="context-strip">
+        @if (trashWindow(); as w) {
+          <span>{{ t('admin.dashboard.context.window.' + w.plural, { days: w.days }) }}</span>
+        }
+        @for (item of context(); track item.key) {
+          @if (item.link) {
+            <a [routerLink]="item.link">{{ t(contextLabel(item), { count: item.count }) }}</a>
+          } @else {
+            <span>{{ t(contextLabel(item), { count: item.count }) }}</span>
+          }
+        }
+      </p>
+    }
   }
 </div>

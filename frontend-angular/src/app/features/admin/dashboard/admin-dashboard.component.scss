@@ -1,10 +1,163 @@
-// Tile and section-card styles are shared with the user dashboard in styles.scss.
-.dashboard-container {
+@use '../../../shared/styles/home';
+
+@include home.home-page;
+
+.title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+// Which instance this is, in the slot the workspace home gives the member's role.
+.env-chip {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mat-sys-primary);
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 40%, var(--mat-sys-outline-variant));
+}
+
+// Nothing waiting is good news, so it reads as such rather than as an empty list.
+.section-state .clear-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  color: var(--mat-sys-primary);
+}
+
+.attention-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+// Flat at rest like every other card here; the count carries the weight, not a shadow.
+.attention-card {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 16px;
+  border: var(--app-hairline);
+  border-radius: var(--app-radius-card);
+  background: var(--mat-sys-surface-container-lowest);
+  color: var(--mat-sys-on-surface);
+  text-decoration: none;
 
-  .page-header {
-    margin-bottom: 0;
+  // Focus as well as hover: this is a link, and the queue is where an admin arrives by
+  // keyboard as readily as by pointer.
+  &:hover,
+  &:focus-visible {
+    background: var(--mat-sys-surface-container);
+  }
+}
+
+.attention-value {
+  font-family: 'Space Grotesk Variable', 'Inter Variable', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.attention-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    color: var(--mat-sys-primary);
+  }
+}
+
+.attention-body {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.82rem;
+}
+
+.signup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.signup-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+
+  // Hairline between rows only, so the list reads as one block rather than as boxes.
+  & + .signup-row {
+    border-top: var(--app-hairline);
+  }
+}
+
+.signup-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 0.8rem;
+  flex: 0 0 auto;
+}
+
+.signup-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.signup-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.signup-email {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signup-joined {
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.78rem;
+}
+
+// Small print under everything: the policy numbers that no longer need a tile.
+.context-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 4px 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.78rem;
+
+  // Items are a mix of links and plain text now, so the separator keys off position
+  // rather than element name.
+  > * + *::before {
+    content: '·';
+    margin-inline-end: 14px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--mat-sys-on-surface);
+      text-decoration: underline;
+    }
   }
 }

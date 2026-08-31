@@ -55,37 +55,8 @@
   }
 }
 
-.nav-inline {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 12px;
-
-  .nav-link {
-    padding: 7px 14px;
-    border-radius: 999px;
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-decoration: none;
-    color: var(--mat-sys-on-surface-variant);
-    transition:
-      background-color 0.15s ease,
-      color 0.15s ease;
-
-    &:hover {
-      color: var(--mat-sys-on-surface);
-      background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
-    }
-
-    &.active-link {
-      color: var(--mat-sys-primary);
-      font-weight: 600;
-      background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
-    }
-  }
-}
-
-// Hamburger is hidden on desktop; inline nav hidden on mobile.
+// Hidden on desktop, where the workspace-scoped nav it carries has no place. /admin
+// is not among its entries — that lives in the profile menu, at every width.
 .nav-hamburger {
   display: none;
 }
@@ -226,9 +197,6 @@
 
 // Last in the file: these tie with the rules they undo, so order decides.
 @media (max-width: 720px) {
-  .nav-inline {
-    display: none;
-  }
   .nav-hamburger {
     display: inline-flex;
   }

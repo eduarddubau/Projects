@@ -52,9 +52,6 @@
     }
   },
   "header": {
-    "nav": {
-      "admin": "Administrare"
-    },
     "health": {
       "online": "API-ul este online",
       "offline": "API-ul este offline",
@@ -311,6 +308,7 @@
     },
     "table": {
       "name": "Nume",
+      "email": "Email",
       "description": "Descriere",
       "createdBy": "Creat de",
       "createdAt": "Creat la",
@@ -365,18 +363,83 @@
       "workspaces": "Spații de lucru"
     },
     "dashboard": {
-      "title": "Panou de administrare",
+      "title": "Administrare {{app}}",
+      "subtitle": "Conturi și ciclul de viață al datelor, în toate spațiile de lucru.",
+      "viewProfile": "Vezi profilul tău",
       "loading": "Se încarcă tabloul de bord...",
       "loadFailed": "Datele tabloului de bord nu au putut fi încărcate.",
-      "activeProjects": "Proiecte active",
-      "activeUsers": "Utilizatori activi",
-      "deletedProjects": "Proiecte șterse",
-      "deletedUsers": "Utilizatori șterși",
-      "recentUsers": "Utilizatori recenți",
+      "stats": {
+        "users": {
+          "one": "Utilizator",
+          "few": "Utilizatori",
+          "other": "Utilizatori"
+        },
+        "workspaces": {
+          "one": "Spațiu partajat",
+          "few": "Spații partajate",
+          "other": "Spații partajate"
+        },
+        "projects": {
+          "one": "Proiect",
+          "few": "Proiecte",
+          "other": "Proiecte"
+        },
+        "tasks": {
+          "one": "Sarcină",
+          "few": "Sarcini",
+          "other": "Sarcini"
+        },
+        "newUsers": {
+          "one": "Înscrieri în ultima zi: {{count}}",
+          "few": "Înscrieri în ultimele {{days}} zile: {{count}}",
+          "other": "Înscrieri în ultimele {{days}} de zile: {{count}}"
+        }
+      },
+      "attention": {
+        "title": "Necesită atenție",
+        "clear": "Nimic de decis. Toate proiectele șterse sunt în interiorul ferestrei, iar niciun cont nu așteaptă să fie restaurat sau șters definitiv.",
+        "purgeableProjects": {
+          "title": {
+            "one": "proiect peste fereastră",
+            "few": "proiecte peste fereastră",
+            "other": "proiecte peste fereastră"
+          },
+          "body": "Fereastra coșului s-a închis. Ștergerea definitivă le elimină pentru totdeauna."
+        },
+        "deletedUsers": {
+          "title": {
+            "one": "cont în coșul de gunoi",
+            "few": "conturi în coșul de gunoi",
+            "other": "conturi în coșul de gunoi"
+          },
+          "body": "Restaurează-le sau șterge-le definitiv."
+        }
+      },
+      "recentUsers": "Înscrieri recente",
       "viewAll": "Vezi tot",
-      "name": "Nume",
-      "email": "Email",
-      "createdAt": "Creat la"
+      "noUsers": "Nimeni nu s-a înscris încă.",
+      "context": {
+        "window": {
+          "one": "Proiectele pot fi șterse definitiv la o zi după ștergere",
+          "few": "Proiectele pot fi șterse definitiv la {{days}} zile după ștergere",
+          "other": "Proiectele pot fi șterse definitiv la {{days}} de zile după ștergere"
+        },
+        "deletedProjects": {
+          "one": "{{count}} proiect în coș",
+          "few": "{{count}} proiecte în coș",
+          "other": "{{count}} de proiecte în coș"
+        },
+        "deletedWorkspaces": {
+          "one": "{{count}} spațiu de lucru în coș",
+          "few": "{{count}} spații de lucru în coș",
+          "other": "{{count}} de spații de lucru în coș"
+        },
+        "lockedOut": {
+          "one": "{{count}} cont blocat",
+          "few": "{{count}} conturi blocate",
+          "other": "{{count}} de conturi blocate"
+        }
+      }
     },
     "users": {
       "title": "Utilizatori activi",
@@ -805,25 +868,6 @@
     }
   },
   "workspaceHome": {
-    "greeting": {
-      "morning": "Bună dimineața",
-      "afternoon": "Bună ziua",
-      "evening": "Bună seara"
-    },
-    "taglines": {
-      "morning": "Profită de zi",
-      "afternoon": "Menține ritmul",
-      "evening": "Relaxează-te, ai meritat-o",
-      "weather": {
-        "clear": "Bucură-te de soare",
-        "clearNight": "Cer senin la noapte",
-        "cloudy": "Cer înnorat, minte limpede",
-        "fog": "Străbate ceața cu calm",
-        "rain": "Fă-te comod, plouă",
-        "snow": "Îmbracă-te gros, ninge",
-        "storm": "Vine o furtună"
-      }
-    },
     "stats": {
       "members": {
         "one": "Membru",
@@ -859,6 +903,22 @@
     },
     "workspace": {
       "private": "Doar tu poți vedea acest spațiu de lucru."
+    }
+  },
+  "greeting": {
+    "taglines": {
+      "morning": "Profită de zi",
+      "afternoon": "Menține ritmul",
+      "evening": "Relaxează-te, ai meritat-o",
+      "weather": {
+        "clear": "Bucură-te de soare",
+        "clearNight": "Cer senin la noapte",
+        "cloudy": "Cer înnorat, minte limpede",
+        "fog": "Străbate ceața cu calm",
+        "rain": "Fă-te comod, plouă",
+        "snow": "Îmbracă-te gros, ninge",
+        "storm": "Vine o furtună"
+      }
     }
   }
 }
