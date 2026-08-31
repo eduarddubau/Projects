@@ -19,7 +19,8 @@ test.describe('Workspace home', () => {
 
     // Post-login default destination is /dashboard, which forwards to a workspace.
     await page.waitForURL(workspaceHome);
-    await expect(page.locator('.page-title')).toContainText('dev2');
+    // The title belongs to the workspace now; the reader's own name is in the brow.
+    await expect(page.locator('.home-greeting')).toContainText('dev2');
     // The home is the personal digest; the projects table lives on /projects.
     await expect(page.getByRole('heading', { name: 'My tasks' })).toBeVisible();
 

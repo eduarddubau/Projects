@@ -71,7 +71,9 @@ test.describe('Workspace home', () => {
       .getByRole('link', { name: 'View all' })
       .click();
 
-    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/tasks$/);
+    // Carries the filter: the tasks page opens on All, so an unfiltered link would
+    // expand this digest into everyone's list rather than the one it summarises.
+    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/tasks\?filter=mine$/);
     await expect(page.getByRole('heading', { name: 'Tasks', level: 1 })).toBeVisible();
   });
 });

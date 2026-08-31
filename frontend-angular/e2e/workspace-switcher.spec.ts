@@ -18,7 +18,9 @@ test.describe('Workspace switcher', () => {
 
     await trigger.click();
     await expect(page.locator('.ws-item-name')).toHaveText(['My Workspace', 'Acme Team']);
-    await expect(page.locator('.role-chip')).toHaveCount(1);
+    // Scoped to the panel: the workspace home behind it wears a role chip of its own,
+    // so a page-wide count stopped being a count of the switcher's chips.
+    await expect(page.locator('.ws-item .role-chip')).toHaveCount(1);
 
     // Clicking an item both selects and closes, so there is no second open here.
     await page.locator('.ws-item', { hasText: 'Acme Team' }).click();
