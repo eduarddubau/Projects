@@ -451,8 +451,10 @@ public sealed class AdminUserServiceTests : IDisposable
         );
     }
 
+    // Its name is built from the user's own, so a surviving row keeps the very thing erasure
+    // removes — and the admin workspace trash would show it.
     [Fact]
-    public async Task AnonymizeUserAsync_SoftDeletesPersonalWorkspaceRatherThanPurgingIt()
+    public async Task AnonymizeUserAsync_DestroysThePersonalWorkspaceOutright()
     {
         var user = AddUser("solo@example.com", isDeleted: true);
         var personal = AddWorkspace(
@@ -465,17 +467,65 @@ public sealed class AdminUserServiceTests : IDisposable
             await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken)
         );
 
-        // Row survives so audit foreign keys stay valid, but nothing lists it.
-        var stored = await _context
-            .Workspaces.IgnoreQueryFilters()
-            .FirstAsync(
-                w => w.Id == personal.Id,
-                cancellationToken: TestContext.Current.CancellationToken
-            );
-        Assert.True(stored.IsDeleted);
         Assert.Empty(
             await _context
-                .Workspaces.Where(w => w.Id == personal.Id)
+                .Workspaces.IgnoreQueryFilters()
+                .Where(w => w.Id == personal.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
+    }
+
+    // Soft-deleting the workspace left these behind: live rows nothing could list, which also
+    // made the workspace permanently un-purgeable.
+    [Fact]
+    public async Task AnonymizeUserAsync_TakesThePersonalWorkspacesProjectsAndTasksWithIt()
+    {
+        var user = AddUser("solo@example.com", isDeleted: true);
+        var personal = AddWorkspace(
+            "Solo's Workspace",
+            isPersonal: true,
+            (user, WorkspaceRole.Owner)
+        );
+
+        var project = new Project { Name = "Private", WorkspaceId = personal.Id };
+        _context.Projects.Add(project);
+        _context.SaveChanges();
+
+        _context.Tasks.Add(
+            new TaskItem
+            {
+                Title = "Private task",
+                ProjectId = project.Id,
+                Status = TaskItemStatus.Todo,
+            }
+        );
+        // A trashed one holds the FK just as hard as a live one.
+        _context.Tasks.Add(
+            new TaskItem
+            {
+                Title = "Trashed task",
+                ProjectId = project.Id,
+                Status = TaskItemStatus.Todo,
+                IsDeleted = true,
+                DeletedAt = DateTime.UtcNow,
+            }
+        );
+        _context.SaveChanges();
+
+        Assert.True(
+            await _service.AnonymizeUserAsync(user.Id, TestContext.Current.CancellationToken)
+        );
+
+        Assert.Empty(
+            await _context
+                .Projects.IgnoreQueryFilters()
+                .Where(p => p.WorkspaceId == personal.Id)
+                .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
+        );
+        Assert.Empty(
+            await _context
+                .Tasks.IgnoreQueryFilters()
+                .Where(t => t.ProjectId == project.Id)
                 .ToListAsync(cancellationToken: TestContext.Current.CancellationToken)
         );
     }

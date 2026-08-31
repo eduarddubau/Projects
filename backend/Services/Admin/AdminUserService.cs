@@ -183,7 +183,8 @@ public class AdminUserService : IAdminUserService
         }
 
         var personalWorkspaces = await _context
-            .Workspaces.Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))
+            .Workspaces.IgnoreQueryFilters()
+            .Where(w => w.IsPersonal && w.Members.Any(m => m.UserId == id))
             .ToListAsync(ct);
 
         var memberships = await _context
@@ -196,12 +197,7 @@ public class AdminUserService : IAdminUserService
 
         var now = DateTime.UtcNow;
 
-        // A soft delete: the personal workspace is hidden from the user and cannot be restored.
-        foreach (var workspace in personalWorkspaces)
-        {
-            workspace.IsDeleted = true;
-            workspace.DeletedAt = now;
-        }
+        await ErasePersonalWorkspacesAsync(personalWorkspaces, ct);
 
         var tombstone = $"deleted-{user.Id:N}@anonymized.invalid";
 
@@ -219,6 +215,60 @@ public class AdminUserService : IAdminUserService
         await _context.SaveChangesAsync(ct);
 
         return true;
+    }
+
+    /// <summary>
+    /// Destroys the erased account's private workspaces outright — their projects and tasks
+    /// first, since both FKs are Restrict.
+    /// </summary>
+    // Not a soft delete. The workspace's name is derived from the user's own
+    // (WorkspaceService.PersonalWorkspaceName), so a surviving row keeps the name erasure
+    // exists to remove and shows it in the admin workspace trash. Soft-deleting also left
+    // the projects inside untouched and therefore reachable by nothing, while
+    // PurgeWorkspacesAsync counts them through IgnoreQueryFilters and refuses the workspace
+    // forever. Nothing else may reference these rows: the workspace is private by
+    // definition, and its members and invitations cascade.
+    private async Task ErasePersonalWorkspacesAsync(
+        List<Workspace> workspaces,
+        CancellationToken ct
+    )
+    {
+        if (workspaces.Count == 0)
+            return;
+
+        var workspaceIds = workspaces.ConvertAll(w => w.Id);
+
+        var projects = await _context
+            .Projects.IgnoreQueryFilters()
+            .Where(p => workspaceIds.Contains(p.WorkspaceId))
+            .ToListAsync(ct);
+
+        var projectIds = projects.ConvertAll(p => p.Id);
+
+        // IgnoreQueryFilters throughout: a soft-deleted row holds its parent's FK just as
+        // hard as a live one.
+        var tasks = await _context
+            .Tasks.IgnoreQueryFilters()
+            .Where(t => projectIds.Contains(t.ProjectId))
+            .ToListAsync(ct);
+
+        foreach (var task in tasks)
+        {
+            _context.MarkForHardDelete(task);
+            _context.Tasks.Remove(task);
+        }
+
+        foreach (var project in projects)
+        {
+            _context.MarkForHardDelete(project);
+            _context.Projects.Remove(project);
+        }
+
+        foreach (var workspace in workspaces)
+        {
+            _context.MarkForHardDelete(workspace);
+            _context.Workspaces.Remove(workspace);
+        }
     }
 
     private static string GenerateSecurePassword()
